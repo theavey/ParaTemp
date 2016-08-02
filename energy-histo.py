@@ -24,14 +24,17 @@
 
 import argparse
 import glob
-import gromacs
 import gromacs.formats
+import gromacs.tools
 import re
 import matplotlib.pyplot as plt
 import os
 
 __version__ = '0.0.1'
 
+# todo add argument and code for way to save to a file instead of viewing
+# todo make this a function and only call it if the script is called alone
+# todo take arguments to change the plotting
 parser = argparse.ArgumentParser(description='A script to plot energy '
                                              'histograms from a GROMACS '
                                              'parallel tempering simulation.')
@@ -41,20 +44,28 @@ args = parser.parse_args()
 
 
 # Find .edr files in this directory and make .xvg files for each
-energy_files = glob.glob('*[0-9].edr')
-output_files = []
-for file_name in energy_files:
-    output_name = ('energy' + re.search('[0-9]*(?=\.edr)', file_name).group(0)
-                   + '.xvg')
-    if not os.path.isfile(output_name):
-        gromacs.tools.G_energy(f=file_name, o=output_name, input="13")()
-    output_files += [output_name]
+def find_energies():
+    energy_files = glob.glob('*[0-9].edr')
+    output_files = []
+    for file_name in energy_files:
+        output_name = ('energy' + re.search('[0-9]*(?=\.edr)',
+                                            file_name).group(0) + '.xvg')
+        if not os.path.isfile(output_name):
+            gromacs.tools.G_energy(f=file_name, o=output_name, input="13")()
+        output_files += [output_name]
+    return output_files
 
 
-imported_data = []
-for file_name in output_files:
-    xvg_file = gromacs.formats.XVG(filename=file_name)
-    imported_data += [xvg_file.array[1]]
+def import_energies(output_files):
+    imported_data = []
+    for file_name in output_files:
+        xvg_file = gromacs.formats.XVG(filename=file_name)
+        imported_data += [xvg_file.array[1]]
+    return imported_data
+
+output_files = find_energies()
+imported_data = import_energies(output_files)
+
 plt.hist(imported_data, 50, histtype='stepfilled')
 
 plt.show()
