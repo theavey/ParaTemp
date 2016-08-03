@@ -43,8 +43,12 @@ parser.add_argument('--version', action='version',
 args = parser.parse_args()
 
 
-# Find .edr files in this directory and make .xvg files for each
 def find_energies():
+    """find_energies() is a function that finds all files in the current
+    directory that end in a numeral followed by '.edr'. For each of these
+    files, it checks if a file named energy(same number).xvg exists, and if
+    not, creates it by calling the gromacs tool gmx energy where input='13'
+    corresponds to the total energy at each time."""
     energy_files = glob.glob('*[0-9].edr')
     output_files = []
     for file_name in energy_files:
@@ -57,6 +61,9 @@ def find_energies():
 
 
 def import_energies(output_files):
+    """import_energies(file_list) takes a list of .xvg files in the current
+    directory, imports their second columns (likely a list of energies at
+    consecutive time steps), and returns that as a list of arrays."""
     imported_data = []
     for file_name in output_files:
         xvg_file = gromacs.formats.XVG(filename=file_name)
@@ -75,6 +82,12 @@ if __name__ == "__main__":
 
 
 def combine_energy_files(basename='energy', files=False):
+    """combine_energy_files(basename='energy', files=False) is a function that
+    combines a set of .xvg files writes a combined .xvg file.
+    'basename' is the first part of the name for the xvg files to be combined and
+    should differentiate these from any other *.xvg files in the folder.
+    Alternatively, the list of files (in the desired order) can be passed in
+    with the keyword 'files'."""
     if not files:
         files = glob.glob(basename + '*.xvg')
         files.sort()
@@ -87,6 +100,13 @@ def combine_energy_files(basename='energy', files=False):
 
 def deconvolve_energies(energyfile='energy_comb.xvg',
                         indexfile='replica_index.xvg'):
+    """deconvolve_energies(energyfile='energy_comb.xvg',
+    indexfile='replica_index.xvg') is a function that takes an xvg files that is
+    has n columns of energies likely from a replica exchange simulation where each
+    replica remains at a constant temperature (as GROMACS does) and using the n
+    data columns of an index xvg file returns an array of the energies where each
+    row is now from one 'walker' (continuous coordinates taken by sampling various
+    temperatures or other replica conditions)."""
     energies_indexed = gromacs.formats.XVG(filename=energyfile).array
     indices_indexed = gromacs.formats.XVG(filename=indexfile).array.astype(int)
     deconvolved_energies = energies_indexed[1:, :-1][indices_indexed[1:, ::2],
