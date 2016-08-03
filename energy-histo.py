@@ -29,11 +29,11 @@ import gromacs.tools
 import re
 import matplotlib.pyplot as plt
 import os
+import numpy as np
 
 __version__ = '0.0.1'
 
 # todo add argument and code for way to save to a file instead of viewing
-# todo make this a function and only call it if the script is called alone
 # todo take arguments to change the plotting
 parser = argparse.ArgumentParser(description='A script to plot energy '
                                              'histograms from a GROMACS '
@@ -63,9 +63,34 @@ def import_energies(output_files):
         imported_data += [xvg_file.array[1]]
     return imported_data
 
-output_files = find_energies()
-imported_data = import_energies(output_files)
 
-plt.hist(imported_data, 50, histtype='stepfilled')
+# Run this only if called from the command line
+if __name__ == "__main__":
+    output_files = find_energies()
+    imported_data = import_energies(output_files)
 
-plt.show()
+    plt.hist(imported_data, 50, histtype='stepfilled')
+
+    plt.show()
+
+
+def combine_energy_files(basename='energy', files=False):
+    if not files:
+        files = glob.glob(basename + '*.xvg')
+        files.sort()
+        files.sort(key=len)
+    data = [gromacs.formats.XVG(filename=files[0]).array[0]]
+    data += import_energies(files)
+    data = np.array(data)
+    gromacs.formats.XVG(array=data).write(filename=basename+'_comb.xvg')
+
+
+def deconvolve_energies(energyfile='energy_comb.xvg',
+                        indexfile='replica_index.xvg'):
+    energies_indexed = gromacs.formats.XVG(filename=energyfile).array
+    indices_indexed = gromacs.formats.XVG(filename=indexfile).array.astype(int)
+    deconvolved_energies = energies_indexed[1:, :-1][indices_indexed[1:, ::2],
+                                                     np.arange(25000)]
+    return deconvolved_energies
+
+
