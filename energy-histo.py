@@ -66,10 +66,10 @@ def import_energies(output_files):
 
 # Run this only if called from the command line
 if __name__ == "__main__":
-    output_files = find_energies()
-    imported_data = import_energies(output_files)
+    out_files = find_energies()
+    all_data = import_energies(out_files)
 
-    plt.hist(imported_data, 50, histtype='stepfilled')
+    plt.hist(all_data, 50, histtype='stepfilled')
 
     plt.show()
 
