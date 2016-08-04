@@ -47,7 +47,7 @@ def find_energies():
     """find_energies() is a function that finds all files in the current
     directory that end in a numeral followed by '.edr'. For each of these
     files, it checks if a file named energy(same number).xvg exists, and if
-    not, creates it by calling the gromacs tool gmx energy where input='13'
+    not, creates it by calling the GROMACS tool gmx energy where input='13'
     corresponds to the total energy at each time."""
     energy_files = glob.glob('*[0-9].edr')
     output_files = []
@@ -109,6 +109,9 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
     temperatures or other replica conditions)."""
     energies_indexed = gromacs.formats.XVG(filename=energyfile).array
     indices_indexed = gromacs.formats.XVG(filename=indexfile).array.astype(int)
+    # todo check for relative start/end points
+    # todo fix indices/energies in a more general way
+    # todo change range to fit more generally
     deconvolved_energies = energies_indexed[1:, :-1][indices_indexed[1:, ::2],
                                                      np.arange(25000)]
     return deconvolved_energies

@@ -52,6 +52,7 @@ parser.add_argument('-b', '--base_name', default='npt',
 parser.add_argument('-p', '--topology',
                     default='../taddol_3htmf_stilbene_em.top',
                     help='name of topology file (.top)')
+# todo accept different structure files (a series/list of them)
 parser.add_argument('-c', '--structure', default='../major_endo.gro',
                     help='structure file (.gro) ')
 parser.add_argument('--index', default='../index.ndx',
