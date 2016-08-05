@@ -55,7 +55,7 @@ def find_energies():
         output_name = ('energy' + re.search('[0-9]*(?=\.edr)',
                                             file_name).group(0) + '.xvg')
         if not os.path.isfile(output_name):
-            gromacs.tools.G_energy(f=file_name, o=output_name, input="13")()
+            gromacs.tools.Energy(f=file_name, o=output_name, input="13")()
         output_files += [output_name]
     return output_files
 
@@ -112,7 +112,7 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
     # todo check for relative start/end points
     # todo fix indices/energies in a more general way
     # todo change range to fit more generally
-    ratio = np.shape(indices_indexed)[1] / np.shape(energies_indexed)
+    ratio = indices_indexed.shape[1] / energies_indexed.shape[1]
     if ratio < 1.0:
         print("I'm not sure how to handle the ratio {} yet".format(ratio))
         return(IndexError)

@@ -61,10 +61,14 @@ parser.add_argument('--version', action='version',
                     version='%(prog)s v{}'.format(__version__))
 args = parser.parse_args()
 
+number = int(args.number)
+start_temp = float(args.start_temp)
+scaling_exponent = float(args.scaling_exponent)
 
-for i in range(args.number):
+
+for i in range(number):
     mdp_name = args.base_name + str(i) + '.mdp'
-    temp = args.start_temp * math.exp(i * args.scaling_exponent)
+    temp = start_temp * math.exp(i * scaling_exponent)
     with open(args.template, 'r') as template, \
             open(mdp_name, 'w') as out_file:
         for line in template:
