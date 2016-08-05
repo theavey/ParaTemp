@@ -112,8 +112,20 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
     # todo check for relative start/end points
     # todo fix indices/energies in a more general way
     # todo change range to fit more generally
-    deconvolved_energies = energies_indexed[1:, :-1][indices_indexed[1:, ::2],
-                                                     np.arange(25000)]
+    ratio = np.shape(indices_indexed)[1] / np.shape(energies_indexed)
+    if ratio < 1.0:
+        print("I'm not sure how to handle the ratio {} yet".format(ratio))
+        return(IndexError)
+    ratio = int(ratio)
+    extra = np.mod(np.shape(energies_indexed)[1], ratio)
+    length_e = np.shape(energies_indexed)[1] - extra
+    length_i = np.shape(indices_indexed)[1] / ratio
+    if length_e != length_i:
+        print("length of energies, {}, != length of indices, "
+              "{}!".format(length_e, length_i))
+        return(IndexError)
+    deconvolved_energies = energies_indexed[1:, :-extra][indices_indexed[1:, ::ratio],
+                                                         np.arange(25000)]
     return deconvolved_energies
 
 
