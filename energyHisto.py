@@ -117,15 +117,15 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
         print("I'm not sure how to handle the ratio {} yet".format(ratio))
         return(IndexError)
     ratio = int(ratio)
-    extra = np.mod(np.shape(energies_indexed)[1], ratio)
-    length_e = np.shape(energies_indexed)[1] - extra
-    length_i = np.shape(indices_indexed)[1] / ratio
+    extra = np.mod(energies_indexed.shape[1], ratio)
+    length_e = energies_indexed.shape[1] - extra
+    length_i = indices_indexed.shape[1] / ratio
     if length_e != length_i:
         print("length of energies, {}, != length of indices, "
               "{}!".format(length_e, length_i))
         return(IndexError)
     deconvolved_energies = energies_indexed[1:, :-extra][indices_indexed[1:, ::ratio],
-                                                         np.arange(25000)]
+                                                         np.arange(length_e)]
     return deconvolved_energies
 
 
