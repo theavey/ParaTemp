@@ -34,7 +34,7 @@ import os
 import shutil
 from datetime import datetime
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 parser = argparse.ArgumentParser(description='A script to help setup parallel'
                                              'tempering jobs in GROMACS with'
