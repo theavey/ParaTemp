@@ -57,6 +57,8 @@ parser.add_argument('-c', '--structure', default='../major_endo.gro',
                     help='structure file (.gro) ')
 parser.add_argument('--index', default='../index.ndx',
                     help='index files')
+parser.add_argument('-t', '--temps_file', default='temperatures.dat',
+                    help='name of file with list of temperatures')
 parser.add_argument('--version', action='version',
                     version='%(prog)s v{}'.format(__version__))
 args = parser.parse_args()
@@ -65,10 +67,11 @@ number = int(args.number)
 start_temp = float(args.start_temp)
 scaling_exponent = float(args.scaling_exponent)
 
-
+temps = []
 for i in range(number):
     mdp_name = args.base_name + str(i) + '.mdp'
     temp = start_temp * math.exp(i * scaling_exponent)
+    temps += [temp]
     with open(args.template, 'r') as template, \
             open(mdp_name, 'w') as out_file:
         for line in template:
@@ -88,6 +91,8 @@ for i in range(number):
                               universal_newlines=True) as proc:
             for line in proc.stdout:
                 log_file.write(line)
+with open(temps_file, 'w') as temps_out:
+    temps_out.write(temps)
 
 
 
