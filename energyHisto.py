@@ -57,6 +57,8 @@ def find_energies():
         if not os.path.isfile(output_name):
             gromacs.tools.Energy(f=file_name, o=output_name, input="13")()
         output_files += [output_name]
+    output_files.sort()
+    output_files.sort(key=len)
     return output_files
 
 
