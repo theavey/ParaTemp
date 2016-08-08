@@ -103,9 +103,9 @@ def combine_energy_files(basename='energy', files=False):
 
 
 def deconvolve_energies(energyfile='energy_comb.xvg',
-                        indexfile='replica_index.xvg'):
+                        indexfile='replica_temp.xvg'):
     """deconvolve_energies(energyfile='energy_comb.xvg',
-    indexfile='replica_index.xvg') is a function that takes an xvg files that is
+    indexfile='replica_temp.xvg') is a function that takes an xvg files that is
     has n columns of energies likely from a replica exchange simulation where each
     replica remains at a constant temperature (as GROMACS does) and using the n
     data columns of an index xvg file returns an array of the energies where each
@@ -116,18 +116,20 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
     # todo check for relative start/end points
     # todo fix indices/energies in a more general way
     # todo change range to fit more generally
-    ratio = indices_indexed.shape[1] / energies_indexed.shape[1]
+    ratio = (float(indices_indexed.shape[1])
+             / float(energies_indexed.shape[1]))
     if ratio < 1.0:
         print("I'm not sure how to handle the ratio {} yet".format(ratio))
-        return(IndexError)
-    ratio = int(ratio)
+        raise IndexError
+    ratio = int(round(ratio))
     extra = np.mod(energies_indexed.shape[1], ratio)
     length_e = energies_indexed.shape[1] - extra
     length_i = indices_indexed.shape[1] / ratio
+    # todo maybe do this is a more pythonic manner with a try/except look
     if length_e != length_i:
         print("length of energies, {}, != length of indices, "
               "{}!".format(length_e, length_i))
-        return(IndexError)
+        raise IndexError
     deconvolved_energies = energies_indexed[1:, :-extra][indices_indexed[1:, ::ratio],
                                                          np.arange(length_e)]
     return deconvolved_energies
