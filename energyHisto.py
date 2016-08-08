@@ -22,7 +22,6 @@
 #                                                                      #
 ########################################################################
 
-import argparse
 import glob
 import gromacs.formats
 import gromacs.tools
@@ -33,14 +32,7 @@ import numpy as np
 
 __version__ = '0.0.1'
 
-# todo add argument and code for way to save to a file instead of viewing
-# todo take arguments to change the plotting
-parser = argparse.ArgumentParser(description='A script to plot energy '
-                                             'histograms from a GROMACS '
-                                             'parallel tempering simulation.')
-parser.add_argument('--version', action='version',
-                    version='%(prog)s v{}'.format(__version__))
-args = parser.parse_args()
+
 
 
 def find_energies():
@@ -75,6 +67,16 @@ def import_energies(output_files):
 
 # Run this only if called from the command line
 if __name__ == "__main__":
+    import argparse
+    # todo add argument and code for way to save to a file instead of viewing
+    # todo take arguments to change the plotting
+    parser = argparse.ArgumentParser(description='A script to plot energy '
+                                                 'histograms from a GROMACS '
+                                                 'parallel tempering simulation.')
+    parser.add_argument('--version', action='version',
+                        version='%(prog)s v{}'.format(__version__))
+    args = parser.parse_args()
+
     out_files = find_energies()
     all_data = import_energies(out_files)
 
