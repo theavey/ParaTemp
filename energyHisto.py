@@ -33,8 +33,6 @@ import numpy as np
 __version__ = '0.0.2'
 
 
-
-
 def find_energies():
     """find_energies() is a function that finds all files in the current
     directory that end in a numeral followed by '.edr'. For each of these
@@ -143,7 +141,7 @@ def plot_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=F
         num_replicas = array.shape[0] - index_offset
     from math import sqrt, ceil
     if n_rows == n_cols == False:
-        n_rows = ceil(sqrt(float(num_replicas)))
+        n_rows = int(ceil(sqrt(float(num_replicas))))
         n_cols = n_rows
     fig, axes = plt.subplots(n_rows, n_cols, sharex=True, sharey=True)
     for i in range(num_replicas):
@@ -168,4 +166,3 @@ def hist_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=F
         ax = axes.flat[i]
         ax.hist(array[i+index_offset], n_bins)
     return fig
-

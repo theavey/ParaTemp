@@ -1,11 +1,11 @@
-#! /usr/bin/env python3.4
+#! /usr/bin/env python3
 
 ########################################################################
 #                                                                      #
-# This script was written by Thomas Heavey in 2015.                    #
+# This script was written by Thomas Heavey in 2016.                    #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
-# Copyright 2015 Thomas J. Heavey IV                                   #
+# Copyright 2016 Thomas J. Heavey IV                                   #
 #                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");      #
 # you may not use this file except in compliance with the License.     #
@@ -22,7 +22,7 @@
 #                                                                      #
 ########################################################################
 
-# This is written to work with python 3.4 because it should be good to
+# This is written to work with python 3 because it should be good to
 # be working on the newest version of python.
 
 import glob
