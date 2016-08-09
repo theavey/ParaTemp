@@ -114,13 +114,13 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
     # todo check for relative start/end points
     # todo fix indices/energies in a more general way
     # todo change range to fit more generally
+    extra = np.mod(energies_indexed.shape[1], indices_indexed.shape[1])
     ratio = (float(indices_indexed.shape[1])
-             / float(energies_indexed.shape[1]))
+             / float(energies_indexed.shape[1]-extra))
     if ratio < 1.0:
         print("I'm not sure how to handle the ratio {} yet".format(ratio))
         raise IndexError
     ratio = int(round(ratio))
-    extra = np.mod(energies_indexed.shape[1], ratio)
     length_e = energies_indexed.shape[1] - extra
     length_i = indices_indexed.shape[1] / ratio
     # todo maybe do this is a more pythonic manner with a try/except look
