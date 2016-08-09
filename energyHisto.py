@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 
 
@@ -134,4 +134,38 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
                                                          np.arange(length_e)]
     return deconvolved_energies
 
+
+def plot_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=False):
+    """plot_array(array, num_replicas=16, index_offset=0, n_rows=False, n_cols=False)
+     will put each column of array in a different axes of a figure and then return
+     the figure."""
+    if not num_replicas:
+        num_replicas = array.shape[0] - index_offset
+    from math import sqrt, ceil
+    if n_rows == n_cols == False:
+        n_rows = ceil(sqrt(float(num_replicas)))
+        n_cols = n_rows
+    fig, axes = plt.subplots(n_rows, n_cols, sharex=True, sharey=True)
+    for i in range(num_replicas):
+        ax = axes.flat[i]
+        ax.plot(array[i+index_offset])
+    return fig
+
+
+def hist_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=False,
+               n_bins=10):
+    """hist_array(array, num_replicas=16, index_offset=0, n_rows=False, n_cols=False)
+     will put each column of array in a different axes of a figure and then return
+     the figure."""
+    if not num_replicas:
+        num_replicas = array.shape[0] - index_offset
+    from math import sqrt, ceil
+    if n_rows == n_cols == False:
+        n_rows = ceil(sqrt(float(num_replicas)))
+        n_cols = n_rows
+    fig, axes = plt.subplots(n_rows, n_cols, sharex=True, sharey=True)
+    for i in range(num_replicas):
+        ax = axes.flat[i]
+        ax.hist(array[i+index_offset], n_bins)
+    return fig
 
