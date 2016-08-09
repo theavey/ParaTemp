@@ -134,9 +134,9 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
 
 
 def plot_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=False):
-    """plot_array(array, num_replicas=16, index_offset=0, n_rows=False, n_cols=False)
-     will put each column of array in a different axes of a figure and then return
-     the figure."""
+    """plot_array(array, index_offset=0, num_replicas=16, n_rows=False, n_cols=False)
+    will put each column of array in a different axes of a figure and then return
+    the figure."""
     if not num_replicas:
         num_replicas = array.shape[0] - index_offset
     from math import sqrt, ceil
@@ -152,9 +152,9 @@ def plot_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=F
 
 def hist_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=False,
                n_bins=10):
-    """hist_array(array, num_replicas=16, index_offset=0, n_rows=False, n_cols=False)
-     will put each column of array in a different axes of a figure and then return
-     the figure."""
+    """hist_array(array, index_offset=0, num_replicas=16, n_rows=False, n_cols=False,
+    n_bins=10) will put each column of array in a different axes of a figure and
+    then return the figure."""
     if not num_replicas:
         num_replicas = array.shape[0] - index_offset
     from math import sqrt, ceil
