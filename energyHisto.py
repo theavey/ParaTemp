@@ -116,6 +116,8 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
     # todo change range to fit more generally
     length_e = energies_indexed.shape[1]
     length_i = indices_indexed.shape[1]
+    # todo find approximate ratio and work based on that
+    # may need 'extra' for both, though likely only one 'ratio'
     if length_i <= length_e:
         extra = np.mod(length_e, length_i)
         ratio = (float(length_i)
@@ -134,11 +136,13 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
         print('length of energy file is {}'.format(length_e))
         print('length of index file is {}'.format(length_i))
         raise ImportError('Not sure how to handle those values')
-    # todo maybe do this is a more pythonic manner with a try/except look
+    # todo maybe do this is a more pythonic manner with a try/except loop
+    # todo update this for the new definitions above
     if length_e != length_i:
         print("length of energies, {}, != length of indices, "
               "{}!".format(length_e, length_i))
         raise IndexError('lengths not equals')
+    # todo print start and end times (after cropping) so user can ensure they're about the same
     deconvolved_energies = energies_indexed[1:, :-extra][indices_indexed[1:, ::ratio],
                                                          np.arange(length_e)]
     return deconvolved_energies
