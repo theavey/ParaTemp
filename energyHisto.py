@@ -114,20 +114,31 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
     # todo check for relative start/end points
     # todo fix indices/energies in a more general way
     # todo change range to fit more generally
-    extra = np.mod(energies_indexed.shape[1], indices_indexed.shape[1])
-    ratio = (float(indices_indexed.shape[1])
-             / float(energies_indexed.shape[1]-extra))
-    if ratio < 1.0:
-        print("I'm not sure how to handle the ratio {} yet".format(ratio))
-        raise IndexError
-    ratio = int(round(ratio))
-    length_e = energies_indexed.shape[1] - extra
-    length_i = indices_indexed.shape[1] / ratio
+    length_e = energies_indexed.shape[1]
+    length_i = indices_indexed.shape[1]
+    if length_i <= length_e:
+        extra = np.mod(length_e, length_i)
+        ratio = (float(length_i)
+                 / float(length_e-extra))
+        ratio = int(round(ratio))
+        length_e -= extra
+        length_i /= ratio
+    elif length_e < length_i:
+        extra = np.mod(length_i, length_e)
+        ratio = (float(length_e)
+                 / float(length_i-extra))
+        ratio = int(round(ratio))
+        length_i -= extra
+        length_e /= ratio
+    else:
+        print('length of energy file is {}'.format(length_e))
+        print('length of index file is {}'.format(length_i))
+        raise ImportError('Not sure how to handle those values')
     # todo maybe do this is a more pythonic manner with a try/except look
     if length_e != length_i:
         print("length of energies, {}, != length of indices, "
               "{}!".format(length_e, length_i))
-        raise IndexError
+        raise IndexError('lengths not equals')
     deconvolved_energies = energies_indexed[1:, :-extra][indices_indexed[1:, ::ratio],
                                                          np.arange(length_e)]
     return deconvolved_energies
