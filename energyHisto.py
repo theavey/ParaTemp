@@ -111,40 +111,71 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
     temperatures or other replica conditions)."""
     energies_indexed = gromacs.formats.XVG(filename=energyfile).array
     indices_indexed = gromacs.formats.XVG(filename=indexfile).array.astype(int)
-    # todo check for relative start/end points
-    # todo fix indices/energies in a more general way
-    # todo change range to fit more generally
+    # todo check for relative start/end points automatically
     length_e = energies_indexed.shape[1]
     length_i = indices_indexed.shape[1]
-    # todo find approximate ratio and work based on that
-    # may need 'extra' for both, though likely only one 'ratio'
-    if length_i <= length_e:
-        extra = np.mod(length_e, length_i)
-        ratio = (float(length_i)
-                 / float(length_e-extra))
-        ratio = int(round(ratio))
-        length_e -= extra
-        length_i /= ratio
-    elif length_e < length_i:
-        extra = np.mod(length_i, length_e)
-        ratio = (float(length_e)
-                 / float(length_i-extra))
-        ratio = int(round(ratio))
-        length_i -= extra
-        length_e /= ratio
+    ratio = float(length_e) / float(length_i)
+    approx_ratio = int(round(ratio))
+    if ratio == 1.0:
+        deconvolved_energies = energies_indexed[1:][
+            indices_indexed[1:],
+            np.arange(length_i)]
+    elif ratio > 1:
+        if approx_ratio == ratio:
+            extra_e = 0
+            extra_i = 0
+        elif approx_ratio > ratio:
+            extra_i = length_i - length_e / approx_ratio
+            extra_e = np.mod(length_e, length_i-extra_i)
+        elif approx_ratio < ratio:
+            extra_e = np.mod(length_e, length_i)
+            extra_i = 0
+        else:
+            raise ImportError('ratio: {}, approx ratio: {}'.format(ratio, approx_ratio))
+        deconvolved_energies = energies_indexed[1:, :-extra_e:approx_ratio][
+            indices_indexed[1:, :-extra_i],
+            np.arange((length_i-extra_i))]
+        e_times = [energies_indexed[0, :-extra_e:approx_ratio][0],
+                   energies_indexed[0, :-extra_e:approx_ratio][-1]]
+        i_times = [indices_indexed[0, :-extra_i][0],
+                   indices_indexed[0, :-extra_i][-1]]
+    elif ratio < 1:
+        print('likely undersampling energies because energy / indices ratio is '
+              '{}'.format(ratio))
+        ratio = 1 / ratio
+        approx_ratio = int(round(ratio))
+        if approx_ratio == ratio:
+            extra_e = 0
+            extra_i = 0
+        # Not so sure about this...
+        elif approx_ratio > ratio:
+            extra_e = length_e - length_i / approx_ratio
+            extra_i = np.mod(length_i, length_e-extra_e)
+        elif approx_ratio < ratio:
+            extra_i = np.mod(length_i, length_e)
+            extra_e = 0
+        else:
+            raise ImportError('ratio: {}, approx ratio: {}'.format(ratio, approx_ratio))
+        deconvolved_energies = energies_indexed[1:, :-extra_e][
+            indices_indexed[1:, :-extra_i:approx_ratio],
+            np.arange((length_i-extra_i)/approx_ratio)]
+        # todo insert cropping functions here (same as line above)
+        e_times = [energies_indexed[0, :-extra_e][0],
+                   energies_indexed[0, :-extra_e][-1]]
+        i_times = [indices_indexed[0, :-extra_i:approx_ratio][0],
+                   indices_indexed[0, :-extra_i:approx_ratio][-1]]
     else:
         print('length of energy file is {}'.format(length_e))
         print('length of index file is {}'.format(length_i))
         raise ImportError('Not sure how to handle those values')
-    # todo maybe do this is a more pythonic manner with a try/except loop
-    # todo update this for the new definitions above
-    if length_e != length_i:
-        print("length of energies, {}, != length of indices, "
-              "{}!".format(length_e, length_i))
-        raise IndexError('lengths not equals')
-    # todo print start and end times (after cropping) so user can ensure they're about the same
-    deconvolved_energies = energies_indexed[1:, :-extra][indices_indexed[1:, ::ratio],
-                                                         np.arange(length_e)]
+    # todo maybe error check is a more pythonic manner with a try/except loop
+    # if length_e != length_i:
+    #     print("length of energies, {}, != length of indices, "
+    #           "{}!".format(length_e, length_i))
+    #     raise IndexError('lengths not equals')
+    print('energies start: {}; end: {}'.format(e_times[0], e_times[1]))
+    print('indices start: {}; end: {}'.format(i_times[0], i_times[1]))
+    print('These values should be about the same if this is working properly')
     return deconvolved_energies
 
 
