@@ -132,13 +132,13 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
             extra_i = 0
         else:
             raise ImportError('ratio: {}, approx ratio: {}'.format(ratio, approx_ratio))
-        deconvolved_energies = energies_indexed[1:, :-extra_e:approx_ratio][
-            indices_indexed[1:, :-extra_i],
+        deconvolved_energies = energies_indexed[1:, :length_e-extra_e:approx_ratio][
+            indices_indexed[1:, :length_i-extra_i],
             np.arange((length_i-extra_i))]
-        e_times = [energies_indexed[0, :-extra_e:approx_ratio][0],
-                   energies_indexed[0, :-extra_e:approx_ratio][-1]]
-        i_times = [indices_indexed[0, :-extra_i][0],
-                   indices_indexed[0, :-extra_i][-1]]
+        e_times = [energies_indexed[0, :length_e-extra_e:approx_ratio][0],
+                   energies_indexed[0, :length_e-extra_e:approx_ratio][-1]]
+        i_times = [indices_indexed[0, :length_i-extra_i][0],
+                   indices_indexed[0, :length_i-extra_i][-1]]
     elif ratio < 1:
         print('likely undersampling energies because energy / indices ratio is '
               '{}'.format(ratio))
@@ -156,14 +156,14 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
             extra_e = 0
         else:
             raise ImportError('ratio: {}, approx ratio: {}'.format(ratio, approx_ratio))
-        deconvolved_energies = energies_indexed[1:, :-extra_e][
-            indices_indexed[1:, :-extra_i:approx_ratio],
+        deconvolved_energies = energies_indexed[1:, :length_e-extra_e][
+            indices_indexed[1:, :length_i-extra_i:approx_ratio],
             np.arange((length_i-extra_i)/approx_ratio)]
         # todo insert cropping functions here (same as line above)
-        e_times = [energies_indexed[0, :-extra_e][0],
-                   energies_indexed[0, :-extra_e][-1]]
-        i_times = [indices_indexed[0, :-extra_i:approx_ratio][0],
-                   indices_indexed[0, :-extra_i:approx_ratio][-1]]
+        e_times = [energies_indexed[0, :length_e-extra_e][0],
+                   energies_indexed[0, :length_e-extra_e][-1]]
+        i_times = [indices_indexed[0, :length_i-extra_i:approx_ratio][0],
+                   indices_indexed[0, :length_i-extra_i:approx_ratio][-1]]
     else:
         print('length of energy file is {}'.format(length_e))
         print('length of index file is {}'.format(length_i))
