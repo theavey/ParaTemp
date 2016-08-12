@@ -205,7 +205,7 @@ def hist_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=F
         num_replicas = array.shape[0] - index_offset
     from math import sqrt, ceil
     if n_rows == n_cols == False:
-        n_rows = ceil(sqrt(float(num_replicas)))
+        n_rows = int(ceil(sqrt(float(num_replicas))))
         n_cols = n_rows
     fig, axes = plt.subplots(n_rows, n_cols, sharex=True, sharey=True)
     for i in range(num_replicas):
