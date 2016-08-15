@@ -93,8 +93,5 @@ if __name__ == "__main__":
                                   universal_newlines=True) as proc:
                 for line in proc.stdout:
                     log_file.write(line)
-    with open(temps_file, 'w') as temps_out:
+    with open(args.temps_file, 'w') as temps_out:
         temps_out.write(temps)
-
-
-
