@@ -212,6 +212,7 @@ def hist_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=F
         ax.hist(array[i+index_offset], n_bins)
     return fig
 
+
 def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
                output_base_name='solute', index='index.ndx'):
     """solute_trr takes file base names as input, creates a separate trr file for each
@@ -229,7 +230,7 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
                          '{} and {}'.format(len(trr_files), len(tpr_files)))
     out_files = []
     for (i, trr_name) in enumerate(trr_files):
-        number_match = re.search('\d+(?:\.trr)', trr_name)
+        number_match = re.search('(\d+)(?:\.trr)', trr_name)
         number = number_match.group(1)
         out_file = output_base_name + number + '.trr'
         out_files.append(out_file)
