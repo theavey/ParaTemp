@@ -159,7 +159,6 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
         deconvolved_energies = energies_indexed[1:, :length_e-extra_e][
             indices_indexed[1:, :length_i-extra_i:approx_ratio],
             np.arange((length_i-extra_i)/approx_ratio)]
-        # todo insert cropping functions here (same as line above)
         e_times = [energies_indexed[0, :length_e-extra_e][0],
                    energies_indexed[0, :length_e-extra_e][-1]]
         i_times = [indices_indexed[0, :length_i-extra_i:approx_ratio][0],

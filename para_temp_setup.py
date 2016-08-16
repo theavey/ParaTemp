@@ -69,6 +69,7 @@ if __name__ == "__main__":
     start_temp = float(args.start_temp)
     scaling_exponent = float(args.scaling_exponent)
 
+    # todo make this a function and call it
     temps = []
     for i in range(number):
         mdp_name = args.base_name + str(i) + '.mdp'
