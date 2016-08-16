@@ -211,3 +211,28 @@ def hist_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=F
         ax = axes.flat[i]
         ax.hist(array[i+index_offset], n_bins)
     return fig
+
+def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
+               output_base_name='solute', index='index.ndx'):
+    """solute_trr takes file base names as input, creates a separate trr file for each
+    trajectory that only includes the solutes, and then returns a list of the names of
+    the created files.
+    This uses gromacswrapper to call trjconv."""
+    trr_files = glob.glob(trr_base_name + '*.trr')
+    trr_files.sort()
+    trr_files.sort(key=len)
+    tpr_files = glob.glob(tpr_base_name + '*.tpr')
+    tpr_files.sort()
+    tpr_files.sort(key=len)
+    if len(trr_files) != len(tpr_files):
+        raise IndexError('Number of trr and tpr files not equal: '
+                         '{} and {}'.format(len(trr_files), len(tpr_files)))
+    out_files = []
+    for (i, trr_name) in enumerate(trr_files):
+        number_match = re.search('\d+(?:\.trr)', trr_name)
+        number = number_match.group(1)
+        out_file = output_base_name + number + '.trr'
+        out_files.append(out_file)
+        gromacs.tools.Trjconv(s=tpr_files[i], pbc='mol', f=trr_name, o=out_file,
+                              n=index, center=True, input=('CHR', 'CHR'))
+    return out_files
