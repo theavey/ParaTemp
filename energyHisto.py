@@ -235,5 +235,5 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
         out_file = output_base_name + number + '.trr'
         out_files.append(out_file)
         gromacs.tools.Trjconv(s=tpr_files[i], pbc='mol', f=trr_name, o=out_file,
-                              n=index, center=True, input=('CHR', 'CHR'))
+                              n=index, center=True, input=('CHR', 'CHR'))()
     return out_files
