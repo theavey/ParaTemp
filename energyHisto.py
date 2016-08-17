@@ -214,7 +214,7 @@ def hist_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=F
 
 
 def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
-               output_base_name='solute', index='index.ndx'):
+               output_base_name='solute', index='index.ndx', demux=True):
     """solute_trr takes file base names as input, creates a separate trr file for each
     trajectory that only includes the solutes, and then returns a list of the names of
     the created files.
@@ -229,6 +229,7 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
         raise IndexError('Number of trr and tpr files not equal: '
                          '{} and {}'.format(len(trr_files), len(tpr_files)))
     out_files = []
+    # todo Add if for deconvolving trajectories
     for (i, trr_name) in enumerate(trr_files):
         number_match = re.search('(\d+)(?:\.trr)', trr_name)
         number = number_match.group(1)
