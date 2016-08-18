@@ -218,7 +218,9 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
     """solute_trr takes file base names as input, creates a separate trr file for each
     trajectory that only includes the solutes, and then returns a list of the names of
     the created files.
-    This uses gromacswrapper to call trjconv."""
+    If demux=True, it will first use trjcat to deconvolve the walker trajectories (to
+    get continuous coordinate files as opposed to continuous temperature).
+    This uses gromacswrapper to call trjconv and possibly trjcat."""
     trr_files = glob.glob(trr_base_name + '*.trr')
     trr_files.sort()
     trr_files.sort(key=len)
@@ -227,8 +229,8 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
     tpr_files.sort(key=len)
     output_files = []
     if demux:
-        gromacs.tools.Trjcat(f=trr_base_name+'*.trr', o='demuxed.trr', n='index.ndx',
-                             demux='replica_index.xvg')()
+        gromacs.tools.Trjcat(f=trr_files, o='demuxed.trr', n='index.ndx',
+                             demux='replica_index.xvg', input='CHR')()
         trr_files = glob.glob('*demuxed.trr')
         trr_files.sort()
         trr_files.sort(key=len)
