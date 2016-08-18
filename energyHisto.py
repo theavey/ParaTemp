@@ -227,7 +227,7 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
     tpr_files.sort(key=len)
     output_files = []
     if demux:
-        gromacs.tools.Trjcat(f=trr_base_name+'*.trr', o='demuxed.trr', n='index.ndx'
+        gromacs.tools.Trjcat(f=trr_base_name+'*.trr', o='demuxed.trr', n='index.ndx',
                              demux='replica_index.xvg')()
         trr_files = glob.glob('*demuxed.trr')
         trr_files.sort()
