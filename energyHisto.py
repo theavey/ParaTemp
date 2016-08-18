@@ -238,7 +238,10 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
         raise IndexError('Number of trr and tpr files not equal: '
                          '{} and {}'.format(len(trr_files), len(tpr_files)))
     for (i, trr_name) in enumerate(trr_files):
-        number_match = re.search('(\d+)(?:\.trr)', trr_name)
+        if demux:
+            number_match = re.match('(\d+)(?:_demuxed.trr)', trr_name)
+        else:
+            number_match = re.search('(\d+)(?:\.trr)', trr_name)
         number = number_match.group(1)
         out_file = output_base_name + number + '.trr'
         output_files.append(out_file)
