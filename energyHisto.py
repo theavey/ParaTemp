@@ -228,9 +228,11 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
     tpr_files.sort()
     tpr_files.sort(key=len)
     output_files = []
+    # todo check for deconvolved files so don't repeat
     if demux:
         gromacs.tools.Trjcat(f=trr_files, o='demuxed.trr', n='index.ndx',
                              demux='replica_index.xvg', input='CHR')()
+        # todo rename demuxed files to match regex below
         trr_files = glob.glob('*demuxed.trr')
         trr_files.sort()
         trr_files.sort(key=len)
@@ -241,6 +243,7 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
         if demux:
             number_match = re.match('(\d+)(?:_demuxed.trr)', trr_name)
         else:
+            # todo also search for basename at beginning with non-returned group
             number_match = re.search('(\d+)(?:\.trr)', trr_name)
         number = number_match.group(1)
         out_file = output_base_name + number + '.trr'
