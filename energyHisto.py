@@ -229,13 +229,20 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
     tpr_files.sort(key=len)
     output_files = []
     if demux:
+        for (i, trr_name) in enumerate(trr_files):
+            number_match = re.search('(?:'+trr_base_name+')(\d+)(?:\.trr)', trr_name)
+            number = number_match.group(1)
+            out_file = output_base_name + number + '.trr'
+            output_files.append(out_file)
+            gromacs.tools.Trjconv(s=tpr_files[i], f=trr_name, o=out_file,
+                                  n=index, input='CHR')()
         d_trr_base_name = 'deconv' + trr_base_name
         prev_deconv_files = glob.glob(d_trr_base_name+'*.trr')
         if len(prev_deconv_files) == len(trr_files):
             print('Likely already deconvolved trajectories, skipping that step')
         else:
-            gromacs.tools.Trjcat(f=trr_files, o='demuxed.trr', n='index.ndx',
-                                 demux='replica_index.xvg', input='CHR')()
+            gromacs.tools.Trjcat(f=trr_files, o='demuxed.trr',
+                                 demux='replica_index.xvg')()
             trr_files = glob.glob('*demuxed.trr')
             trr_files.sort()
             trr_files.sort(key=len)
