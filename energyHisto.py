@@ -256,3 +256,21 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
         gromacs.tools.Trjconv(s=tpr_files[i], pbc='mol', f=trr_name, o=out_file,
                               n=index, center=True, input=('CHR', 'CHR'))()
     return output_files
+
+
+# todo add filename arguments
+# todo find range automatically (probably glob then len)
+# todo generalize to other atom selection groups
+# maybe do it with a residue name option and a more general specification defaulting to
+# False.
+def radii_of_gyration():
+    u_solutes = []
+    for i in range(16):
+        file_name = 'solute' + str(i) + '.trr'
+        u_solutes.append(MDAnalysis.Universe('geom-solutes.gro', file_name))
+    rgs = np.zeros((16, len(u_solutes[0].trajectory)))
+    for (i, u) in enumerate(u_solutes):
+        tad = u.select_atoms('resname TAD')
+        for fr in u.trajectory:
+            rgs[i, fr.frame] = tad.radius_of_gyration()
+    return rgs
