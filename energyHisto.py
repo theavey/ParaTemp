@@ -228,6 +228,10 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
     tpr_files.sort()
     tpr_files.sort(key=len)
     output_files = []
+    # This seems to be quite terribly slow as it is implemented.
+    # The only ways I can think of trying to make it faster are rewriting this whole
+    # thing myself, which would be very slow, or possibly something else I can't
+    # think of now.
     if demux:
         for (i, trr_name) in enumerate(trr_files):
             number_match = re.search('(?:'+trr_base_name+')(\d+)(?:\.trr)', trr_name)
