@@ -261,22 +261,27 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
     return output_files
 
 
-# todo add filename arguments
-# todo find range automatically (probably glob then len)
-# todo generalize to other atom selection groups
-# maybe do it with a residue name option and a more general specification defaulting to
-# False.
-def radii_of_gyration():
+def radii_of_gyration(basename='solute', atom_selection=False, resname='TAD'):
     """A function to find the radius of gyration for all timesteps for a set of
     REMD trajectories.
+    The basename is the name before the numbers for the trajectory files.
+    resname is the name of the desired residue to be selected.
+    A more general atom_selection can be given, in which case resname will
+    be ignored.
+    Assumes all trajectories are the same length.
     Returns the values as a numpy array."""
     u_solutes = []
-    for i in range(16):
-        file_name = 'solute' + str(i) + '.trr'
+    files = glob.glob(basename+'*.trr')
+    num_files = len(files)
+    for file_name in files:
         u_solutes.append(MDAnalysis.Universe('geom-solutes.gro', file_name))
-    rgs = np.zeros((16, len(u_solutes[0].trajectory)))
+    rgs = np.zeros((num_files, len(u_solutes[0].trajectory)))
+    if not atom_selection:
+        selection = 'resname ' + resname
+    else:
+        selection = atom_selection
     for (i, u) in enumerate(u_solutes):
-        tad = u.select_atoms('resname TAD')
+        tad = u.select_atoms(selection)
         for fr in u.trajectory:
             rgs[i, fr.frame] = tad.radius_of_gyration()
     return rgs
