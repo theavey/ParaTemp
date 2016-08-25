@@ -264,6 +264,9 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
 # maybe do it with a residue name option and a more general specification defaulting to
 # False.
 def radii_of_gyration():
+    """A function to find the radius of gyration for all timesteps for a set of
+    REMD trajectories.
+    Returns the values as a numpy array."""
     u_solutes = []
     for i in range(16):
         file_name = 'solute' + str(i) + '.trr'
