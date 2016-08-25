@@ -23,12 +23,14 @@
 ########################################################################
 
 import glob
+import os
+import re
+
 import gromacs.formats
 import gromacs.tools
-import re
 import matplotlib.pyplot as plt
-import os
 import numpy as np
+import MDAnalysis
 
 __version__ = '0.0.2'
 
