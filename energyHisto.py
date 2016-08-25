@@ -32,6 +32,9 @@ import numpy as np
 
 __version__ = '0.0.2'
 
+# todo define a set of run data as a class
+# possibly as a class of mdanalysis universes, but not sure how to work with
+# replicas vs. walkers there.
 
 def find_energies():
     """find_energies() is a function that finds all files in the current
