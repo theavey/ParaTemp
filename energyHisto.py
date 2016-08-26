@@ -125,6 +125,8 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
         deconvolved_energies = energies_indexed[1:][
             indices_indexed[1:],
             np.arange(length_i)]
+        e_times = [energies_indexed[0, 0], energies_indexed[0, -1]]
+        i_times = [indices_indexed[0, 0], indices_indexed[0, -1]]
     elif ratio > 1:
         if approx_ratio == ratio:
             extra_e = 0
