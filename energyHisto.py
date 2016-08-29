@@ -179,9 +179,11 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
     #     print("length of energies, {}, != length of indices, "
     #           "{}!".format(length_e, length_i))
     #     raise IndexError('lengths not equals')
-    print('energies start: {}; end: {}'.format(e_times[0], e_times[1]))
-    print('indices start: {}; end: {}'.format(i_times[0], i_times[1]))
-    print('These values should be about the same if this is working properly')
+    if not (float(e_times[0]) == float(i_times[0]) and
+            float(e_times[1]) == float(i_times[1])):
+        print('energies start: {}; end: {}'.format(e_times[0], e_times[1]))
+        print('indices start: {}; end: {}'.format(i_times[0], i_times[1]))
+        print('These values should be about the same if this is working properly')
     return deconvolved_energies
 
 
