@@ -38,6 +38,7 @@ __version__ = '0.0.2'
 # possibly as a class of mdanalysis universes, but not sure how to work with
 # replicas vs. walkers there.
 
+
 def find_energies():
     """find_energies() is a function that finds all files in the current
     directory that end in a numeral followed by '.edr'. For each of these
