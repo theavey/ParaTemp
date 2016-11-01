@@ -27,19 +27,14 @@
 
 
 if __name__ == "__main__":
-    import glob
     import argparse
     import math
     import subprocess
-    import readline
-    import os
-    import shutil
-    from datetime import datetime
 
-    __version__ = '0.1.2'
+    __version__ = '0.1.3'
 
-    parser = argparse.ArgumentParser(description='A script to help setup parallel'
-                                                 'tempering jobs in GROMACS with'
+    parser = argparse.ArgumentParser(description='A script to help setup parallel '
+                                                 'tempering jobs in GROMACS with '
                                                  'PLUMED')
     parser.add_argument('-l', '--template', default='templatemdp.txt',
                         help='name of template file')
@@ -65,6 +60,7 @@ if __name__ == "__main__":
                         version='%(prog)s v{}'.format(__version__))
     args = parser.parse_args()
 
+    # todo see if argparse can do any type checking
     number = int(args.number)
     start_temp = float(args.start_temp)
     scaling_exponent = float(args.scaling_exponent)
@@ -95,4 +91,4 @@ if __name__ == "__main__":
                 for line in proc.stdout:
                     log_file.write(line)
     with open(args.temps_file, 'w') as temps_out:
-        temps_out.write(temps)
+        temps_out.write(str(temps))
