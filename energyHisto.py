@@ -52,7 +52,7 @@ def find_energies():
         output_name = ('energy' + re.search('[0-9]*(?=\.edr)',
                                             file_name).group(0) + '.xvg')
         if not os.path.isfile(output_name):
-            gromacs.tools.Energy(f=file_name, o=output_name, input="13")()
+            gromacs.tools.Energy_mpi(f=file_name, o=output_name, input="13")()
         output_files += [output_name]
     output_files.sort()
     output_files.sort(key=len)
@@ -262,7 +262,7 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
         if len(prev_deconv_files) == len(trr_files):
             print('Likely already deconvolved trajectories, skipping that step')
         else:
-            gromacs.tools.Trjcat(f=trr_files, o='demuxed.trr', n='index.ndx',
+            gromacs.tools.Trjcat_mpi(f=trr_files, o='demuxed.trr', n='index.ndx',
                                  demux='replica_index.xvg', input='CHR')()
             trr_files = glob.glob('*demuxed.trr')
             trr_files.sort()
@@ -281,7 +281,7 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
         number = number_match.group(1)
         out_file = output_base_name + number + '.trr'
         output_files.append(out_file)
-        gromacs.tools.Trjconv(s=tpr_files[i], pbc='mol', f=trr_name, o=out_file,
+        gromacs.tools.Trjconv_mpi(s=tpr_files[i], pbc='mol', f=trr_name, o=out_file,
                               n=index, center=True, input=('CHR', 'CHR'))()
     return output_files
 
