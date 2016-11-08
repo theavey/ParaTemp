@@ -81,8 +81,7 @@ def make_indices(logfile='npt_PT_out0.log'):
             command_line = ['demux.pl', logfile]
             with open('demux.pl.log', 'w') as log_out_file:
                 with Popen(command_line,
-                           stdout=PIPE, bufsize=1,
-                           universal_newlines=True) as proc:
+                           stdout=PIPE, bufsize=1) as proc:
                     for line in proc.stdout:
                         log_out_file.write(line)
 
