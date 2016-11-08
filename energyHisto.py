@@ -44,7 +44,8 @@ def find_energies():
     directory that end in a numeral followed by '.edr'. For each of these
     files, it checks if a file named energy(same number).xvg exists, and if
     not, creates it by calling the GROMACS tool gmx energy where input='13'
-    corresponds to the total energy at each time."""
+    corresponds to the total energy at each time.
+    It returns a list of the names of the energy files."""
     energy_files = glob.glob('*[0-9].edr')
     output_files = []
     for file_name in energy_files:
@@ -67,6 +68,23 @@ def import_energies(output_files):
         xvg_file = gromacs.formats.XVG(filename=file_name)
         imported_data += [xvg_file.array[1]]
     return imported_data
+
+
+def make_indices(logfile='npt_PT_out0.log'):
+    """make_indices(logfile='npt_PT_out0.log') will check for files named
+    'replica_temp.xvg' and 'replica_index.xvg', and if they don't exist will create
+    them by calling 'demux.pl [logfile]'.
+    It returns nothing."""
+    from subprocess import Popen
+    if not os.path.isfile('replica_temp.xvg'):
+        if not os.path.isfile('replica_index.xvg'):
+            command_line = ['demux.pl', logfile]
+            with open('demux.pl.log', 'w') as log_out_file:
+                with Popen(command_line,
+                           stdout=subprocess.PIPE, bufsize=1,
+                           universal_newlines=True) as proc:
+                    for line in proc.stdout:
+                        log_out_file.write(line)
 
 
 # Run this only if called from the command line
