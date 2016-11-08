@@ -241,7 +241,8 @@ def hist_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=F
 
 
 def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
-               output_base_name='solute', index='index.ndx', demux=True):
+               output_base_name='solute', index='index.ndx', demux=True,
+               group='CHR'):
     """solute_trr takes file base names as input, creates a separate trr file for each
     trajectory that only includes the solutes, and then returns a list of the names of
     the created files.
@@ -262,7 +263,7 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
             print('Likely already deconvolved trajectories, skipping that step')
         else:
             gromacs.tools.Trjcat_mpi(f=trr_files, o='demuxed.trr', n='index.ndx',
-                                 demux='replica_index.xvg', input='CHR')()
+                                     demux='replica_index.xvg', input=group)()
             trr_files = glob.glob('*demuxed.trr')
             trr_files.sort()
             trr_files.sort(key=len)
@@ -281,7 +282,7 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
         out_file = output_base_name + number + '.trr'
         output_files.append(out_file)
         gromacs.tools.Trjconv_mpi(s=tpr_files[i], pbc='mol', f=trr_name, o=out_file,
-                              n=index, center=True, input=('CHR', 'CHR'))()
+                                  n=index, center=True, input=(group, group))()
     return output_files
 
 
