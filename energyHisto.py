@@ -75,13 +75,13 @@ def make_indices(logfile='npt_PT_out0.log'):
     'replica_temp.xvg' and 'replica_index.xvg', and if they don't exist will create
     them by calling 'demux.pl [logfile]'.
     It returns nothing."""
-    from subprocess import Popen
+    from subprocess import Popen, PIPE
     if not os.path.isfile('replica_temp.xvg'):
         if not os.path.isfile('replica_index.xvg'):
             command_line = ['demux.pl', logfile]
             with open('demux.pl.log', 'w') as log_out_file:
                 with Popen(command_line,
-                           stdout=subprocess.PIPE, bufsize=1,
+                           stdout=PIPE, bufsize=1,
                            universal_newlines=True) as proc:
                     for line in proc.stdout:
                         log_out_file.write(line)
