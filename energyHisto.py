@@ -286,7 +286,8 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
     return output_files
 
 
-def radii_of_gyration(basename='solute', atom_selection=False, resname='TAD'):
+def radii_of_gyration(basename='solute', atom_selection=False, resname='TAD',
+                      gro_file='geom-solutes.gro'):
     """A function to find the radius of gyration for all timesteps for a set of
     REMD trajectories.
     The basename is the name before the numbers for the trajectory files.
@@ -299,7 +300,7 @@ def radii_of_gyration(basename='solute', atom_selection=False, resname='TAD'):
     files = glob.glob(basename+'*.trr')
     num_files = len(files)
     for file_name in files:
-        u_solutes.append(MDAnalysis.Universe('geom-solutes.gro', file_name))
+        u_solutes.append(MDAnalysis.Universe(gro_file, file_name))
     rgs = np.zeros((num_files, len(u_solutes[0].trajectory)))
     if not atom_selection:
         selection = 'resname ' + resname
