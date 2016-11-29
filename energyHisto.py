@@ -131,7 +131,9 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
     replica remains at a constant temperature (as GROMACS does) and using the n
     data columns of an index xvg file returns an array of the energies where each
     row is now from one 'walker' (continuous coordinates taken by sampling various
-    temperatures or other replica conditions)."""
+    temperatures or other replica conditions).
+    Each input file is expected to have an index column showing the time step,
+    but this index is not included in the output."""
     energies_indexed = gromacs.formats.XVG(filename=energyfile).array
     indices_indexed = gromacs.formats.XVG(filename=indexfile).array.astype(int)
     # todo check for relative start/end points automatically
@@ -240,6 +242,15 @@ def hist_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=F
     return fig
 
 
+def hist_multi(array, index_offset=0, n_bins=10):
+    """hist_multi(array, *kwargs) takes an array and returns a pyplot figure.
+    This figure is a histogram of each column of the array in a single pyplot
+    axis.
+    This is likely most useful for using combined energies from some sort of
+    replica exchange method and ensure that the energy histograms have sufficient
+    overlap for frequent exchanges"""
+
+
 def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
                output_base_name='solute', index='index.ndx', demux=True,
                group='CHR'):
@@ -311,3 +322,6 @@ def radii_of_gyration(basename='solute', atom_selection=False, resname='TAD',
         for fr in u.trajectory:
             rgs[i, fr.frame] = tad.radius_of_gyration()
     return rgs
+
+# TODO write function to estimate tunneling times
+# TODO write function to find average exchange time/prob?
