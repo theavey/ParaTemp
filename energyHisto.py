@@ -250,7 +250,7 @@ def hist_multi(array, index_offset=1, n_bins=10):
     replica exchange method and ensure that the energy histograms have sufficient
     overlap for frequent exchanges"""
     fig, axes = plt.subplots(1, 1)
-    axes.hist(array[index_offset:], n_bins)
+    axes.hist(array[index_offset:], n_bins, histtype='stepfilled')
     return fig
 
 
