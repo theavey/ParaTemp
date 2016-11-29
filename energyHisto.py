@@ -112,15 +112,23 @@ def combine_energy_files(basename='energy', files=False):
     'basename' is the first part of the name for the xvg files to be combined and
     should differentiate these from any other *.xvg files in the folder.
     Alternatively, the list of files (in the desired order) can be passed in
-    with the keyword 'files'."""
-    if not files:
-        files = glob.glob(basename + '*.xvg')
-        files.sort()
-        files.sort(key=len)
-    data = [gromacs.formats.XVG(filename=files[0]).array[0]]
-    data += import_energies(files)
-    data = np.array(data)
-    gromacs.formats.XVG(array=data).write(filename=basename+'_comb.xvg')
+    with the keyword 'files'.
+    Returns None"""
+    output_name = basename + '_comb.xvg'
+    if os.path.isfile(output_name):
+        print('Seems like this has already been run. \n'
+              'If you want it run again, change the name or delete '
+              'the file named "{}".'.format(output_name))
+    else:
+        if not files:
+            files = glob.glob(basename + '*.xvg')
+            files.sort()
+            files.sort(key=len)
+        data = [gromacs.formats.XVG(filename=files[0]).array[0]]
+        data += import_energies(files)
+        data = np.array(data)
+        gromacs.formats.XVG(array=data).write(filename=output_name)
+    return None
 
 
 def deconvolve_energies(energyfile='energy_comb.xvg',
