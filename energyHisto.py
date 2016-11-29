@@ -242,13 +242,16 @@ def hist_array(array, index_offset=0, num_replicas=False, n_rows=False, n_cols=F
     return fig
 
 
-def hist_multi(array, index_offset=0, n_bins=10):
+def hist_multi(array, index_offset=1, n_bins=10):
     """hist_multi(array, *kwargs) takes an array and returns a pyplot figure.
     This figure is a histogram of each column of the array in a single pyplot
     axis.
     This is likely most useful for using combined energies from some sort of
     replica exchange method and ensure that the energy histograms have sufficient
     overlap for frequent exchanges"""
+    fig, axes = plt.subplots(1, 1)
+    axes.hist(array[index_offset:], n_bins)
+    return fig
 
 
 def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
