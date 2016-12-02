@@ -335,3 +335,48 @@ def radii_of_gyration(basename='solute', atom_selection=False, resname='TAD',
 
 # TODO write function to estimate tunneling times
 # TODO write function to find average exchange time/prob?
+
+
+def make_basic_plots(save_base_name='pt', save=True, save_format='.pdf',
+                     display=True, logfile='npt_PT_out0.log'):
+    """"""
+    # TODO write docstring
+    find_energies()
+    combine_energy_files()
+    make_indices(logfile=logfile)
+    deconvolved_energies = deconvolve_energies()
+    deconvolved_energies_of_time_fig = plot_array(deconvolved_energies)
+    deconvolved_energies_of_time_fig.text(0.1, 0.55, 'energy', ha='center',
+                                          rotation='vertical')
+    deconvolved_energies_of_time_fig.text(0.515, 0.08, 'time', ha='center')
+    for ax in deconvolved_energies_of_time_fig.axes:
+        ax.get_xaxis().set_ticks([])
+        ax.get_yaxis().set_ticks([])
+    deconvolved_energies_hist_fig = hist_array(deconvolved_energies)
+    deconvolved_energies_hist_fig.text(0.1, 0.53, 'count', ha='center',
+                                       rotation='vertical')
+    deconvolved_energies_hist_fig.text(0.51, 0.08, 'energy', ha='center')
+    for ax in deconvolved_energies_hist_fig.axes:
+        ax.get_xaxis().set_ticks([])
+        ax.get_yaxis().set_ticks([])
+    combined_energies = gromacs.formats.XVG(filename='energy_comb.xvg').array
+    repl_ener_hist = hist_multi(combined_energies[1:].transpose(),
+                                index_offset=0, n_bins=100)
+    ax = repl_ener_hist.gca()
+    ax.set_ylabel('count')
+    ax.set_xlabel('energy')
+    if save:
+        deconvolved_energies_of_time_fig.savefig(save_base_name+'_e_of_t'+save_format)
+        deconvolved_energies_hist_fig.savefig(save_base_name+'_e_hists'+save_format)
+        repl_ener_hist.savefig(save_base_name+'_repl_e_hists'+save_format)
+    if display:
+        return [deconvolved_energies_of_time_fig, deconvolved_energies_hist_fig,
+                repl_ener_hist]
+    else:
+        return None
+
+
+def make_rg_figures():
+    """"""
+    # TODO write this
+    return None
