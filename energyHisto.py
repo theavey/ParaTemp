@@ -339,7 +339,16 @@ def radii_of_gyration(basename='solute', atom_selection=False, resname='TAD',
 
 def make_basic_plots(save_base_name='pt', save=True, save_format='.pdf',
                      display=True, logfile='npt_PT_out0.log'):
-    """"""
+    """make_basic_plots takes keyword arguments to find the energies for replica
+    exchange simulations in order to make basic plots of the energies.
+    The three plots made are a combined histogram of the replica energies,
+    separate histograms of the walker energies, and separate plots of the
+    replica energies as a function of time.
+    If save=True, the plots will be written to disk.
+    If display=True, the figures will be returned as a list so they can be
+    displayed or edited. If display=False, returns None.
+    Uses the functions in this package find_energies, combine_energy_files,
+    make_indices, deconvolve_energies, plot_array, hist_array, hist_multi."""
     # TODO write docstring
     find_energies()
     combine_energy_files()
