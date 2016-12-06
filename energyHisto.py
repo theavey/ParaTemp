@@ -349,7 +349,8 @@ def make_basic_plots(save_base_name='pt', save=True, save_format='.pdf',
     displayed or edited. If display=False, returns None.
     Uses the functions in this package find_energies, combine_energy_files,
     make_indices, deconvolve_energies, plot_array, hist_array, hist_multi."""
-    # TODO write docstring
+    # TODO find some way to take arguments for the plotting functions
+    # would need to do the same in the plotting functions this calls
     find_energies()
     combine_energy_files()
     make_indices(logfile=logfile)
