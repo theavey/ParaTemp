@@ -412,6 +412,6 @@ def make_rg_figures(save_base_name='pt', save=True, save_format='.pdf',
         rgs_t_plots.savefig(save_base_name+'rgs_of_t'+save_format)
         rgs_hists.savefig(save_base_name+'rgs_hists'+save_format)
     if display:
-        return [rgs_t_plots, rgs_t_plots]
+        return [rgs_t_plots, rgs_hists]
     else:
         return None
