@@ -346,7 +346,8 @@ def make_basic_plots(save_base_name='pt', save=True, save_format='.pdf',
     replica energies as a function of time.
     If save=True, the plots will be written to disk.
     If display=True, the figures will be returned as a list so they can be
-    displayed or edited. If display=False, returns None.
+    displayed or edited. Returned in the order walker plots, walker histograms,
+    replica histogram. If display=False, returns None.
     Uses the functions in this package find_energies, combine_energy_files,
     make_indices, deconvolve_energies, plot_array, hist_array, hist_multi."""
     # TODO find some way to take arguments for the plotting functions
@@ -386,7 +387,31 @@ def make_basic_plots(save_base_name='pt', save=True, save_format='.pdf',
         return None
 
 
-def make_rg_figures():
+def make_rg_figures(save_base_name='pt', save=True, save_format='.pdf',
+                    display=True, group='TAD', gro_file='npt_PT_out0.gro'):
     """"""
-    # TODO write this
-    return None
+    # TODO write this docstring
+    # such as the gro file
+    # get solute only trajectories
+    # TODO check to see if this checks if it has run already or do this check
+    trr_names = solute_trr(group=group)
+    rgs = radii_of_gyration(gro_file=gro_file)
+    rgs_t_plots = plot_array(rgs)
+    rgs_t_plots.text(0.1, 0.51, '$R_G$', usetex=True, ha='center', rotation='vertical')
+    rgs_t_plots.text(0.515, 0.07, 'time', ha='center')
+    for ax in rgs_t_plots.axes:
+        ax.get_xaxis().set_ticks([])
+        ax.get_yaxis().set_ticks([])
+    rgs_hists = hist_array(rgs)
+    rgs_hists.text(0.1, 0.53, 'count', ha='center', rotation='vertical')
+    rgs_hists.text(0.5, 0.1, '$R_G$', usetex=True)
+    for ax in rgs_hists.axes:
+        ax.get_xaxis().set_ticks([])
+        ax.get_yaxis().set_ticks([])
+    if save:
+        rgs_t_plots.savefig(save_base_name+'rgs_of_t'+save_format)
+        rgs_hists.savefig(save_base_name+'rgs_hists'+save_format)
+    if display:
+        return [rgs_t_plots, rgs_t_plots]
+    else:
+        return None
