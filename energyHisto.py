@@ -276,6 +276,16 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
     tpr_files = glob.glob(tpr_base_name + '*.tpr')
     tpr_files.sort()
     tpr_files.sort(key=len)
+    matching_output_name = glob.glob(output_base_name+'*.trr')
+    if len(matching_output_name) == len(trr_file):
+        print('There are already '
+              '{} files matched using "{}".'.format(len(matching_output_name),
+                                                    output_base_name) +
+              '\nsolute_trr has likely already run.\n'
+              'Pick new output name or use current files.')
+        matching_output_name.sort()
+        matching_output_name.sort(key=len)
+        return matching_output_name
     output_files = []
     if demux:
         d_trr_base_name = 'deconv' + trr_base_name
@@ -391,10 +401,9 @@ def make_rg_figures(save_base_name='pt', save=True, save_format='.pdf',
                     display=True, group='TAD', gro_file='npt_PT_out0.gro'):
     """"""
     # TODO write this docstring
-    # such as the gro file
-    # get solute only trajectories
-    # TODO check to see if this checks if it has run already or do this check
-    trr_names = solute_trr(group=group)
+    # create get solute only trajectories
+    # trr_names = solute_trr(group=group)
+    solute_trr(group=group)
     rgs = radii_of_gyration(gro_file=gro_file)
     rgs_t_plots = plot_array(rgs)
     rgs_t_plots.text(0.1, 0.51, '$R_G$', usetex=True, ha='center', rotation='vertical')
