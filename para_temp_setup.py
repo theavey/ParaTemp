@@ -85,10 +85,10 @@ if __name__ == "__main__":
                         '-o', mdp_name.replace('mdp', 'tpr'),
                         '-maxwarn', '2']
         with open('gromacs_compile_output.log', 'w') as log_file:
-            with subprocess.Popen(command_line,
-                                  stdout=subprocess.PIPE, bufsize=1,
-                                  universal_newlines=True) as proc:
-                for line in proc.stdout:
-                    log_file.write(line)
+            proc = subprocess.Popen(command_line,
+                                    stdout=subprocess.PIPE, bufsize=1,
+                                    universal_newlines=True)
+            for line in proc.stdout:
+                log_file.write(line)
     with open(args.temps_file, 'w') as temps_out:
         temps_out.write(str(temps))
