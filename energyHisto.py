@@ -400,7 +400,13 @@ def make_basic_plots(save_base_name='pt', save=True, save_format='.pdf',
 
 def make_rg_figures(save_base_name='pt', save=True, save_format='.pdf',
                     display=True, group='TAD', gro_file='npt_PT_out0.gro'):
-    """"""
+    """make_rg_figures will take a set of trajectories, run solute_trr on them
+    (to separate out the solutes and remove excess motion) then make a plot of
+    the radius of gyration for each walker as a function of time and histograms
+    of those as well.
+    If display=True, a list of the two figures will be returned; if
+    display=False, None will be returned.
+    If save=True, the figures will also be saved to the cwd."""
     # TODO write this docstring
     # create get solute only trajectories
     # trr_names = solute_trr(group=group)
