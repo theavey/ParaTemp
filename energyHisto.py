@@ -113,6 +113,7 @@ def combine_energy_files(basename='energy', files=False):
     Alternatively, the list of files (in the desired order) can be passed in
     with the keyword 'files'.
     Returns None"""
+    # TODO check if energy files are same length and crop if not
     output_name = basename + '_comb.xvg'
     if os.path.isfile(output_name):
         print('Seems like this has already been run. \n'
@@ -277,7 +278,7 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
     tpr_files.sort()
     tpr_files.sort(key=len)
     matching_output_name = glob.glob(output_base_name+'*.trr')
-    if len(matching_output_name) == len(trr_file):
+    if len(matching_output_name) == len(trr_files):
         print('There are already '
               '{} files matched using "{}".'.format(len(matching_output_name),
                                                     output_base_name) +
