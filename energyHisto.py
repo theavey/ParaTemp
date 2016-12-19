@@ -59,15 +59,20 @@ def find_energies():
     return output_files
 
 
-def import_energies(output_files):
+def import_energies(output_files, return_lengths=False):
     """import_energies(file_list) takes a list of .xvg files in the current
     directory, imports their second columns (likely a list of energies at
     consecutive time steps), and returns that as a list of arrays."""
     imported_data = []
+    lengths = []
     for file_name in output_files:
         xvg_file = gromacs.formats.XVG(filename=file_name)
         imported_data += [xvg_file.array[1]]
-    return imported_data
+        lengths += len(xvg_file.array[1])
+    if return_lengths:
+        return imported_data, lengths
+    else:
+        return imported_data
 
 
 def make_indices(logfile='npt_PT_out0.log'):
@@ -124,11 +129,29 @@ def combine_energy_files(basename='energy', files=False):
             files = glob.glob(basename + '*.xvg')
             files.sort()
             files.sort(key=len)
-        data = [gromacs.formats.XVG(filename=files[0]).array[0]]
-        data += import_energies(files)
+        imported_data, lengths = import_energies(files, return_lengths=True)
+        if all_elements_same(lengths):
+            data = [gromacs.formats.XVG(filename=files[0]).array[0]]
+            data += imported_data
+        else:
+            len_shortest = min(lengths)
+            data = [gromacs.formats.XVG(filename=files[0]).array[0,
+                    :len_shortest]]
+            # Crop all data sets to the length of the shortest
+            imported_data = [part[:len_shortest] for part in imported_data]
+            data += imported_data
         data = np.array(data)
         gromacs.formats.XVG(array=data).write(filename=output_name)
     return None
+
+
+def all_elements_same(in_list):
+    """Check if all list elements the same.
+
+    all_elements_same is a quick function to see if all elements of a list
+    are the same. Based on http://stackoverflow.com/a/3844948/3961920
+    If they're all the same, returns True, otherwise returns False."""
+    return in_list.count(in_list[0]) == len(in_list)
 
 
 def deconvolve_energies(energyfile='energy_comb.xvg',
@@ -407,7 +430,6 @@ def make_rg_figures(save_base_name='pt', save=True, save_format='.pdf',
     If display=True, a list of the two figures will be returned; if
     display=False, None will be returned.
     If save=True, the figures will also be saved to the cwd."""
-    # TODO write this docstring
     # create get solute only trajectories
     # trr_names = solute_trr(group=group)
     solute_trr(group=group)
