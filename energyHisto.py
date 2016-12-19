@@ -38,6 +38,9 @@ __version__ = '0.0.2'
 # possibly as a class of mdanalysis universes, but not sure how to work with
 # replicas vs. walkers there.
 
+# TODO update docstrings to PEP specs
+# (one brief description line, blank line, longer description/guidelines)
+
 
 def find_energies():
     """find_energies() is a function that finds all files in the current
@@ -118,7 +121,6 @@ def combine_energy_files(basename='energy', files=False):
     Alternatively, the list of files (in the desired order) can be passed in
     with the keyword 'files'.
     Returns None"""
-    # TODO check if energy files are same length and crop if not
     output_name = basename + '_comb.xvg'
     if os.path.isfile(output_name):
         print('Seems like this has already been run. \n'
@@ -386,6 +388,7 @@ def make_basic_plots(save_base_name='pt', save=True, save_format='.pdf',
     make_indices, deconvolve_energies, plot_array, hist_array, hist_multi."""
     # TODO find some way to take arguments for the plotting functions
     # would need to do the same in the plotting functions this calls
+    # **keywords should work
     find_energies()
     combine_energy_files()
     make_indices(logfile=logfile)
