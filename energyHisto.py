@@ -72,6 +72,8 @@ def import_energies(output_files, return_lengths=False):
         xvg_file = gromacs.formats.XVG(filename=file_name)
         imported_data += [xvg_file.array[1]]
         lengths += len(xvg_file.array[1])
+        # TODO might be faster to find lengths after importing them all
+        # call XVG.array may be slow, not really sure
     if return_lengths:
         return imported_data, lengths
     else:
@@ -139,7 +141,9 @@ def combine_energy_files(basename='energy', files=False):
             len_shortest = min(lengths)
             data = [gromacs.formats.XVG(filename=files[0]).array[0,
                     :len_shortest]]
-            # Crop all data sets to the length of the shortest
+            print('Energy lists not all equal lengths.'
+                  'Cropping all the the length of the shortest:'
+                  ' {}'.format(len_shortest))
             imported_data = [part[:len_shortest] for part in imported_data]
             data += imported_data
         data = np.array(data)
