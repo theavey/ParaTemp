@@ -71,7 +71,7 @@ def import_energies(output_files, return_lengths=False):
     for file_name in output_files:
         xvg_file = gromacs.formats.XVG(filename=file_name)
         imported_data += [xvg_file.array[1]]
-        lengths += len(xvg_file.array[1])
+        lengths += [len(xvg_file.array[1])]
         # TODO might be faster to find lengths after importing them all
         # call XVG.array may be slow, not really sure
     if return_lengths:
