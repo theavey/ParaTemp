@@ -38,4 +38,4 @@ class InputError(Exception):
     def __str__(self):
         output = 'Incorrect input {}\n{}'.format(self.expr,
                                                  self.msg)
-        return output
+        return repr(output)
