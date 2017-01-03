@@ -46,8 +46,8 @@ def get_angle(a, b, c, units='rad'):
         return rad2deg(angle)
     else:
         raise InputError(units,
-                         'Unrecognized units. '
-                         'The two recognized units are rad and deg.')
+                         'Unrecognized units: '
+                         'the two recognized units are rad and deg.')
 
 
 def get_dihedral(a, b, c, d, units='rad'):
@@ -69,5 +69,27 @@ def get_dihedral(a, b, c, d, units='rad'):
         return rad2deg(angle)
     else:
         raise InputError(units,
-                         'Unrecognized units. '
-                         'The two recognized units are rad and deg.')
+                         'Unrecognized units: '
+                         'the two recognized units are rad and deg.')
+
+
+def get_taddol_selections(universe):
+    """Returns a dict of AtomSelections from the given universe"""
+    d_out = dict()
+    d_out["phenrtt"] = universe.select_atoms('bynum 92 94')
+    d_out["phenrtb"] = universe.select_atoms('bynum 82 87')
+    d_out["phenrbt"] = universe.select_atoms('bynum 69 71')
+    d_out["phenrbb"] = universe.select_atoms('bynum 59 64')
+    d_out["phenltt"] = universe.select_atoms('bynum 115 117')
+    d_out["phenltb"] = universe.select_atoms('bynum 105 110')
+    d_out["phenlbt"] = universe.select_atoms('bynum 36 41')
+    d_out["phenlbb"] = universe.select_atoms('bynum 46 48')
+    d_out["quatl"] = universe.select_atoms('bynum 6')
+    d_out["quatr"] = universe.select_atoms('bynum 1')
+    d_out["chirl"] = universe.select_atoms('bynum 4')
+    d_out["chirr"] = universe.select_atoms('bynum 2')
+    d_out["cyclon"] = universe.select_atoms('bynum 13')
+    d_out["cyclof"] = universe.select_atoms('bynum 22')
+    d_out["aoxl"] = universe.select_atoms('bynum 9')
+    d_out["aoxr"] = universe.select_atoms('bynum 7')
+    return d_out
