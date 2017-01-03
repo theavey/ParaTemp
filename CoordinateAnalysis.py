@@ -2,10 +2,10 @@
 
 ########################################################################
 #                                                                      #
-# This script was written by Thomas Heavey in 2016.                    #
+# This script was written by Thomas Heavey in 2017.                    #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
-# Copyright 2016 Thomas J. Heavey IV                                   #
+# Copyright 2017 Thomas J. Heavey IV                                   #
 #                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");      #
 # you may not use this file except in compliance with the License.     #
@@ -59,7 +59,8 @@ def get_dihedral(a, b, c, d, units='rad'):
     ba = a.centroid() - b.centroid()
     bc = b.centroid() - c.centroid()
     dc = d.centroid() - c.centroid()
-    angle = arctan2(dot(cross(cross(ba, bc), cross(bc, dc)), bc) / norm(bc),
+    angle = arctan2(dot(cross(cross(ba, bc), cross(bc, dc)), bc) /
+                    norm(bc),
                     dot(cross(ba, bc), cross(bc, dc)))
     if units == 'rad':
         return angle
