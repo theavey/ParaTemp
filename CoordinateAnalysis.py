@@ -22,7 +22,7 @@
 #                                                                      #
 ########################################################################
 
-from exceptions import InputError
+from exceptions import *
 
 
 def get_dist(a, b):
