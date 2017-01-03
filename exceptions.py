@@ -34,3 +34,8 @@ class InputError(Exception):
     def __init__(self, expr, msg):
         self.expr = expr
         self.msg = msg
+
+    def __str__(self):
+        output = 'Incorrect input {}\n{}'.format(self.expr,
+                                                 self.msg)
+        return output
