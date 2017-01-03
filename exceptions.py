@@ -36,6 +36,6 @@ class InputError(Exception):
         self.msg = msg
 
     def __str__(self):
-        output = 'Incorrect input {}\n{}'.format(self.expr,
-                                                 self.msg)
+        output = 'Incorrect input "{}". {}'.format(self.expr,
+                                                   self.msg)
         return repr(output)

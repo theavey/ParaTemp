@@ -22,7 +22,8 @@
 #                                                                      #
 ########################################################################
 
-from exceptions import *
+from __future__ import absolute_import
+from .exceptions import InputError
 
 
 def get_dist(a, b):
