@@ -183,7 +183,7 @@ def plot_array(array, index_offset=1, num_data_rows=False, n_rows=False, n_cols=
     will put each column of array in a different axes of a figure and then return
     the figure."""
     if not num_data_rows:
-        num_data_rows = array.shape[0] - index_offset
+        num_data_rows = array.shape[1] - index_offset
     from math import sqrt, ceil
     if n_rows == n_cols == False:
         n_rows = int(ceil(sqrt(float(num_data_rows))))
