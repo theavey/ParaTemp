@@ -176,3 +176,21 @@ def get_taddol_pi_dists(universe, sel_dict=False):
                        gdd(sd, 'phenrbb', 'phenlbt'),
                        gdd(sd, 'phenrbb', 'phenlbb')))
     return array(output)
+
+
+def plot_array(array, index_offset=1, num_data_rows=False, n_rows=False, n_cols=False):
+    """plot_array(array, index_offset=0, num_data_rows=16, n_rows=False, n_cols=False)
+    will put each column of array in a different axes of a figure and then return
+    the figure."""
+    if not num_data_rows:
+        num_data_rows = array.shape[0] - index_offset
+    from math import sqrt, ceil
+    if n_rows == n_cols == False:
+        n_rows = int(ceil(sqrt(float(num_data_rows))))
+        n_cols = n_rows
+    from matplotlib.pyplot import subplots
+    fig, axes = subplots(n_rows, n_cols, sharex=True, sharey=True)
+    for i in range(num_data_rows):
+        ax = axes.flat[i]
+        ax.plot(array[:, 0], array[:, i+index_offset])
+    return fig
