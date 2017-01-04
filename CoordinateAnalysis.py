@@ -146,3 +146,33 @@ def make_plot_taddol_ox_dists(data, save=False, save_format='pdf',
         return fig
     else:
         return None
+
+
+def get_taddol_pi_dists(universe, sel_dict=False):
+    """Get array of phenanthryl distances in TADDOL trajectory"""
+    from numpy import array
+    if not sel_dict:
+        sel_dict = get_taddol_selections(universe)
+    output = []
+    # For brevity, I redefine these:
+    gdd = get_dist_dict
+    sd = sel_dict
+    for frame in universe.trajectory:
+        output.append((universe.trajectory.time,
+                       gdd(sd, 'phenrtt', 'phenltt'),
+                       gdd(sd, 'phenrtt', 'phenltb'),
+                       gdd(sd, 'phenrtt', 'phenlbt'),
+                       gdd(sd, 'phenrtt', 'phenlbb'),
+                       gdd(sd, 'phenrtb', 'phenltt'),
+                       gdd(sd, 'phenrtb', 'phenltb'),
+                       gdd(sd, 'phenrtb', 'phenlbt'),
+                       gdd(sd, 'phenrtb', 'phenlbb'),
+                       gdd(sd, 'phenrbt', 'phenltt'),
+                       gdd(sd, 'phenrbt', 'phenltb'),
+                       gdd(sd, 'phenrbt', 'phenlbt'),
+                       gdd(sd, 'phenrbt', 'phenlbb'),
+                       gdd(sd, 'phenrbb', 'phenltt'),
+                       gdd(sd, 'phenrbb', 'phenltb'),
+                       gdd(sd, 'phenrbb', 'phenlbt'),
+                       gdd(sd, 'phenrbb', 'phenlbb')))
+    return array(output)
