@@ -154,7 +154,7 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
     """Make histogram of alcoholic O distances in TADDOL trajectory"""
     from matplotlib.pyplot import subplots
     fig, axes = subplots()
-    axes.hist(data[:, 1:].transpose(), n_bins, histtype='stepfilled')
+    axes.hist(data[:, 1:], n_bins, histtype='stepfilled')
     axes.set_xlabel(r'distance / $\mathrm{\AA}$')
     axes.set_ylabel('frequency')
     if save:
