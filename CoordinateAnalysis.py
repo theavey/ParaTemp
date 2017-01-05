@@ -150,13 +150,23 @@ def make_plot_taddol_ox_dists(data, save=False, save_format='pdf',
 
 def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
                               save_base_name='ox_dists_hist',
-                              display=True):
+                              display=True, separate=False):
     """Make histogram of alcoholic O distances in TADDOL trajectory"""
     from matplotlib.pyplot import subplots
-    fig, axes = subplots()
-    axes.hist(data[:, 1:], n_bins, histtype='stepfilled')
-    axes.set_xlabel(r'distance / $\mathrm{\AA}$')
-    axes.set_ylabel('frequency')
+    legend_entries = ['O-O', 'O(l)-Cy', 'O(r)-Cy']
+    if separate:
+        fig, axes = subplots(nrows=2, ncols=2)
+        for i in range(3):
+            axes[i].hist(data[:, 1+i], n_bins, label=legend_entries[i])
+            axes.set_xlabel(r'distance / $\mathrm{\AA}$')
+            axes.set_ylabel('frequency')
+            axes.legend()
+    else:
+        fig, axes = subplots()
+        axes.hist(data[:, 1:], n_bins, histtype='stepfilled')
+        axes.set_xlabel(r'distance / $\mathrm{\AA}$')
+        axes.set_ylabel('frequency')
+        axes.legend(legend_entries)
     if save:
         fig.savefig(save_base_name+save_format)
     if display:
