@@ -155,13 +155,16 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
     from matplotlib.pyplot import subplots
     legend_entries = ['O-O', 'O(l)-Cy', 'O(r)-Cy']
     if separate:
-        fig, axes = subplots(nrows=2, ncols=2)
+        fig, axes = subplots(nrows=2, ncols=2, sharex=True, sharey=True)
+        lines = []
         for i in range(3):
             ax = axes.flat[i]
-            ax.hist(data[:, 1+i], n_bins, label=legend_entries[i])
+            lines.append(ax.hist(data[:, 1+i], n_bins,
+                                 label=legend_entries[i]))
             ax.set_xlabel(r'distance / $\mathrm{\AA}$')
             ax.set_ylabel('frequency')
-            ax.legend()
+        axes.flat[3].axis('off')
+        fig.legend(lines, legend_entries, loc='lower right')
     else:
         fig, ax = subplots()
         ax.hist(data[:, 1:], n_bins, histtype='stepfilled')
