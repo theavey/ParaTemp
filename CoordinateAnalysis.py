@@ -159,8 +159,8 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
         lines = []
         for i in range(3):
             ax = axes.flat[i]
-            lines.append(ax.hist(data[:, 1+i], n_bins,
-                                 label=legend_entries[i]))
+            line, = ax.hist(data[:, 1 + i], n_bins, label=legend_entries[i])
+            lines.append(line)
             ax.set_xlabel(r'distance / $\mathrm{\AA}$')
             ax.set_ylabel('frequency')
         axes.flat[3].axis('off')
