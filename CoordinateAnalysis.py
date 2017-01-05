@@ -157,16 +157,17 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
     if separate:
         fig, axes = subplots(nrows=2, ncols=2)
         for i in range(3):
-            axes[i].hist(data[:, 1+i], n_bins, label=legend_entries[i])
-            axes.set_xlabel(r'distance / $\mathrm{\AA}$')
-            axes.set_ylabel('frequency')
-            axes.legend()
+            ax = axes.flat[i]
+            ax.hist(data[:, 1+i], n_bins, label=legend_entries[i])
+            ax.set_xlabel(r'distance / $\mathrm{\AA}$')
+            ax.set_ylabel('frequency')
+            ax.legend()
     else:
-        fig, axes = subplots()
-        axes.hist(data[:, 1:], n_bins, histtype='stepfilled')
-        axes.set_xlabel(r'distance / $\mathrm{\AA}$')
-        axes.set_ylabel('frequency')
-        axes.legend(legend_entries)
+        fig, ax = subplots()
+        ax.hist(data[:, 1:], n_bins, histtype='stepfilled')
+        ax.set_xlabel(r'distance / $\mathrm{\AA}$')
+        ax.set_ylabel('frequency')
+        ax.legend(legend_entries)
     if save:
         fig.savefig(save_base_name+save_format)
     if display:
