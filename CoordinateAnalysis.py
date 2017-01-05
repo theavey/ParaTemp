@@ -242,7 +242,7 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
     from numpy import log, array
     r = 0.0019872  # kcal_th/(K mol)
     delta_gs = []
-    fig, axes = subplots(nrows=2, ncols=2)
+    fig, axes = subplots(nrows=2, ncols=2, sharey=True, sharex=True)
     handles = []
     colors = ['b', 'g', 'r']
     for i in range(3):
