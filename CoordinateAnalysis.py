@@ -212,11 +212,13 @@ def get_taddol_pi_dists(universe, sel_dict=False):
     return array(output)
 
 
-def plot_dist_array(array, index_offset=1, num_data_rows=False, n_rows=False, n_cols=False):
-    """plot_array(array, index_offset=0, num_data_rows=16, n_rows=False, n_cols=False)
-    will put each row of array in a different axes of a figure and then return
-    the figure."""
-    # todo update this docstring
+def plot_dist_array(array, index_offset=1, num_data_rows=False,
+                    n_rows=False, n_cols=False):
+    """plot_dist_array(array, index_offset=0, num_data_rows=16,
+    n_rows=False, n_cols=False)
+    will put each row of array in a different axes of a figure and
+    then return the figure."""
+    # TODO update this docstring
     if not num_data_rows:
         num_data_rows = array.shape[1] - index_offset
     from math import sqrt, ceil
@@ -231,4 +233,37 @@ def plot_dist_array(array, index_offset=1, num_data_rows=False, n_rows=False, n_
     return fig
 
 
-
+def make_fes_taddol_ox_dist(dists, temp=791., save=False,
+                            save_format='pdf',
+                            save_base_name='ox_dists_fes',
+                            display=True):
+    """Plot the relative free energy surface of O distances in TADDOL"""
+    from matplotlib.pyplot import subplots
+    from numpy import log, array
+    r = 0.0019872  # kcal_th/(K mol)
+    delta_gs = []
+    fig, axes = subplots(nrows=2, ncols=2)
+    handles = []
+    colors = ['b', 'g', 'r']
+    for i in range(3):
+        _fig, _ax = subplots()
+        n, bins, patches = _ax.hist(dists[:, 1+i])
+        # TODO find better way to account for zeros here rather than
+        # just adding a small amount to each.
+        prob = array([j / max(n) for j in n]) + 1e-10
+        delta_g = array([-r * temp * log(p) for p in prob])
+        delta_gs.append(delta_g)
+        ax = axes.flat[i]
+        line = ax.plot(bins[:-1], delta_g, colors[i])
+        handles.append(line)
+        ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
+        ax.set_xlabel(r'distance / $\mathrm{\AA}$')
+    axes.flat[3].axis('off')
+    axes.flat[3].legend(handles, ['O-O', 'O(l)-Cy', 'O(r)-Cy'],
+                        loc='center')
+    if save:
+        fig.savefig(save_base_name+save_format)
+    if display:
+        return fig
+    else:
+        return None
