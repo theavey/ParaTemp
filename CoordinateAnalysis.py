@@ -254,7 +254,7 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
         delta_g = array([-r * temp * log(p) for p in prob])
         delta_gs.append(delta_g)
         ax = axes.flat[i]
-        line = ax.plot(bins[:-1], delta_g, colors[i])
+        line, = ax.plot(bins[:-1], delta_g, colors[i])
         handles.append(line)
         ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
         ax.set_xlabel(r'distance / $\mathrm{\AA}$')
