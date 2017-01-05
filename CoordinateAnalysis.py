@@ -239,15 +239,14 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
                             display=True):
     """Plot the relative free energy surface of O distances in TADDOL"""
     from matplotlib.pyplot import subplots
-    from numpy import log, array
+    from numpy import log, array, histogram
     r = 0.0019872  # kcal_th/(K mol)
     delta_gs = []
     fig, axes = subplots(nrows=2, ncols=2, sharey=True, sharex=True)
     handles = []
     colors = ['b', 'g', 'r']
     for i in range(3):
-        _fig, _ax = subplots()
-        n, bins, patches = _ax.hist(dists[:, 1+i])
+        n, bins = histogram(dists[:, 1+i])
         # TODO find better way to account for zeros here rather than
         # just adding a small amount to each.
         prob = array([j / max(n) for j in n]) + 1e-10
