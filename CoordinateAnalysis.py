@@ -162,7 +162,7 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
             ax = axes.flat[i]
             n, bins, patches = ax.hist(data[:, 1 + i], n_bins,
                                        label=legend_entries[i],
-                                       color=colors[i])
+                                       facecolor=colors[i])
             handles.append(patches[0])
             ax.set_xlabel(r'distance / $\mathrm{\AA}$')
             ax.set_ylabel('frequency')
