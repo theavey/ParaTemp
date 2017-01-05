@@ -155,6 +155,8 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
     from matplotlib.pyplot import subplots
     fig, axes = subplots()
     axes.hist(data[:, 1:].Transpose(), n_bins, histtype='stepfilled')
+    axes.set_xlabel(r'distance / $\mathrm{\AA}$')
+    axes.set_ylabel('frequency')
     if save:
         fig.savefig(save_base_name+save_format)
     if display:
