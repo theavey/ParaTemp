@@ -156,16 +156,18 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
     legend_entries = ['O-O', 'O(l)-Cy', 'O(r)-Cy']
     if separate:
         fig, axes = subplots(nrows=2, ncols=2, sharex=True, sharey=True)
-        lines = []
+        handles = []
+        colors = ['b', 'g', 'r']
         for i in range(3):
             ax = axes.flat[i]
             n, bins, patches = ax.hist(data[:, 1 + i], n_bins,
-                                       label=legend_entries[i])
-            lines.append(patches[0])
+                                       label=legend_entries[i],
+                                       color=colors[i])
+            handles.append(patches[0])
             ax.set_xlabel(r'distance / $\mathrm{\AA}$')
             ax.set_ylabel('frequency')
         axes.flat[3].axis('off')
-        axes.flat[3].legend(lines, legend_entries, loc='center')
+        axes.flat[3].legend(handles, legend_entries, loc='center')
     else:
         fig, ax = subplots()
         ax.hist(data[:, 1:], n_bins, histtype='stepfilled')
