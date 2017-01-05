@@ -131,7 +131,7 @@ def get_taddol_ox_dists(universe, sel_dict=False):
 def make_plot_taddol_ox_dists(data, save=False, save_format='pdf',
                               save_base_name='ox_dists',
                               display=True):
-    """"""
+    """Make plot of alcoholic O distances in TADDOL trajectory"""
     from matplotlib.pyplot import subplots
     fig, axes = subplots()
     axes.plot(data[:, 0], data[:, 1], label='O-O')
@@ -140,6 +140,21 @@ def make_plot_taddol_ox_dists(data, save=False, save_format='pdf',
     axes.legend()
     axes.set_xlabel('time / ps')
     axes.set_ylabel('distance / $\mathrm{\AA}$')
+    if save:
+        fig.savefig(save_base_name+save_format)
+    if display:
+        return fig
+    else:
+        return None
+
+
+def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
+                              save_base_name='ox_dists_hist',
+                              display=True):
+    """Make histogram of alcoholic O distances in TADDOL trajectory"""
+    from matplotlib.pyplot import subplots
+    fig, axes = subplots()
+    axes.hist(data[:, 1:].Transpose(), n_bins, histtype='stepfilled')
     if save:
         fig.savefig(save_base_name+save_format)
     if display:
@@ -178,10 +193,11 @@ def get_taddol_pi_dists(universe, sel_dict=False):
     return array(output)
 
 
-def plot_array(array, index_offset=1, num_data_rows=False, n_rows=False, n_cols=False):
+def plot_dist_array(array, index_offset=1, num_data_rows=False, n_rows=False, n_cols=False):
     """plot_array(array, index_offset=0, num_data_rows=16, n_rows=False, n_cols=False)
-    will put each column of array in a different axes of a figure and then return
+    will put each row of array in a different axes of a figure and then return
     the figure."""
+    # todo update this docstring
     if not num_data_rows:
         num_data_rows = array.shape[1] - index_offset
     from math import sqrt, ceil
@@ -194,3 +210,6 @@ def plot_array(array, index_offset=1, num_data_rows=False, n_rows=False, n_cols=
         ax = axes.flat[i]
         ax.plot(array[:, 0], array[:, i+index_offset])
     return fig
+
+
+
