@@ -233,13 +233,13 @@ def plot_dist_array(array, index_offset=1, num_data_rows=False,
     return fig
 
 
-def plot_taddol_pi_dist_array(dists, save=False, save_format='pdf',
+def make_taddol_pi_dist_array(dists, save=False, save_format='pdf',
                               save_base_name='pi_dists',
                               display=True):
     """Plot array of pi distances in TADDOL trajectory"""
     fig = plot_dist_array(dists)
     (ax.get_xaxis().set_ticks([]) for ax in fig.axes)
-    fig.text(0.07, 0.585, 'distance / $\mathrm{\AA}$', ha='center',
+    fig.text(0.05, 0.585, 'distance / $\mathrm{\AA}$', ha='center',
              rotation='vertical')
     fig.text(0.513, 0.08, 'time', ha='center')
     if save:
