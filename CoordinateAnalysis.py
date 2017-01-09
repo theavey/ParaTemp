@@ -284,3 +284,18 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
         return fig
     else:
         return None
+
+
+def select_open_closed(dists, cutoffs=((1.0, 2.5), (4.0, 10.0))):
+    """Select the coordinates for open vs. closed TADDOL"""
+    cut_closed = cutoffs[0]
+    cut_open = cutoffs[1]
+    set_open = []
+    set_closed = []
+    for ts in dists:
+        if cut_open[0] <= ts[1] <= cut_open[1]:
+            set_open.append(ts)
+        if cut_closed[0] <= ts[1] <= cut_closed[1]:
+            set_closed.append(ts)
+    from numpy import array
+    return array(set_open), array(set_closed)
