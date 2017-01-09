@@ -286,7 +286,7 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
         return None
 
 
-def select_open_closed(dists, cutoffs=((1.0, 2.5), (4.0, 10.0))):
+def select_open_closed(dists, cutoffs=((1.0, 3.25), (3.75, 10.0))):
     """Select the coordinates for open vs. closed TADDOL"""
     cut_closed = cutoffs[0]
     cut_open = cutoffs[1]
