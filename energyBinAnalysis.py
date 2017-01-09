@@ -34,7 +34,7 @@ def get_energies(in_base_name='npt_PT_out'):
     in_files.sort(key=len)
     dfs = {}
     for edr_file in in_files:
-        number = match('\w+?(\d+)\.edr', edr_file).group(1)
+        number = int(match('\w+?(\d+)\.edr', edr_file).group(1))
         df = edr_to_df(edr_file)
         dfs[number] = df
     return Panel(dfs)
