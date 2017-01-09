@@ -30,6 +30,8 @@ def get_energies(in_base_name='npt_PT_out'):
     from re import match
     from pandas import Panel
     in_files = glob(in_base_name+'*.edr')
+    in_files.sort()
+    in_files.sort(key=len)
     dfs = {}
     for edr_file in in_files:
         number = match('\w+?(\d+)\.edr', edr_file).group(1)
