@@ -38,3 +38,32 @@ def get_energies(in_base_name='npt_PT_out'):
         df = edr_to_df(edr_file)
         dfs[number] = df
     return Panel(dfs)
+
+
+def make_energy_component_plots(panel, component, save=False,
+                                save_format='.png',
+                                save_base_name='energy_component',
+                                display=True):
+    """Plot an energy component from a Panel of energy DataFrames"""
+    num_traj = len(panel)
+    from math import sqrt, ceil
+    n_rows = int(ceil(sqrt(float(num_traj))))
+    n_cols = n_rows
+    from matplotlib.pyplot import subplots
+    fig, axes = subplots(ncols=n_cols, nrows=n_rows, sharex=True,
+                         sharey=True)
+    for i in range(num_traj):
+        ax = axes.flat[i]
+        ax.plot(panel[i][component])
+    [ax.get_xaxis().set_ticks([]) for ax in fig.axes]
+    fig.text(0.513, 0.08, 'time', ha='center')
+    # These y-axis units are right for (all?) the energy components,
+    # but not the pressures and such also available.
+    fig.text(0.05, 0.585, 'energy / (kJ / mol)', ha='center',
+             rotation='vertical')
+    if save:
+        fig.savefig(save_base_name+component+save_format)
+    if display:
+        return fig
+    else:
+        return None
