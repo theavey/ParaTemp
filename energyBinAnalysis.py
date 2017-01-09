@@ -62,7 +62,7 @@ def make_energy_component_plots(panel, component, save=False,
     fig.text(0.513, 0.08, 'time', ha='center')
     # These y-axis units are right for (all?) the energy components,
     # but not the pressures and such also available.
-    fig.text(0.05, 0.585, 'energy / (kJ / mol)', ha='center',
+    fig.text(0.035, 0.62, 'energy / (kJ / mol)', ha='center',
              rotation='vertical')
     if save:
         fig.savefig(save_base_name+component+save_format)
