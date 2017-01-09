@@ -45,6 +45,9 @@ def make_energy_component_plots(panel, component, save=False,
                                 save_base_name='energy_component',
                                 display=True):
     """Plot an energy component from a Panel of energy DataFrames"""
+    # TODO add option to only plot some?
+    # TODO add option to plot multiple energy components either
+    # separately or together
     num_traj = len(panel)
     from math import sqrt, ceil
     n_rows = int(ceil(sqrt(float(num_traj))))
