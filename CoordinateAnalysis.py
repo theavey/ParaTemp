@@ -264,9 +264,10 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
     colors = ['b', 'g', 'r']
     for i in range(3):
         n, bins = histogram(dists[:, 1+i])
+        n = [float(j) for j in n]
         # TODO find better way to account for zeros here rather than
         # just adding a small amount to each.
-        prob = array([float(j) / float(max(n)) for j in n]) + 1e-10
+        prob = array([j / max(n) for j in n]) + 1e-10
         delta_g = array([-r * temp * log(p) for p in prob])
         delta_gs.append(delta_g)
         ax = axes.flat[i]
