@@ -70,3 +70,13 @@ def make_energy_component_plots(panel, component, save=False,
         return fig
     else:
         return None
+
+
+def select_open_closed_energies(panel, set_open, set_closed,
+                                frame_index=15):
+    """Select the energies for open vs. closed TADDOL configurations"""
+    df = panel[frame_index]
+    from pandas import merge
+    energies_open = merge(df, set_open, on='Time', how='inner')
+    energies_closed = merge(df, set_closed, on='Time', how='inner')
+    return energies_open, energies_closed

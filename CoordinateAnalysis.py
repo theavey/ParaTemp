@@ -299,6 +299,6 @@ def select_open_closed_dists(dists, cutoffs=((1.0, 3.25),
         if cut_closed[0] <= ts[1] <= cut_closed[1]:
             set_closed.append(ts)
     from pandas import DataFrame
-    columns = ['time', 'O-O', 'Ol-Cy', 'Or-Cy']
+    columns = ['Time', 'O-O', 'Ol-Cy', 'Or-Cy']
     return DataFrame(set_open, columns=columns), \
         DataFrame(set_closed, columns=columns)
