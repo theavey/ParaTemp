@@ -80,3 +80,38 @@ def select_open_closed_energies(panel, set_open, set_closed,
     energies_open = merge(df, set_open, on='Time', how='inner')
     energies_closed = merge(df, set_closed, on='Time', how='inner')
     return energies_open, energies_closed
+
+
+def make_hist_o_v_c_energy_components(eners_open, eners_closed,
+                                      save=False,
+                                      save_format='.pdf',
+                                      save_base_name='o_v_c_hist_',
+                                      display=True
+                                      ):
+    """Hist the energy components for open v closed for 1 replica"""
+    e_columns = eners_closed.columns[1:16]
+    e_c_figs = []
+    for col in e_columns:
+        from matplotlib.pyplot import subplots
+        fig, ax = subplots()
+        mean_open = eners_open[col].mean()
+        mean_closed = eners_closed[col].mean()
+        n_open, bins, patches = ax.hist(eners_open[col],
+                                        normed=True, label='open',
+                                        facecolor='white')
+        n_closed, bins, patches = ax.hist(eners_closed[col],
+                                          normed=True, label='closed',
+                                          facecolor='grey')
+        max_n = 1.2 * max(max(n_open), max(n_closed))
+        ax.plot((mean_open, mean_open), (0, max_n), 'k--')
+        ax.plot((mean_closed, mean_closed), (0, max_n), 'k-')
+        ax.set_ylim([0, max_n])
+        ax.legend()
+        ax.set_title(col)
+        e_c_figs.append(fig)
+        if save:
+            fig.savefig(save_base_name+col+save_format)
+    if display:
+        return e_c_figs
+    else:
+        return None
