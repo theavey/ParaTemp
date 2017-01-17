@@ -25,6 +25,7 @@
 
 def get_energies(in_base_name='npt_PT_out'):
     """Import the energies of GROMACS REMD trajectories"""
+    # todo include "name" of items as replica
     from panedr import edr_to_df
     from glob import glob
     from re import match
@@ -115,3 +116,10 @@ def make_hist_o_v_c_energy_components(eners_open, eners_closed,
         return e_c_figs
     else:
         return None
+
+
+def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
+    """"""
+    # todo write deconvolve_energies function
+    # todo include "name" of items as walker
+    pass
