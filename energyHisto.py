@@ -55,7 +55,7 @@ def find_energies():
         output_name = ('energy' + re.search('[0-9]*(?=\.edr)',
                                             file_name).group(0) + '.xvg')
         if not os.path.isfile(output_name):
-            gromacs.tools.Energy_mpi(f=file_name, o=output_name, input="13")()
+            gromacs.tools.Energy_mpi(f=file_name, o=output_name, input='15')()
         output_files += [output_name]
     output_files.sort()
     output_files.sort(key=len)
@@ -163,7 +163,7 @@ def all_elements_same(in_list):
 def deconvolve_energies(energyfile='energy_comb.xvg',
                         indexfile='replica_temp.xvg'):
     """deconvolve_energies(energyfile='energy_comb.xvg',
-    indexfile='replica_temp.xvg') is a function that takes an xvg files that is
+    indexfile='replica_temp.xvg') is a function that takes an xvg file that
     has n columns of energies likely from a replica exchange simulation where each
     replica remains at a constant temperature (as GROMACS does) and using the n
     data columns of an index xvg file returns an array of the energies where each
