@@ -168,10 +168,20 @@ def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
     i_len = len(i_all_times)
     ratio = float(e_len) / float(i_len)
     approx_ratio = int(round(ratio))
+
+    if ratio > 1:
+        from numpy import repeat
+        indexer = repeat(indexer, approx_ratio, axis=1)
+        i_all_times = repeat(i_all_times, approx_ratio, axis=0)
+        i_len = len(i_all_times)
+        ratio = float(e_len) / float(i_len)
+        approx_ratio = int(round(ratio))
+
     from numpy import mod
     if ratio == 1.0:
         e_end = i_end = e_len
         e_freq = i_freq = 1
+
     elif ratio > 1:
         e_freq = approx_ratio
         i_freq = 1
@@ -189,7 +199,7 @@ def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
         else:
             raise ImportError('ratio: {}, '.format(ratio) +
                               'approx ratio: {}'.format(approx_ratio))
-        # todo duplicate rows in indexer array
+
     elif ratio < 1:
         print('likely undersampling energies because energy / indices '
               'ratio is {}'.format(ratio))
@@ -209,13 +219,12 @@ def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
         else:
             raise ImportError('ratio: {}, '.format(ratio) +
                               'approx ratio: {}'.format(approx_ratio))
+
     else:
         print('length of energy file is {}'.format(e_len))
         print('length of index file is {}'.format(i_len))
         raise ImportError('Not sure how to handle those values')
-    from numpy import array, arange
-    energies_array = array(energies_panel)[:, :e_end:e_freq][
-        indexer[1:, :i_end:i_freq], arange(i_end/i_freq)]
+
     e_times = (e_all_times[0],
                e_all_times[:e_end:e_freq][-1])
     i_times = (i_all_times[0],
@@ -228,6 +237,10 @@ def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
                                                   i_times[1]))
         print('These values should be about the same if this is working'
               ' properly')
+
+    from numpy import array, arange
+    energies_array = array(energies_panel)[:, :e_end:e_freq][
+        indexer[1:, :i_end:i_freq], arange(i_end/i_freq)]
     from pandas import Panel
     return Panel(energies_array,
                  # todo ensure this name setting below works
