@@ -150,7 +150,7 @@ def make_hist_o_v_c_energy_components(eners_open, eners_closed,
             if save:
                 fig.savefig(save_base_name+col+save_format)
     if save and subplot:
-        fig.save(save_base_name+save_format)
+        fig.savefig(save_base_name+save_format)
     if display:
         if subplot:
             return fig
