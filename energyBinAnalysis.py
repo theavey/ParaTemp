@@ -163,7 +163,8 @@ def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
     indexer = indexer[1:].astype(int)
     # Assuming all replicas have the same times, though I don't know
     # why it would be otherwise.
-    e_all_times = energies_panel[0]['Time']
+    from numpy import array
+    e_all_times = array(energies_panel[0]['Time'])
     e_len = len(e_all_times)
     i_len = len(i_all_times)
     ratio = float(e_len) / float(i_len)
