@@ -24,7 +24,11 @@
 
 
 def get_energies(in_base_name='npt_PT_out'):
-    """Import the energies of GROMACS REMD trajectories"""
+    """Import the energies of GROMACS REMD trajectories
+
+    :param in_base_name:
+    :return:
+    """
     from panedr import edr_to_df
     from glob import glob
     from re import match
@@ -44,7 +48,16 @@ def make_energy_component_plots(panel, component, save=False,
                                 save_format='.png',
                                 save_base_name='energy_component',
                                 display=True):
-    """Plot an energy component from a Panel of energy DataFrames"""
+    """Plot an energy component from a Panel of energy DataFrames
+
+    :param panel:
+    :param component:
+    :param save:
+    :param save_format:
+    :param save_base_name:
+    :param display:
+    :return:
+    """
     # TODO add option to only plot some?
     # TODO add option to plot multiple energy components either
     # separately or together
@@ -74,7 +87,14 @@ def make_energy_component_plots(panel, component, save=False,
 
 def select_open_closed_energies(panel, set_open, set_closed,
                                 frame_index=15):
-    """Select the energies for open vs. closed TADDOL configurations"""
+    """Select the energies for open vs. closed TADDOL configurations
+
+    :param panel:
+    :param set_open:
+    :param set_closed:
+    :param frame_index:
+    :return:
+    """
     df = panel[frame_index]
     from pandas import merge
     energies_open = merge(df, set_open, on='Time', how='inner')
@@ -88,7 +108,16 @@ def make_hist_o_v_c_energy_components(eners_open, eners_closed,
                                       save_base_name='o_v_c_hist_',
                                       display=True
                                       ):
-    """Hist the energy components for open v closed for 1 replica"""
+    """Hist the energy components for open v closed for 1 replica
+
+    :param eners_open:
+    :param eners_closed:
+    :param save:
+    :param save_format:
+    :param save_base_name:
+    :param display:
+    :return:
+    """
     e_columns = eners_closed.columns[1:16]
     e_c_figs = []
     for col in e_columns:
@@ -118,7 +147,90 @@ def make_hist_o_v_c_energy_components(eners_open, eners_closed,
 
 
 def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
-    """"""
-    # todo write deconvolve_energies function
-    # todo include "name" of items as walker
-    pass
+    """
+
+    This assumes a near-integer ratio of number of energies to indexes
+    or near-integer inverse of that. If it's like 3/2 or 5/3 (either
+    way) it won't throw an error, but also won't give meaningful
+    results.
+    :param energies_panel:
+    :param index:
+    :return:
+    """
+    from gromacs.fileformats import XVG
+    indexer = XVG(filename=index).array
+    i_all_times = indexer[0]
+    indexer = indexer[1:].astype(int)
+    # Assuming all replicas have the same times, though I don't know
+    # why it would be otherwise.
+    e_all_times = energies_panel[0]['Time']
+    e_len = len(e_all_times)
+    i_len = len(i_all_times)
+    ratio = float(e_len) / float(i_len)
+    approx_ratio = int(round(ratio))
+    from numpy import mod
+    if ratio == 1.0:
+        e_end = i_end = e_len
+        e_freq = i_freq = 1
+    elif ratio > 1:
+        e_freq = approx_ratio
+        i_freq = 1
+        if approx_ratio == ratio:
+            e_end = e_len
+            i_end = i_len
+        elif approx_ratio > ratio:
+            # Note: because these are ints, it's essentially already
+            # using a floor function.
+            i_end = e_len / approx_ratio
+            e_end = e_len - mod(e_len, i_end)
+        elif approx_ratio < ratio:
+            e_end = e_len - mod(e_len, i_len)
+            i_end = i_len
+        else:
+            raise ImportError('ratio: {}, '.format(ratio) +
+                              'approx ratio: {}'.format(approx_ratio))
+        # todo duplicate rows in indexer array
+    elif ratio < 1:
+        print('likely undersampling energies because energy / indices '
+              'ratio is {}'.format(ratio))
+        ratio = 1 / ratio
+        approx_ratio = int(round(ratio))
+        e_freq = 1
+        i_freq = approx_ratio
+        if approx_ratio == ratio:
+            e_end = e_len
+            i_end = i_len
+        elif approx_ratio > ratio:
+            e_end = i_len / approx_ratio
+            i_end = i_len - mod(i_len, e_end)
+        elif approx_ratio < ratio:
+            e_end = e_len
+            i_end = i_len - mod(i_len, e_len)
+        else:
+            raise ImportError('ratio: {}, '.format(ratio) +
+                              'approx ratio: {}'.format(approx_ratio))
+    else:
+        print('length of energy file is {}'.format(e_len))
+        print('length of index file is {}'.format(i_len))
+        raise ImportError('Not sure how to handle those values')
+    from numpy import array, arange
+    energies_array = array(energies_panel)[:, :e_end:e_freq][
+        indexer[1:, :i_end:i_freq], arange(i_end/i_freq)]
+    e_times = (e_all_times[0],
+               e_all_times[:e_end:e_freq][-1])
+    i_times = (i_all_times[0],
+               i_all_times[:i_end:i_freq][-1])
+    if not (float(e_times[0]) == float(i_times[0]) and
+            float(e_times[1]) == float(i_times[1])):
+        print('energies start: {}; end: {}'.format(e_times[0],
+                                                   e_times[1]))
+        print('indices start: {}; end: {}'.format(i_times[0],
+                                                  i_times[1]))
+        print('These values should be about the same if this is working'
+              ' properly')
+    from pandas import Panel
+    return Panel(energies_array,
+                 # todo ensure this name setting below works
+                 items=energies_panel.items.set_names('walker'),
+                 major_axis=energies_panel.major_axis[:e_end:e_freq],
+                 minor_axis=energies_panel.minor_axis)
