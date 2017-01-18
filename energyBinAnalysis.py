@@ -25,7 +25,6 @@
 
 def get_energies(in_base_name='npt_PT_out'):
     """Import the energies of GROMACS REMD trajectories"""
-    # todo include "name" of items as replica
     from panedr import edr_to_df
     from glob import glob
     from re import match
@@ -38,7 +37,7 @@ def get_energies(in_base_name='npt_PT_out'):
         number = int(match('\w+?(\d+)\.edr', edr_file).group(1))
         df = edr_to_df(edr_file)
         dfs[number] = df
-    return Panel(dfs)
+    return Panel(dfs).rename_axis('replica')
 
 
 def make_energy_component_plots(panel, component, save=False,
