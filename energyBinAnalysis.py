@@ -106,7 +106,8 @@ def make_hist_o_v_c_energy_components(eners_open, eners_closed,
                                       save=False,
                                       save_format='.pdf',
                                       save_base_name='o_v_c_hist_',
-                                      display=True
+                                      display=True,
+                                      subplot=False
                                       ):
     """Hist the energy components for open v closed for 1 replica
 
@@ -116,13 +117,20 @@ def make_hist_o_v_c_energy_components(eners_open, eners_closed,
     :param save_format:
     :param save_base_name:
     :param display:
+    :param subplot:
     :return:
     """
     e_columns = eners_closed.columns[1:16]
-    e_c_figs = []
-    for col in e_columns:
-        from matplotlib.pyplot import subplots
-        fig, ax = subplots()
+    from matplotlib.pyplot import subplots
+    if subplot:
+        fig, axes = subplots(nrows=5, ncols=3)
+    else:
+        e_c_figs = []
+    for i, col in enumerate(e_columns):
+        if subplot:
+            ax = axes.flat[i]
+        else:
+            fig, ax = subplots()
         mean_open = eners_open[col].mean()
         mean_closed = eners_closed[col].mean()
         n_open, bins, patches = ax.hist(eners_open[col],
@@ -137,11 +145,17 @@ def make_hist_o_v_c_energy_components(eners_open, eners_closed,
         ax.set_ylim([0, max_n])
         ax.legend()
         ax.set_title(col)
-        e_c_figs.append(fig)
-        if save:
-            fig.savefig(save_base_name+col+save_format)
+        if not subplot:
+            e_c_figs.append(fig)
+            if save:
+                fig.savefig(save_base_name+col+save_format)
+    if save and subplot:
+        fig.save(save_base_name+save_format)
     if display:
-        return e_c_figs
+        if subplot:
+            return fig
+        else:
+            return e_c_figs
     else:
         return None
 
