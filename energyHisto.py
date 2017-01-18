@@ -196,6 +196,10 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
             extra_i = 0
         else:
             raise ImportError('ratio: {}, approx ratio: {}'.format(ratio, approx_ratio))
+        # This is dumb! this discards meaningful energies
+        # just need to duplicate the index rows for consecutive energy
+        # readings between attempted exchanges!
+        # todo fix this to not waste energy values
         deconvolved_energies = energies_indexed[1:, :length_e-extra_e:approx_ratio][
             indices_indexed[1:, :length_i-extra_i],
             np.arange((length_i-extra_i))]
