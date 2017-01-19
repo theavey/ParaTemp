@@ -123,7 +123,7 @@ def make_hist_o_v_c_energy_components(eners_open, eners_closed,
     e_columns = eners_closed.columns[1:16]
     from matplotlib.pyplot import subplots
     if subplot:
-        fig, axes = subplots(nrows=5, ncols=3, figsize=(8, 11))
+        fig, axes = subplots(nrows=5, ncols=3, figsize=(11, 14))
     else:
         e_c_figs = []
     for i, col in enumerate(e_columns):
