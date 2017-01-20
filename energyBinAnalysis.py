@@ -24,7 +24,7 @@
 
 
 def get_energies(in_base_name='npt_PT_out'):
-    """Import the energies of GROMACS REMD trajectories
+    """Import the energies of GROMACS REMD trajectories.
 
     :param in_base_name:
     :return:
@@ -46,9 +46,9 @@ def get_energies(in_base_name='npt_PT_out'):
 
 def make_energy_component_plots(panel, component, save=False,
                                 save_format='.png',
-                                save_base_name='energy_component',
+                                save_base_name='energy_component_',
                                 display=True):
-    """Plot an energy component from a Panel of energy DataFrames
+    """Plot an energy component from a Panel of energy DataFrames.
 
     :param panel:
     :param component:
@@ -87,7 +87,7 @@ def make_energy_component_plots(panel, component, save=False,
 
 def select_open_closed_energies(panel, set_open, set_closed,
                                 frame_index=15):
-    """Select the energies for open vs. closed TADDOL configurations
+    """Select the energies for open vs. closed TADDOL configurations.
 
     :param panel:
     :param set_open:
@@ -109,7 +109,7 @@ def make_hist_o_v_c_energy_components(eners_open, eners_closed,
                                       display=True,
                                       subplot=False
                                       ):
-    """Hist the energy components for open v closed for 1 replica
+    """Hist the energy components for open v closed for 1 replica.
 
     :param eners_open:
     :param eners_closed:
@@ -161,7 +161,7 @@ def make_hist_o_v_c_energy_components(eners_open, eners_closed,
 
 
 def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
-    """
+    """Return the energies of walkers from REMD simulations.
 
     This assumes a near-integer ratio of number of energies to indexes
     or near-integer inverse of that. If it's like 3/2 or 5/3 (either

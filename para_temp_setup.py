@@ -2,7 +2,7 @@
 
 ########################################################################
 #                                                                      #
-# This script was written by Thomas Heavey in 2016.                    #
+# This script was written by Thomas Heavey in 2016-17.                 #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
 # Copyright 2016 Thomas J. Heavey IV                                   #
