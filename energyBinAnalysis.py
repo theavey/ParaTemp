@@ -258,7 +258,6 @@ def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
         indexer[:, :i_end:i_freq], arange(i_end/i_freq)]
     from pandas import Panel
     return Panel(energies_array,
-                 # todo ensure this name setting below works
                  items=energies_panel.items.set_names('walker'),
                  major_axis=energies_panel.major_axis[:e_end:e_freq],
                  minor_axis=energies_panel.minor_axis)
