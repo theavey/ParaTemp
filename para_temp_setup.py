@@ -50,8 +50,10 @@ if __name__ == "__main__":
                         default='../taddol_3htmf_stilbene_em.top',
                         help='name of topology file (.top)')
     # todo accept different structure files (a series/list of them)
+    parser.add_argument('-m', '--multi_structure', default=False,
+                        help='Use multiple starting structure files')
     parser.add_argument('-c', '--structure', default='../major_endo.gro',
-                        help='structure file (.gro) ')
+                        help='structure file or basename (.gro) ')
     parser.add_argument('--index', default='../index.ndx',
                         help='index files')
     parser.add_argument('-t', '--temps_file', default='temperatures.dat',
@@ -65,12 +67,21 @@ if __name__ == "__main__":
     start_temp = float(args.start_temp)
     scaling_exponent = float(args.scaling_exponent)
 
+    if args.multi_structure:
+        from glob import glob
+        structures = glob(args.structure+'*.gro')
+        structures.sort()
+        structures.sort(key=len)
     # todo make this a function and call it
     temps = []
     for i in range(number):
         mdp_name = args.base_name + str(i) + '.mdp'
         temp = start_temp * math.exp(i * scaling_exponent)
         temps += [temp]
+        if args.multi_structure:
+            structure = structures[i]
+        else:
+            structure = args.structure
         with open(args.template, 'r') as template, \
                 open(mdp_name, 'w') as out_file:
             for line in template:
@@ -80,7 +91,7 @@ if __name__ == "__main__":
         command_line = ['grompp_mpi',
                         '-f', mdp_name,
                         '-p', args.topology,
-                        '-c', args.structure,
+                        '-c', structure,
                         '-n', args.index,
                         '-o', mdp_name.replace('mdp', 'tpr'),
                         '-maxwarn', '2']
