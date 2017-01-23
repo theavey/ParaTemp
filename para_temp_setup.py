@@ -67,11 +67,11 @@ if __name__ == "__main__":
     start_temp = float(args.start_temp)
     scaling_exponent = float(args.scaling_exponent)
 
-    if args.multi_structure:
-        from glob import glob
-        structures = glob(args.structure+'*.gro')
-        structures.sort()
-        structures.sort(key=len)
+    # if args.multi_structure:
+    from glob import glob
+    structures = glob(args.structure+'*.gro')
+    structures.sort()
+    structures.sort(key=len)
     # todo make this a function and call it
     temps = []
     for i in range(number):
