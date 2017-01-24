@@ -105,8 +105,10 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--topology',
                         default='../taddol_3htmf_stilbene_em.top',
                         help='name of topology file (.top)')
-    parser.add_argument('-m', '--multi_structure', default=False,
+    parser.add_argument('-m', '--multi_structure', dest='multi_structure',
+                        action='store_true',
                         help='Use multiple starting structure files')
+    parser.set_defaults(multi_structure=False)
     parser.add_argument('-c', '--structure', default='../major_endo.gro',
                         help='structure file or basename (.gro) ')
     parser.add_argument('--index', default='../index.ndx',
