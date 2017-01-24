@@ -130,3 +130,27 @@ if __name__ == "__main__":
         index=args.index,
         temps_file=args.temps_file
     )
+
+
+def get_gro_files(trr_base='npt_PT_out', tpr_base='TOPO/npt',
+                  time=200000):
+    """
+    Get a single frame from TRR as GRO file for several trajectories
+
+    :param trr_base:
+    :param tpr_base:
+    :param time:
+    :return:
+    """
+    from glob import glob
+    trr_files = glob(trr_base+'*.trr')
+    trr_files.sort()
+    trr_files.sort(key=len)
+    tpr_files = glob(tpr_base + '*.tpr')
+    tpr_files.sort()
+    tpr_files.sort(key=len)
+    from gromacs.tools import Trjconv_mpi
+    for i, trr_file in enumerate(trr_files):
+        out_file = trr_file.replace('trr', 'gro')
+        Trjconv_mpi(s=tpr_files[i], f=trr_file, o=out_file, dump=time,
+                    input='0')
