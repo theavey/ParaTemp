@@ -153,4 +153,4 @@ def get_gro_files(trr_base='npt_PT_out', tpr_base='TOPO/npt',
     for i, trr_file in enumerate(trr_files):
         out_file = trr_file.replace('trr', 'gro')
         Trjconv_mpi(s=tpr_files[i], f=trr_file, o=out_file, dump=time,
-                    input='0')
+                    input='0')()
