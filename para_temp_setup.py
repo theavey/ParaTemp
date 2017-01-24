@@ -85,13 +85,13 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
 
 
 if __name__ == "__main__":
-    import argparse
+    from argparse import ArgumentParser
 
     __version__ = '0.1.3'
 
-    parser = argparse.ArgumentParser(description='A script to help setup parallel '
-                                                 'tempering jobs in GROMACS with '
-                                                 'PLUMED')
+    parser = ArgumentParser(description='A script to help setup parallel '
+                                        'tempering jobs in GROMACS with '
+                                        'PLUMED')
     parser.add_argument('-l', '--template', default='templatemdp.txt',
                         help='name of template file')
     parser.add_argument('-s', '--start_temp', default=205,
