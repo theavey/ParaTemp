@@ -77,6 +77,7 @@ def make_energy_component_plots(panel, component, save=False,
     # but not the pressures and such also available.
     fig.text(0.035, 0.62, 'energy / (kJ / mol)', ha='center',
              rotation='vertical')
+    fig.tight_layout()
     if save:
         fig.savefig(save_base_name+component+save_format)
     if display:
@@ -148,11 +149,14 @@ def make_hist_o_v_c_energy_components(eners_open, eners_closed,
         if not subplot:
             e_c_figs.append(fig)
             if save:
+                fig.tight_layout()
                 fig.savefig(save_base_name+col+save_format)
     if save and subplot:
+        fig.tight_layout()
         fig.savefig(save_base_name+save_format)
     if display:
         if subplot:
+            fig.tight_layout()
             return fig
         else:
             return e_c_figs
