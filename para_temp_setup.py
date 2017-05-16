@@ -103,13 +103,13 @@ if __name__ == "__main__":
     parser.add_argument('-b', '--base_name', default='npt',
                         help='base name for output mdp and tpr files')
     parser.add_argument('-p', '--topology',
-                        default='../taddol_3htmf_stilbene_em.top',
+                        default='../*.top',
                         help='name of topology file (.top)')
     parser.add_argument('-m', '--multi_structure', dest='multi_structure',
                         action='store_true',
                         help='Use multiple starting structure files')
     parser.set_defaults(multi_structure=False)
-    parser.add_argument('-c', '--structure', default='../major_endo.gro',
+    parser.add_argument('-c', '--structure', default='../*.gro',
                         help='structure file or basename (.gro) ')
     parser.add_argument('--index', default='../index.ndx',
                         help='index files')
