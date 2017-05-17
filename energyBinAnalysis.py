@@ -265,3 +265,7 @@ def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
                  items=energies_panel.items.set_names('walker'),
                  major_axis=energies_panel.major_axis[:e_end:e_freq],
                  minor_axis=energies_panel.minor_axis)
+
+
+def plot_convergence():
+    pass
