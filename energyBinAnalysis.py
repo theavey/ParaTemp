@@ -261,6 +261,7 @@ def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
     energies_array = array(energies_panel)[:, :e_end:e_freq][
         indexer[:, :i_end:i_freq], arange(i_end/i_freq)]
     from pandas import Panel
+    # todo remove this deprecated panel def below
     return Panel(energies_array,
                  items=energies_panel.items.set_names('walker'),
                  major_axis=energies_panel.major_axis[:e_end:e_freq],
@@ -268,4 +269,5 @@ def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
 
 
 def plot_convergence():
+    # todo define this function w/ doc string
     pass
