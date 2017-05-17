@@ -141,8 +141,8 @@ def combine_energy_files(basename='energy', files=False):
             len_shortest = min(lengths)
             data = [gromacs.formats.XVG(filename=files[0]).array[0,
                     :len_shortest]]
-            print('Energy lists not all equal lengths.'
-                  'Cropping all the the length of the shortest:'
+            print('Energy lists not all equal lengths. '
+                  'Cropping all to the length of the shortest:'
                   ' {}'.format(len_shortest))
             imported_data = [part[:len_shortest] for part in imported_data]
             data += imported_data
