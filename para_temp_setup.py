@@ -72,7 +72,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                         '-n', index,
                         '-o', mdp_name.replace('mdp', 'tpr'),
                         '-maxwarn', '2']
-        with open('gromacs_compile_output.log', 'w') as log_file:
+        with open('gromacs_compile_output.log', 'a') as log_file:
             from subprocess import Popen, PIPE, STDOUT
             proc = Popen(command_line,
                          stdout=PIPE, bufsize=1,
