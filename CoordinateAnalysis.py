@@ -24,6 +24,9 @@
 
 from __future__ import absolute_import
 from .exceptions import InputError
+import MDAnalysis as MDa
+
+# TODO move all import statements to the beginning (out of functions)
 
 
 def get_taddol_selections(universe, univ_in_dict=True):
@@ -50,19 +53,28 @@ def get_taddol_selections(universe, univ_in_dict=True):
     return d_out
 
 
-def get_dist(a, b):
-    """Calculate the distance between AtomGroups a and b"""
-    from numpy.linalg import norm
-    return norm(a.centroid() - b.centroid())
+def get_dist(a, b, box=False):
+    """Calculate the distance between AtomGroups a and b.
+
+    If a box is provided, this will use the builtin MDAnalysis function to
+    account for periodic boundary conditions.
+    This will likely not work as expected if a box is provided, but the
+    selections passed in are more than a single atom."""
+    if box:
+        return MDa.lib.distances.calc_bonds(a, b, box=box)
+    else:
+        from numpy.linalg import norm
+        return norm(a.centroid() - b.centroid())
 
 
-def get_dist_dict(dictionary, a, b):
+def get_dist_dict(dictionary, a, b, box=False):
     """Calculate distance using dict of AtomSelections"""
-    return get_dist(dictionary[a], dictionary[b])
+    return get_dist(dictionary[a], dictionary[b], box=box)
 
 
 def get_angle(a, b, c, units='rad'):
     """Calculate the angle between ba and bc for AtomGroups a, b, c"""
+    # TODO look at using the MDAnalysis builtin function
     from numpy import arccos, rad2deg, dot
     from numpy.linalg import norm
     b_center = b.centroid()
@@ -90,6 +102,7 @@ def get_dihedral(a, b, c, d, units='rad'):
 
     Based on formula given in
     https://en.wikipedia.org/wiki/Dihedral_angle"""
+    # TODO look at using the MDAnalysis builtin function
     from numpy import cross, arctan2, dot, rad2deg
     from numpy.linalg import norm
     ba = a.centroid() - b.centroid()
@@ -121,10 +134,11 @@ def get_taddol_ox_dists(universe, sel_dict=False):
         sel_dict = get_taddol_selections(universe)
     output = []
     for frame in universe.trajectory:
+        box = universe.dimensions
         output.append((universe.trajectory.time,
-                       get_dist_dict(sel_dict, 'aoxl', 'aoxr'),
-                       get_dist_dict(sel_dict, 'aoxl', 'cyclon'),
-                       get_dist_dict(sel_dict, 'aoxr', 'cyclon')))
+                       get_dist_dict(sel_dict, 'aoxl', 'aoxr', box=box),
+                       get_dist_dict(sel_dict, 'aoxl', 'cyclon', box=box),
+                       get_dist_dict(sel_dict, 'aoxr', 'cyclon', box=box)))
     return array(output)
 
 
