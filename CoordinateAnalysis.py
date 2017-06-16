@@ -53,21 +53,21 @@ def get_taddol_selections(universe, univ_in_dict=True):
     return d_out
 
 
-def get_dist(a, b, box=False):
+def get_dist(a, b, box=None):
     """Calculate the distance between AtomGroups a and b.
 
     If a box is provided, this will use the builtin MDAnalysis function to
     account for periodic boundary conditions.
     This will likely not work as expected if a box is provided, but the
     selections passed in are more than a single atom."""
-    if box:
+    if box is not None:
         return MDa.lib.distances.calc_bonds(a, b, box=box)
     else:
         from numpy.linalg import norm
         return norm(a.centroid() - b.centroid())
 
 
-def get_dist_dict(dictionary, a, b, box=False):
+def get_dist_dict(dictionary, a, b, box=None):
     """Calculate distance using dict of AtomSelections"""
     return get_dist(dictionary[a], dictionary[b], box=box)
 
