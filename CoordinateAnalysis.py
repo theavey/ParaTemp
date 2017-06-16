@@ -61,7 +61,8 @@ def get_dist(a, b, box=None):
     This will likely not work as expected if a box is provided, but the
     selections passed in are more than a single atom."""
     if box is not None:
-        return MDa.lib.distances.calc_bonds(a, b, box=box)
+        return MDa.lib.distances.calc_bonds(a.centroid(), b.centroid(),
+                                            box=box)
     else:
         from numpy.linalg import norm
         return norm(a.centroid() - b.centroid())
