@@ -25,6 +25,7 @@
 from __future__ import absolute_import
 from .exceptions import InputError
 import MDAnalysis as MDa
+import numpy as np
 
 # TODO move all import statements to the beginning (out of functions)
 
@@ -57,11 +58,10 @@ def get_dist(a, b, box=None):
     """Calculate the distance between AtomGroups a and b.
 
     If a box is provided, this will use the builtin MDAnalysis function to
-    account for periodic boundary conditions.
-    This will likely not work as expected if a box is provided, but the
-    selections passed in are more than a single atom."""
+    account for periodic boundary conditions."""
     if box is not None:
-        return MDa.lib.distances.calc_bonds((a.centroid()), (b.centroid()),
+        coordinates = (np.array([atom.centroid()]) for atom in (a, b))
+        return MDa.lib.distances.calc_bonds(*coordinates,
                                             box=box)
     else:
         from numpy.linalg import norm
