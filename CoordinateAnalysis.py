@@ -25,9 +25,50 @@
 from __future__ import absolute_import
 from .exceptions import InputError
 import MDAnalysis as MDa
+import mdtraj as md
 import numpy as np
 
 # TODO move all import statements to the beginning (out of functions)
+
+
+class Taddol(md.Trajectory):
+    """"""
+
+    def __init__(self, *args, **kwargs):
+        md.Trajectory.__init__(self, *args, **kwargs)
+        self.ox_dists = None
+
+
+    def calc_ox_dists(self):
+        """
+        Calculate the three oxygen-related distances.
+
+        :return:
+        """
+        if self.ox_dists is None:
+            # todo write this
+        else:
+            print('oxygen distances already calculated '
+                  'and saved in self.ox_dists\n'
+                  'Not recalculating.')
+
+
+    def plot_ox_dists(self, save=False, save_format='pdf',
+                      save_base_name='ox_dists',
+                      display=True, **kwargs):
+        """
+        Plot the three oxygen-related distances.
+
+        :param save:
+        :param save_format:
+        :param save_base_name:
+        :param display:
+        :param kwargs:
+        :return:
+        """
+        if self.ox_dists is None:
+            self.calc_ox_dists()
+        pass  # TODO write this based on below
 
 
 def get_taddol_selections(universe, univ_in_dict=True):
