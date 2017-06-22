@@ -23,10 +23,13 @@
 ########################################################################
 
 from __future__ import absolute_import
-from .exceptions import InputError
+
 import MDAnalysis as MDa
 import mdtraj as md
 import numpy as np
+
+from .exceptions import InputError
+
 
 # TODO move all import statements to the beginning (out of functions)
 
@@ -37,7 +40,8 @@ class Taddol(md.Trajectory):
     def __init__(self, *args, **kwargs):
         md.Trajectory.__init__(self, *args, **kwargs)
         self.ox_dists = None
-
+        self.pi_dists = None
+        self.counts_hist_ox_dists = None
 
     def calc_ox_dists(self):
         """
@@ -47,14 +51,47 @@ class Taddol(md.Trajectory):
         """
         if self.ox_dists is None:
             # todo write this
+            pass
         else:
             print('oxygen distances already calculated '
                   'and saved in self.ox_dists\n'
-                  'Not recalculating.')
+                  'Not recalculating.\n'
+                  'To recalculate, set self.ox_dists to None and rerun this '
+                  'function.')
 
+    def calc_pi_dists(self):
+        """
+        Calculate TADDOL pi dists if not already done.
 
-    def plot_ox_dists(self, save=False, save_format='pdf',
-                      save_base_name='ox_dists',
+        :return:
+        """
+        if self.pi_dists is None:
+            # todo write this
+            pass
+        else:
+            print('pi distances already calculated '
+                  'and saved in self.pi_dists\nNot recalculating.\n'
+                  'To recalculate, set self.pi_dists to None and rerun this '
+                  'function.')
+
+    def calc_counts_hist_ox_dists(self):
+        """
+
+        :return:
+        """
+        if self.counts_hist_ox_dists is None:
+            if self.ox_dists is None:
+                self.calc_ox_dists()
+            # todo write this as below
+            pass
+        else:
+            print('ox histogram counts already calculated and saved in '
+                  'self.counts_hist_ox_dists\nNot recalculating.\n'
+                  'To recalculate, set self.counts_hist_ox_dists to None and '
+                  'rerun this function')
+
+    def plot_ox_dists(self, save=False, save_format='png',
+                      save_base_name='ox-dists',
                       display=True, **kwargs):
         """
         Plot the three oxygen-related distances.
@@ -68,6 +105,44 @@ class Taddol(md.Trajectory):
         """
         if self.ox_dists is None:
             self.calc_ox_dists()
+        pass  # TODO write this based on below
+
+    def hist_ox_dists(self, n_bins=10, save=False, save_format='pdf',
+                      save_base_name='ox-dists-hist',
+                      display=True, separate=True, **kwargs):
+        """
+        Make histogram of alcoholic O distances in TADDOL trajectory
+
+        :param n_bins:
+        :param save:
+        :param save_format:
+        :param save_base_name:
+        :param display:
+        :param separate:
+        :param kwargs:
+        :return:
+        """
+        if self.ox_dists is None:
+            self.calc_ox_dists()
+        # Save the histogram figures and/or data for making the FESs
+        # or better yet, use separate calc hist data function and just plot it
+        pass  # TODO write this based on below
+
+    def fes_ox_dists(self, temp=791., save=False,
+                     save_format='pdf',
+                     save_base_name='ox-dists-fes',
+                     display=True):
+        """
+
+        :param temp:
+        :param save:
+        :param save_format:
+        :param save_base_name:
+        :param display:
+        :return:
+        """
+        if self.counts_hist_ox_dists is None:
+            self.calc_counts_hist_ox_dists()
         pass  # TODO write this based on below
 
 
@@ -270,11 +345,16 @@ def get_taddol_pi_dists(universe, sel_dict=False):
 
 def plot_dist_array(array, index_offset=1, num_data_rows=False,
                     n_rows=False, n_cols=False):
-    """plot_dist_array(array, index_offset=0, num_data_rows=16,
-    n_rows=False, n_cols=False)
-    will put each row of array in a different axes of a figure and
-    then return the figure."""
-    # TODO update this docstring
+    """
+    Puts each row of array in a different axes of a figure. Returns the figure.
+
+    :param array:
+    :param index_offset:
+    :param num_data_rows:
+    :param n_rows:
+    :param n_cols:
+    :return:
+    """
     if not num_data_rows:
         num_data_rows = array.shape[1] - index_offset
     from math import sqrt, ceil
@@ -344,7 +424,13 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
 
 def select_open_closed_dists(dists, cutoffs=((1.0, 3.25),
                                              (3.75, 10.0))):
-    """Select the coordinates for open vs. closed TADDOL"""
+    """
+    Select the coordinates for open vs. closed TADDOL
+
+    :param dists:
+    :param cutoffs:
+    :return:
+    """
     cut_closed = cutoffs[0]
     cut_open = cutoffs[1]
     set_open = []
