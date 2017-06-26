@@ -25,7 +25,8 @@
 from __future__ import absolute_import
 
 import MDAnalysis as MDa
-import mdtraj as md
+import MDAnalysis.analysis
+# import mdtraj as md  # Think I'm going with MDAnalysis instead
 import numpy as np
 
 from .exceptions import InputError
@@ -34,11 +35,14 @@ from .exceptions import InputError
 # TODO move all import statements to the beginning (out of functions)
 
 
-class Taddol(md.Trajectory):
+class Taddol(MDa.Universe):
     """"""
 
     def __init__(self, *args, **kwargs):
-        md.Trajectory.__init__(self, *args, **kwargs)
+        # self.univ = (line below): I'm not sure if this is needed or if this
+        # just automatically inherits everything
+        # Maybe use the super() command? need to learn more about this
+        super(MDa.Universe, self).__init__(*args, **kwargs)
         self.ox_dists = None
         self.pi_dists = None
         self.counts_hist_ox_dists = None
@@ -50,7 +54,11 @@ class Taddol(md.Trajectory):
         :return:
         """
         if self.ox_dists is None:
-            # todo write this
+            # aoxr aoxl aoxr
+            first_group = self.select_atoms('bynum 7 9 7')
+            # aoxl cyclon cyclon
+            second_group = self.select_atoms('bynum 9 13 13')
+            self.pi_dists = MDa.analysis.distances.dist(first_group, second_group)[2]
             pass
         else:
             print('oxygen distances already calculated '
