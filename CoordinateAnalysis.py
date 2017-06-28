@@ -53,6 +53,7 @@ class Taddol(MDa.Universe):
 
         :return:
         """
+        # TODO do all these existence checks with duck typing and try clauses?
         if self.ox_dists is None:
             # aoxr aoxl aoxr
             first_group = self.select_atoms('bynum 7 9 7')
