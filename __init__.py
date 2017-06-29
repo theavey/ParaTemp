@@ -23,6 +23,6 @@
 ########################################################################
 
 from __future__ import absolute_import
-import .energyHisto
-import .para_temp_setup
-import .CoordinateAnalysis
+from . import energyHisto
+from . import para_temp_setup
+from . import CoordinateAnalysis
