@@ -52,6 +52,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
     structures.sort()
     structures.sort(key=len)
     temps = []
+    error = False
     from math import exp
     for i in range(number):
         mdp_name = base_name + str(i) + '.mdp'
@@ -79,7 +80,13 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                          stderr=STDOUT,
                          universal_newlines=True)
             for line in proc.stdout:
+                if error == True:  # Catch the next line after the error
+                    error = line
+                if 'Fatal error' in line:
+                    error = True  # Deal with this after writing log file
                 log_file.write(line)
+        if error:
+            raise RuntimeError(error)
     with open(temps_file, 'w') as temps_out:
         temps_out.write(str(temps))
         temps_out.write('\n')
