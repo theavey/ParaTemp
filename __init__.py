@@ -23,6 +23,9 @@
 ########################################################################
 
 from __future__ import absolute_import
-from . import energyHisto
+import sys
 from . import para_temp_setup
-from . import CoordinateAnalysis
+if sys.version_info.major == 2:
+    # These (at this point) require python 2 because of gromacs and MDAnalysis
+    from . import energyHisto
+    from . import CoordinateAnalysis
