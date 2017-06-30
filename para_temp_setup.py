@@ -30,7 +30,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                  scaling_exponent=0.025, base_name='npt',
                  topology='../*top', multi_structure=False,
                  structure='../*gro', index='../index.ndx',
-                 temps_file='temperatures.dat'):
+                 temps_file='temperatures.dat', maxwarn='0'):
     """
     Compile TPR files for REMD run with GROMACS
 
@@ -72,7 +72,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                         '-c', structure,
                         '-n', index,
                         '-o', mdp_name.replace('mdp', 'tpr'),
-                        '-maxwarn', '2']
+                        '-maxwarn', maxwarn]
         with open('gromacs_compile_output.log', 'a') as log_file:
             from subprocess import Popen, PIPE, STDOUT
             proc = Popen(command_line,
