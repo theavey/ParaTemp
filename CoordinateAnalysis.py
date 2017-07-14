@@ -298,8 +298,9 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
     if separate:
         fig, axes = subplots(nrows=2, ncols=2, sharex=True, sharey=True)
         handles = []
-        # Use default colors as opposed to hard coding some
-        colors = mpl.rcParams['axes.prop_cycle']
+        # Use whatever the default colors for the system are
+        # TODO find a more elegent way to do this
+        colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
         for i in range(3):
             ax = axes.flat[i]
             n, bins, patches = ax.hist(data[:, 1 + i], n_bins,
@@ -409,7 +410,8 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
     fig, axes = subplots(nrows=2, ncols=2, sharey=True, sharex=True)
     handles = []
     # Use whatever the default colors for the system are
-    colors = mpl.rcParams['axes.prop_cycle']
+    # TODO find a more elegent way to do this
+    colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
     for i in range(3):
         n, bins = histogram(dists[:, 1+i])
         n = [float(j) for j in n]
