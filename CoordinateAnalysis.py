@@ -28,6 +28,7 @@ import MDAnalysis as MDa
 import MDAnalysis.analysis
 # import mdtraj as md  # Think I'm going with MDAnalysis instead
 import numpy as np
+import matplotlib as mpl
 
 from .exceptions import InputError
 
@@ -297,7 +298,8 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
     if separate:
         fig, axes = subplots(nrows=2, ncols=2, sharex=True, sharey=True)
         handles = []
-        colors = ['b', 'g', 'r']
+        # Use default colors as opposed to hard coding some
+        colors = mpl.rcParams['axes.prop_cycle']
         for i in range(3):
             ax = axes.flat[i]
             n, bins, patches = ax.hist(data[:, 1 + i], n_bins,
@@ -406,7 +408,8 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
     delta_gs = []
     fig, axes = subplots(nrows=2, ncols=2, sharey=True, sharex=True)
     handles = []
-    colors = ['b', 'g', 'r']
+    # Use whatever the default colors for the system are
+    colors = mpl.rcParams['axes.prop_cycle']
     for i in range(3):
         n, bins = histogram(dists[:, 1+i])
         n = [float(j) for j in n]
