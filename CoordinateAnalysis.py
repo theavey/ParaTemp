@@ -141,7 +141,7 @@ class Taddol(MDa.Universe):
     def fes_ox_dists(self, temp=791., save=False,
                      save_format='pdf',
                      save_base_name='ox-dists-fes',
-                     display=True):
+                     display=True, **kwargs):
         """
 
         :param temp:
@@ -149,6 +149,7 @@ class Taddol(MDa.Universe):
         :param save_format:
         :param save_base_name:
         :param display:
+        :param kwargs: keyword arguments to pass to the plotter
         :return:
         """
         if self.counts_hist_ox_dists is None:
@@ -299,7 +300,7 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
         fig, axes = subplots(nrows=2, ncols=2, sharex=True, sharey=True)
         handles = []
         # Use whatever the default colors for the system are
-        # TODO find a more elegent way to do this
+        # TODO find a more elegant way to do this
         colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
         for i in range(3):
             ax = axes.flat[i]
@@ -401,7 +402,7 @@ def make_taddol_pi_dist_array(dists, save=False, save_format='pdf',
 def make_fes_taddol_ox_dist(dists, temp=791., save=False,
                             save_format='pdf',
                             save_base_name='ox_dists_fes',
-                            display=True):
+                            display=True, **kwargs):
     """Plot the relative free energy surface of O distances in TADDOL"""
     from matplotlib.pyplot import subplots
     from numpy import log, array, histogram
@@ -410,7 +411,7 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
     fig, axes = subplots(nrows=2, ncols=2, sharey=True, sharex=True)
     handles = []
     # Use whatever the default colors for the system are
-    # TODO find a more elegent way to do this
+    # TODO find a more elegant way to do this
     colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
     for i in range(3):
         n, bins = histogram(dists[:, 1+i])
@@ -421,7 +422,7 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
         delta_g = array([-r * temp * log(p) for p in prob])
         delta_gs.append(delta_g)
         ax = axes.flat[i]
-        line, = ax.plot(bins[:-1], delta_g, colors[i])
+        line, = ax.plot(bins[:-1], delta_g, colors[i], **kwargs)
         handles.append(line)
         ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
         ax.set_xlabel(r'distance / $\mathrm{\AA}$')
