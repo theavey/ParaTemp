@@ -60,7 +60,7 @@ class Taddol(MDa.Universe):
             first_group = self.select_atoms('bynum 7 9 7')
             # aoxl cyclon cyclon
             second_group = self.select_atoms('bynum 9 13 13')
-            self.pi_dists = MDa.analysis.distances.dist(first_group, second_group)[2]
+            self.ox_dists = MDa.analysis.distances.dist(first_group, second_group)[2]
             pass
         else:
             print('oxygen distances already calculated '
