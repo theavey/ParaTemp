@@ -55,11 +55,13 @@ class Taddol(MDa.Universe):
         :return:
         """
         # TODO do all these existence checks with duck typing and try clauses?
+        # or with property decorators and no need for a separate "calc" function
         if self.ox_dists is None:
             # aoxr aoxl aoxr
             first_group = self.select_atoms('bynum 7 9 7')
             # aoxl cyclon cyclon
             second_group = self.select_atoms('bynum 9 13 13')
+            # todo check this, doesn't do every frame?
             self.ox_dists = MDa.analysis.distances.dist(first_group, second_group)[2]
             pass
         else:
