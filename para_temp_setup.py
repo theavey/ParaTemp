@@ -34,17 +34,19 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
     """
     Compile TPR files for REMD run with GROMACS
 
-    :param template:
-    :param start_temp:
-    :param number:
-    :param scaling_exponent:
-    :param base_name:
-    :param topology:
-    :param multi_structure:
-    :param structure:
-    :param index:
-    :param temps_file:
-    :return:
+    :param template: name of template mdp file
+    :param start_temp: starting (lowest) temperature
+    :param number: number of replicas/walkers
+    :param scaling_exponent: exponent by which to scale the temperatures
+    :param base_name: base name for output mdp and tpr files
+    :param topology: name of topology file
+    :param multi_structure: bool, multiple (different) structure files
+    (uses glob expansion on the input structure base name)
+    :param structure: (base) name of structure file(s)
+    :param index: name of index file
+    :param temps_file: name of file in which to store temperatures
+    :param maxwarn: maximum number of warnings to ignore
+    :return: None
     """
     # if args.multi_structure:
     from glob import glob
