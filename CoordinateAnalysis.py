@@ -43,10 +43,11 @@ class Taddol(MDa.Universe):
         # self.univ = (line below): I'm not sure if this is needed or if this
         # just automatically inherits everything
         # Maybe use the super() command? need to learn more about this
-        super(MDa.Universe, self).__init__(*args, **kwargs)
+        super(Taddol, self).__init__(*args, **kwargs)
         self.ox_dists = None
         self.pi_dists = None
         self.counts_hist_ox_dists = None
+        self.open_ox_dists, self.closed_ox_dists = None, None
 
     def calc_ox_dists(self):
         """
@@ -58,7 +59,7 @@ class Taddol(MDa.Universe):
         # or with property decorators and no need for a separate "calc" function
         if self.ox_dists is None:
             # aoxr aoxl aoxr
-            first_group = self.select_atoms('bynum 7 9 7')
+            first_group = self.select_atoms('bynum 7 9', 'bynum 7')
             # aoxl cyclon cyclon
             second_group = self.select_atoms('bynum 9 13 13')
             # todo check this, doesn't do every frame?
@@ -101,6 +102,29 @@ class Taddol(MDa.Universe):
                   'self.counts_hist_ox_dists\nNot recalculating.\n'
                   'To recalculate, set self.counts_hist_ox_dists to None and '
                   'rerun this function')
+
+    def calc_open_closed_dists(self, cutoffs=((1.0, 3.25), (3.75, 10.0))):
+        """
+        Select the coordinates for open vs. closed TADDOL
+
+        :param cutoffs:
+        :return:
+        """
+        cut_closed = cutoffs[0]
+        cut_open = cutoffs[1]
+        set_open = []
+        set_closed = []
+        if self.ox_dists is None:
+            self.calc_ox_dists()
+        for ts in self.ox_dists:
+            if cut_open[0] <= ts[1] <= cut_open[1]:
+                set_open.append(ts)
+            if cut_closed[0] <= ts[1] <= cut_closed[1]:
+                set_closed.append(ts)
+        from pandas import DataFrame
+        columns = ['Time', 'O-O', 'Ol-Cy', 'Or-Cy']
+        return DataFrame(set_open, columns=columns), \
+            DataFrame(set_closed, columns=columns)
 
     def plot_ox_dists(self, save=False, save_format='png',
                       save_base_name='ox-dists',

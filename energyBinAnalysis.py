@@ -90,7 +90,7 @@ def select_open_closed_energies(panel, set_open, set_closed,
                                 frame_index=15):
     """Select the energies for open vs. closed TADDOL configurations.
 
-    :param panel:
+    :param panel: a pd.Panel returned from get_energies
     :param set_open:
     :param set_closed:
     :param frame_index:
