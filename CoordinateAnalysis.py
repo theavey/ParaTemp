@@ -26,7 +26,7 @@ from __future__ import absolute_import
 
 import MDAnalysis as MDa
 import MDAnalysis.analysis
-import MDAnalysis.analysis.distances
+import MDAnalysis.analysis.distances as MDaadists
 # import mdtraj as md  # Think I'm going with MDAnalysis instead
 import numpy as np
 import matplotlib as mpl
@@ -65,7 +65,7 @@ class Taddol(MDa.Universe):
             # aoxl cyclon cyclon
             second_group = self.select_atoms('bynum 9 13 13')
             # todo check this, doesn't do every frame?
-            self.ox_dists = MDa.analysis.distances.dist(first_group, second_group)[2]
+            self.ox_dists = MDaadists.dist(first_group, second_group)[2]
             pass
         else:
             print('oxygen distances already calculated '
