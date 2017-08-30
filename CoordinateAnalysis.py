@@ -26,6 +26,7 @@ from __future__ import absolute_import
 
 import MDAnalysis as MDa
 import MDAnalysis.analysis
+import MDAnalysis.analysis.distances
 # import mdtraj as md  # Think I'm going with MDAnalysis instead
 import numpy as np
 import matplotlib as mpl
@@ -49,13 +50,14 @@ class Taddol(MDa.Universe):
         self.counts_hist_ox_dists = None
         self.open_ox_dists, self.closed_ox_dists = None, None
 
+    # TODO fix all properties with getters and setters
+
     def calc_ox_dists(self):
         """
         Calculate the three oxygen-related distances.
 
         :return:
         """
-        # TODO do all these existence checks with duck typing and try clauses?
         # or with property decorators and no need for a separate "calc" function
         if self.ox_dists is None:
             # aoxr aoxl aoxr
@@ -110,21 +112,28 @@ class Taddol(MDa.Universe):
         :param cutoffs:
         :return:
         """
-        cut_closed = cutoffs[0]
-        cut_open = cutoffs[1]
-        set_open = []
-        set_closed = []
-        if self.ox_dists is None:
-            self.calc_ox_dists()
-        for ts in self.ox_dists:
-            if cut_open[0] <= ts[1] <= cut_open[1]:
-                set_open.append(ts)
-            if cut_closed[0] <= ts[1] <= cut_closed[1]:
-                set_closed.append(ts)
-        from pandas import DataFrame
-        columns = ['Time', 'O-O', 'Ol-Cy', 'Or-Cy']
-        return DataFrame(set_open, columns=columns), \
-            DataFrame(set_closed, columns=columns)
+        if self.open_ox_dists is None and self.closed_ox_dists is None:
+            cut_closed = cutoffs[0]
+            cut_open = cutoffs[1]
+            set_open = []
+            set_closed = []
+            if self.ox_dists is None:
+                self.calc_ox_dists()
+            for ts in self.ox_dists:
+                if cut_open[0] <= ts[1] <= cut_open[1]:
+                    set_open.append(ts)
+                if cut_closed[0] <= ts[1] <= cut_closed[1]:
+                    set_closed.append(ts)
+            from pandas import DataFrame
+            columns = ['Time', 'O-O', 'Ol-Cy', 'Or-Cy']
+            self.open_ox_dists = DataFrame(set_open, columns=columns)
+            self.closed_ox_dists = DataFrame(set_closed, columns=columns)
+        else:
+            print('open/closed distances already calculated '
+                  'and saved in self.open_ox_dists and self.closed_ox_dists'
+                  '\nNot recalculating.\n'
+                  'To recalculate, set self.open_ox_dists and self.closed_ox_dists '
+                  'to None and rerun this function.')
 
     def plot_ox_dists(self, save=False, save_format='png',
                       save_base_name='ox-dists',
