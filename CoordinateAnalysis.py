@@ -63,7 +63,7 @@ class Taddol(MDa.Universe):
             # aoxr aoxl aoxr
             first_group = self.select_atoms('bynum 7 9', 'bynum 7')
             # aoxl cyclon cyclon
-            second_group = self.select_atoms('bynum 9 13 13')
+            second_group = self.select_atoms('bynum 9 13', 'bynum 13')
             # todo check this, doesn't do every frame?
             self.ox_dists = MDaadists.dist(first_group, second_group)[2]
             pass
