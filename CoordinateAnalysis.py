@@ -41,12 +41,18 @@ from .exceptions import InputError
 class Taddol(MDa.Universe):
     """"""
 
-    def __init__(self, verbosity=1, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        """
+
+        :param verbosity: Setting whether to print details. Default: 1
+        :param args:
+        :param kwargs:
+        """
         # self.univ = (line below): I'm not sure if this is needed or if this
         # just automatically inherits everything
         # Maybe use the super() command? need to learn more about this
         super(Taddol, self).__init__(*args, **kwargs)
-        self._verbosity = verbosity
+        self._verbosity = kwargs.pop('verbosity', 1)
         self._data = pd.DataFrame(np.arange(0, self.trajectory.totaltime, self.trajectory.dt),
                                   columns=['Time'])
         self._num_frames = self.trajectory.n_frames
