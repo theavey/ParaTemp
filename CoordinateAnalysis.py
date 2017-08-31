@@ -41,7 +41,7 @@ from .exceptions import InputError
 class Taddol(MDa.Universe):
     """"""
 
-    def __init__(self, *args, verbosity=1, **kwargs):
+    def __init__(self, verbosity=1, *args, **kwargs):
         # self.univ = (line below): I'm not sure if this is needed or if this
         # just automatically inherits everything
         # Maybe use the super() command? need to learn more about this
