@@ -50,7 +50,6 @@ class Taddol(MDa.Universe):
         self._data = pd.DataFrame(np.arange(0, self.trajectory.totaltime, self.trajectory.dt),
                                   columns=['Time'])
         self._num_frames = self.trajectory.n_frames
-        self.pi_dists = None
         self.counts_hist_ox_dists = None
         self.open_ox_dists, self.closed_ox_dists = None, None
 
@@ -91,20 +90,29 @@ class Taddol(MDa.Universe):
         self._data['O(l)-Cy'] = ox_dists[:, 1]
         self._data['O(r)-Cy'] = ox_dists[:, 2]
 
-    def _calc_pi_dists(self):
+    @property
+    def pi_dists(self):
         """
-        Calculate TADDOL pi dists if not already done.
+        pi distances property
 
         :return:
         """
-        if self.pi_dists is None:
-            # todo write this
-            pass
-        else:
-            print('pi distances already calculated '
-                  'and saved in self.pi_dists\nNot recalculating.\n'
-                  'To recalculate, set self.pi_dists to None and rerun this '
-                  'function.')
+        try:
+            self._data['pi-0']
+        except KeyError:
+            if self._verbosity:
+                print('Calculating pi distances...')
+            self._calc_pi_dists()
+        return self._data.filter(['pi-'+str(i) for i in range(16)])
+
+    def _calc_pi_dists(self):
+        """
+        Calculate the 16 TADDOL pi dists.
+
+        :return:
+        """
+        raise NotImplementedError('calculating pi distances has not been '
+                                  'implemented yet. Try again later.')
 
     def _calc_counts_hist_ox_dists(self):
         """
