@@ -89,7 +89,7 @@ class Taddol(MDa.Universe):
         first_group = self.select_atoms('bynum 7 9', 'bynum 7')
         # aoxl cyclon cyclon
         second_group = self.select_atoms('bynum 9 13', 'bynum 13')
-        ox_dists = np.zeros((self._num_frames, 3))
+        ox_dists = np.zeros((self._num_frames+1, 3))
         for i, frame in enumerate(self.trajectory):
             ox_dists[i] = MDaadists.dist(first_group, second_group)[2]
         self._data['O-O'] = ox_dists[:, 0]
