@@ -30,6 +30,7 @@ import MDAnalysis.analysis.distances as MDaadists
 # import mdtraj as md  # Think I'm going with MDAnalysis instead
 import numpy as np
 import matplotlib as mpl
+import pandas as pd
 
 from .exceptions import InputError
 
@@ -40,41 +41,57 @@ from .exceptions import InputError
 class Taddol(MDa.Universe):
     """"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, verbosity=1, **kwargs):
         # self.univ = (line below): I'm not sure if this is needed or if this
         # just automatically inherits everything
         # Maybe use the super() command? need to learn more about this
         super(Taddol, self).__init__(*args, **kwargs)
-        self.ox_dists = None
+        self._verbosity = verbosity
+        self._data = pd.DataFrame(np.arange(0, self.trajectory.totaltime, self.trajectory.dt),
+                                  columns=['Time'])
+        self._num_frames = self.trajectory.n_frames
         self.pi_dists = None
         self.counts_hist_ox_dists = None
         self.open_ox_dists, self.closed_ox_dists = None, None
 
     # TODO fix all properties with getters and setters
 
-    def calc_ox_dists(self):
+    @property
+    def ox_dists(self):
+        """
+        oxygen distances property
+
+        :return:
+        """
+        try:
+            self._data['O-O']
+        except KeyError:
+            if self._verbosity:
+                print('Calculating oxygen distances...')
+            self._calc_ox_dists()
+        # might want to (optionally) return the time column here too
+        # though, as a @property, this can't take arguments, so it would need
+        # to be some variable in the class
+        return self._data.filter(('O-O', 'O(l)-Cy', 'O(r)-Cy'))
+
+    def _calc_ox_dists(self):
         """
         Calculate the three oxygen-related distances.
 
         :return:
         """
-        # or with property decorators and no need for a separate "calc" function
-        if self.ox_dists is None:
-            # aoxr aoxl aoxr
-            first_group = self.select_atoms('bynum 7 9', 'bynum 7')
-            # aoxl cyclon cyclon
-            second_group = self.select_atoms('bynum 9 13', 'bynum 13')
-            # todo check this, doesn't do every frame?
-            self.ox_dists = MDaadists.dist(first_group, second_group)[2]
-            pass
-        else:
-            print('oxygen distances already calculated '
-                  'and saved in self.ox_dists\n'
-                  'Not recalculating.\n'
-                  'To recalculate, set self.ox_dists to None and rerun this '
-                  'function.')
+        # aoxr aoxl aoxr
+        first_group = self.select_atoms('bynum 7 9', 'bynum 7')
+        # aoxl cyclon cyclon
+        second_group = self.select_atoms('bynum 9 13', 'bynum 13')
+        ox_dists = np.zeros((self._num_frames, 3))
+        for i, frame in enumerate(self.trajectory):
+            ox_dists[i] = MDaadists.dist(first_group, second_group)[2]
+        self._data['O-O'] = ox_dists[:, 0]
+        self._data['O(l)-Cy'] = ox_dists[:, 1]
+        self._data['O(r)-Cy'] = ox_dists[:, 2]
 
-    def calc_pi_dists(self):
+    def _calc_pi_dists(self):
         """
         Calculate TADDOL pi dists if not already done.
 
@@ -89,14 +106,14 @@ class Taddol(MDa.Universe):
                   'To recalculate, set self.pi_dists to None and rerun this '
                   'function.')
 
-    def calc_counts_hist_ox_dists(self):
+    def _calc_counts_hist_ox_dists(self):
         """
 
         :return:
         """
         if self.counts_hist_ox_dists is None:
             if self.ox_dists is None:
-                self.calc_ox_dists()
+                self._calc_ox_dists()
             # todo write this as below
             pass
         else:
@@ -105,7 +122,7 @@ class Taddol(MDa.Universe):
                   'To recalculate, set self.counts_hist_ox_dists to None and '
                   'rerun this function')
 
-    def calc_open_closed_dists(self, cutoffs=((1.0, 3.25), (3.75, 10.0))):
+    def _calc_open_closed_dists(self, cutoffs=((1.0, 3.25), (3.75, 10.0))):
         """
         Select the coordinates for open vs. closed TADDOL
 
@@ -118,7 +135,7 @@ class Taddol(MDa.Universe):
             set_open = []
             set_closed = []
             if self.ox_dists is None:
-                self.calc_ox_dists()
+                self._calc_ox_dists()
             for ts in self.ox_dists:
                 if cut_open[0] <= ts[1] <= cut_open[1]:
                     set_open.append(ts)
@@ -149,7 +166,7 @@ class Taddol(MDa.Universe):
         :return:
         """
         if self.ox_dists is None:
-            self.calc_ox_dists()
+            self._calc_ox_dists()
         pass  # TODO write this based on below
 
     def hist_ox_dists(self, n_bins=10, save=False, save_format='pdf',
@@ -168,7 +185,7 @@ class Taddol(MDa.Universe):
         :return:
         """
         if self.ox_dists is None:
-            self.calc_ox_dists()
+            self._calc_ox_dists()
         # Save the histogram figures and/or data for making the FESs
         # or better yet, use separate calc hist data function and just plot it
         pass  # TODO write this based on below
