@@ -29,3 +29,15 @@ if sys.version_info.major == 2:
     # These (at this point) require python 2 because of gromacs and MDAnalysis
     from . import energyHisto
     from . import CoordinateAnalysis
+
+import os
+from contextlib import contextmanager
+
+@contextmanager
+def cd(newdir):
+    prevdir = os.getcwd()
+    os.chdir(os.path.expanduser(newdir))
+    try:
+        yield
+    finally:
+        os.chdir(prevdir)
