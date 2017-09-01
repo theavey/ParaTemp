@@ -69,7 +69,7 @@ class Taddol(MDa.Universe):
 
     def calculate_distances(self, *args, **kwargs):
         """"""
-        # Make empty atom selections to be appended to
+        # Make empty atom selections to be appended to:
         first_group = self.select_atoms('protein and not protein')
         second_group = self.select_atoms('protein and not protein')
         column_names = []
@@ -135,7 +135,7 @@ class Taddol(MDa.Universe):
                                                                        n2,
                                                                        nc) +
                               '\nThis should not happen.')
-        if self._num_frames == self.trajectory.n_frames:
+        if self._num_frames != self.trajectory.n_frames:
             raise IOError('Number of frames in trajectory does not match the '
                           'number when this was initialized.\nTry '
                           'reinitializing the object or rewrite the code to '
