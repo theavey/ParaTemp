@@ -25,8 +25,6 @@
 from __future__ import absolute_import
 
 import MDAnalysis as MDa
-import MDAnalysis.analysis
-import MDAnalysis.analysis.distances as MDaadists
 # import mdtraj as md  # Think I'm going with MDAnalysis instead
 import numpy as np
 import matplotlib as mpl
@@ -102,7 +100,10 @@ class Taddol(MDa.Universe):
         second_group = self.select_atoms('bynum 9 13', 'bynum 13')
         ox_dists = np.zeros((self._num_frames, 3))
         for i, frame in enumerate(self.trajectory):
-            ox_dists[i] = MDaadists.dist(first_group, second_group)[2]
+            MDa.lib.distances.calc_bonds(first_group.positions,
+                                         second_group.positions,
+                                         box=self.dimensions,
+                                         result=ox_dists[i])
         self._data['O-O'] = ox_dists[:, 0]
         self._data['O(l)-Cy'] = ox_dists[:, 1]
         self._data['O(r)-Cy'] = ox_dists[:, 2]
