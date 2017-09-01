@@ -95,7 +95,8 @@ class Taddol(MDa.Universe):
                      'be calculated.')
             if 'all' in args:
                 args.remove('all')
-                print('"all" given, calculating distances for oxygens and CVs')
+                print('"all" given or implied, calculating distances for '
+                      'oxygens and CVs')
                 first_group += self.select_atoms('bynum 7 9', 'bynum 7 160',
                                                  'bynum 133')
                 second_group += self.select_atoms('bynum 9 13', 'bynum 13',
