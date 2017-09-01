@@ -196,15 +196,15 @@ class Taddol(MDa.Universe):
         except (TypeError, IndexError):
             raise TypeError('cutoffs must be an iterable of shape (2, 2)')
 
-    def _calc_open_closed(self, cutoffs=oc_cutoffs):
+    def _calc_open_closed(self):
         """
         Select the coordinates for open vs. closed TADDOL
 
-        :param cutoffs:
         :return:
         """
         # I'm not sure this function is necessary. These queries might be
         # really fast already.
+        cutoffs = self.oc_cutoffs
         cut_closed = cutoffs[0]
         cut_open = cutoffs[1]
         self._data['closed_TAD'] = self._data['O-O'].apply(
