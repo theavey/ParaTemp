@@ -31,6 +31,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
 from typing import Iterable
+from warnings import warn
 
 from .exceptions import InputError
 
@@ -66,6 +67,88 @@ class Taddol(MDa.Universe):
         self.counts_hist_ox_dists = None
         self._cv_hist_data = {}
 
+    def calculate_distances(self, *args, **kwargs):
+        """"""
+        # Make empty atom selections to be appended to
+        first_group = self.select_atoms('protein and not protein')
+        second_group = self.select_atoms('protein and not protein')
+        column_names = []
+        if len(args) == 0 and len(kwargs) == 0: args = ['all']
+        if len(args) != 0:
+            try:
+                args = [arg.lower() for arg in args]
+            except AttributeError:
+                raise SyntaxError('All positional arguments must be strings')
+            if 'ox' in args:
+                args.remove('ox')
+                first_group += self.select_atoms('bynum 7 9', 'bynum 7')
+                second_group += self.select_atoms('bynum 9 13', 'bynum 13')
+                column_names += ['O-O', 'O(l)-Cy', 'O(r)-Cy']
+            if 'cv' in args or 'cvs' in args:
+                args.remove('cv')
+                first_group += self.select_atoms('bynum 160', 'bynum 133')
+                second_group += self.select_atoms('bynum 9', 'bynum 8')
+                column_names += ['CV1', 'CV2']
+            if 'pi' in args:
+                args.remove('pi')
+                warn('pi distances have not yet been implemented and will not '
+                     'be calculated.')
+            if 'all' in args:
+                args.remove('all')
+                print('"all" given, calculating distances for oxygens and CVs')
+                first_group += self.select_atoms('bynum 7 9', 'bynum 7 160',
+                                                 'bynum 133')
+                second_group += self.select_atoms('bynum 9 13', 'bynum 13',
+                                                  'bynum 9', 'bynum 8')
+                column_names += ['O-O', 'O(l)-Cy', 'O(r)-Cy', 'CV1', 'CV2']
+            if len(args) != 0:
+                print('The following positional arguments were given but not '
+                      'recognized: ', args)
+                print('They will be ignored.')
+        if len(kwargs) != 0:
+            for key in kwargs:
+                try:
+                    atoms = kwargs[key].split()
+                except AttributeError:
+                    # assume it is iterable as is
+                    atoms = kwargs[key]
+                if len(atoms) != 2:
+                    raise SyntaxError('This input should split to two atom'
+                                      'indices: {}'.format(kwargs[key]))
+                try:
+                    [int(atom) for atom in atoms]
+                except ValueError:
+                    raise NotImplementedError('Only selection by atom index is '
+                                              'currently supported.\nAt your '
+                                              'own risk you can try assigning '
+                                              'to self._data[{}].'.format(key))
+                first_group += self.select_atoms('bynum '+atoms[0])
+                second_group += self.select_atoms('bynum '+atoms[1])
+                column_names += key
+        n1 = first_group.n_atoms
+        n2 = second_group.n_atoms
+        nc = len(column_names)
+        if not nc == n1 == n2:
+            raise SyntaxError('Different numbers of atoms selectioned or number'
+                              'of column labels '
+                              '({}, {}, and {}, respectively).'.format(n1,
+                                                                       n2,
+                                                                       nc) +
+                              '\nThis should not happen.')
+        if self._num_frames == self.trajectory.n_frames:
+            raise IOError('Number of frames in trajectory does not match the '
+                          'number when this was initialized.\nTry '
+                          'reinitializing the object or rewrite the code to '
+                          'deal with this in a smarter way.')
+        dists = np.zeros((self._num_frames, n1))
+        for i, frame in enumerate(self.trajectory):
+            MDa.lib.distances.calc_bonds(first_group.positions,
+                                         second_group.positions,
+                                         box=self.dimensions,
+                                         result=dists[i])
+        for i, column in enumerate(column_names):
+            self._data[column] = dists[:, i]
+
     @property
     def data(self):
         """
@@ -74,6 +157,12 @@ class Taddol(MDa.Universe):
         :return: the distances and properties for this trajectory
         :rtype: pd.DataFrame
         """
+        # TODO might be able to be clever here and catch key errors and
+        # and then calculate as needed
+        # An easier solution is just to add a calc funtion that parsers things
+        # I need calculated without needing to return them.
+        # I doubt I could do the clever thing without subclassing DataFrame,
+        # and I'm not sure I want to mess with their item access stuff.
         return self._data
 
     @property
@@ -301,19 +390,24 @@ class Taddol(MDa.Universe):
         # TODO make the constants here arguments
         # TODO make this optionally save figure
         # TODO check on cv1 vs. cv2 for x / y
-        if x is None:
+        if x is None and y is None:
             x = self.cv1_dists
-        if y is None:
             y = self.cv2_dists
-        try:
-            counts = self._cv_hist_data['counts']
-            xedges = self._cv_hist_data['xedges']
-            yedges = self._cv_hist_data['yedges']
-        except KeyError:
+            try:
+                counts = self._cv_hist_data['counts']
+                xedges = self._cv_hist_data['xedges']
+                yedges = self._cv_hist_data['yedges']
+            except KeyError:
+                counts, xedges, yedges = np.histogram2d(x, y, 32)
+                self._cv_hist_data['counts'] = counts
+                self._cv_hist_data['xedges'] = xedges
+                self._cv_hist_data['yedges'] = yedges
+        else:
+            if x is None:
+                x = self.cv1_dists
+            if y is None:
+                y = self.cv2_dists
             counts, xedges, yedges = np.histogram2d(x, y, 32)
-            self._cv_hist_data['counts'] = counts
-            self._cv_hist_data['xedges'] = xedges
-            self._cv_hist_data['yedges'] = yedges
         probs = np.array([[i / counts.max() for i in j] for j in counts]) \
             + 1e-40
         r = 0.0019872  # kcal_th/(K mol)
