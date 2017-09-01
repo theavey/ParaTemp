@@ -481,9 +481,35 @@ class Taddol(MDa.Universe):
         :param kwargs: keyword arguments to pass to the plotter
         :return:
         """
-        if self.counts_hist_ox_dists is None:
-            self.calc_counts_hist_ox_dists()
-        pass  # TODO write this based on below
+        r = 0.0019872  # kcal_th/(K mol)
+        delta_gs = []
+        fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True, sharex=True)
+        handles = []
+        # Use whatever the default colors for the system are
+        # TODO find a more elegant way to do this
+        colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
+        for i, key in enumerate(('O-O', 'O(l)-Cy', 'O(r)-Cy')):
+            n, bins = np.histogram(self.ox_dists[key])
+            n = [float(j) for j in n]
+            # TODO find better way to account for zeros here rather than
+            # just adding a small amount to each.
+            prob = np.array([j / max(n) for j in n]) + 1e-20
+            delta_g = np.array([-r * temp * np.log(p) for p in prob])
+            delta_gs.append(delta_g)
+            ax = axes.flat[i]
+            line, = ax.plot(bins[:-1], delta_g, colors[i], **kwargs)
+            handles.append(line)
+            ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
+            ax.set_xlabel(r'distance / $\mathrm{\AA}$')
+        axes.flat[3].axis('off')
+        axes.flat[3].legend(handles, ['O-O', 'O(l)-Cy', 'O(r)-Cy'],
+                            loc='center')
+        if save:
+            fig.savefig(save_base_name + save_format)
+        if display:
+            return fig
+        else:
+            return None
 
 
 def get_taddol_selections(universe, univ_in_dict=True):
