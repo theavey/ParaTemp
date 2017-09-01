@@ -64,7 +64,15 @@ class Taddol(MDa.Universe):
         self._num_frames = self.trajectory.n_frames
         self.counts_hist_ox_dists = None
 
-    # TODO fix all properties with getters and setters
+    @property
+    def data(self):
+        """
+        The pandas dataframe that is the backend to much of the added functions
+
+        :return: the distances and properties for this trajectory
+        :rtype: pd.DataFrame
+        """
+        return self._data
 
     @property
     def ox_dists(self):
@@ -246,7 +254,13 @@ class Taddol(MDa.Universe):
         return self._data['CV2']
 
     def _calc_cvs(self):
-        """"""
+        """
+        Calculate the CV values
+
+        :return: None
+        :rtype: None
+        """
+        # TODO generalize the atom selections, likely with a class variable
         first_group = self.select_atoms('bynum 160', 'bynum 133')
         second_group = self.select_atoms('bynum 9', 'bynum 8')
         cv_dists = np.zeros((self._num_frames, 2))
