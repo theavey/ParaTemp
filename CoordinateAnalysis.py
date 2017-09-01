@@ -213,6 +213,51 @@ class Taddol(MDa.Universe):
         self._data['open_TAD'] = self.ox_dists['O-O'].apply(
             lambda x: cut_open[0] <= x <= cut_open[1])
 
+    @property
+    def cv1_dists(self):
+        """
+        Distances for CV1 during the trajectory
+
+        :return: CV1 distances
+        :rtype: pd.Series
+        """
+        try:
+            self._data['CV1']
+        except KeyError:
+            print('Calculating CV values...\n'
+                  'This may take a few minutes.')
+            self._calc_cvs()
+        return self._data['CV1']
+
+    @property
+    def cv2_dists(self):
+        """
+        Distances for CV2 during the trajectory
+
+        :return: CV2 distances
+        :rtype: pd.Series
+        """
+        try:
+            self._data['CV2']
+        except KeyError:
+            print('Calculating CV values...\n'
+                  'This may take a few minutes.')
+            self._calc_cvs()
+        return self._data['CV2']
+
+    def _calc_cvs(self):
+        """"""
+        first_group = self.select_atoms('bynum 160', 'bynum 133')
+        second_group = self.select_atoms('bynum 9', 'bynum 8')
+        cv_dists = np.zeros((self._num_frames, 2))
+        for i, frame in enumerate(self.trajectory):
+            MDa.lib.distances.calc_bonds(first_group.positions,
+                                         second_group.positions,
+                                         box=self.dimensions,
+                                         result=cv_dists[i])
+        self._data['CV1'] = cv_dists[:, 0]
+        self._data['CV2'] = cv_dists[:, 1]
+
     def plot_ox_dists(self, save=False, save_format='png',
                       save_base_name='ox-dists',
                       display=True, **kwargs):
