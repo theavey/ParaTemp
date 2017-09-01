@@ -28,6 +28,7 @@ import MDAnalysis as MDa
 # import mdtraj as md  # Think I'm going with MDAnalysis instead
 import numpy as np
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 import pandas as pd
 from typing import Iterable
 
@@ -63,6 +64,7 @@ class Taddol(MDa.Universe):
                                   columns=['Time'])
         self._num_frames = self.trajectory.n_frames
         self.counts_hist_ox_dists = None
+        self._cv_hist_data = {}
 
     @property
     def data(self):
@@ -271,6 +273,51 @@ class Taddol(MDa.Universe):
                                          result=cv_dists[i])
         self._data['CV1'] = cv_dists[:, 0]
         self._data['CV2'] = cv_dists[:, 1]
+
+    def hist_2d_cvs(self, return_fig=True, **kwargs):
+        """"""
+        # TODO make the constants here arguments
+        # TODO make this optionally save figure
+        fig, ax = plt.subplots()
+        counts, xedges, yedges = ax.hist2d(self.cv1_dists, self.cv2_dists,
+                                           32, **kwargs)[:3]
+        self._cv_hist_data['counts'] = counts
+        self._cv_hist_data['xedges'] = xedges
+        self._cv_hist_data['yedges'] = yedges
+        ax.axis((1.5, 10, 1.5, 10))
+        ax.set_xlabel('CV 2')
+        ax.set_ylabel('CV 1')
+        ax.set_aspect('equal', 'box-forced')
+        fig.tight_layout()
+        if return_fig:
+            return fig
+
+    def fes_2d_cvs(self, temp=205., **kwargs):
+        """"""
+        # TODO make the constants here arguments
+        # TODO make this optionally save figure
+        try:
+            self._cv_hist_data['counts']
+        except KeyError:
+            self.hist_2d_cvs(return_fig=False)
+        counts = self._cv_hist_data['counts']
+        xedges = self._cv_hist_data['xedges']
+        yedges = self._cv_hist_data['yedges']
+        probs = np.array([[i / counts.max() for i in j] for j in counts]) \
+            + 1e-40
+        r = 0.0019872  # kcal_th/(K mol)
+        delta_g = np.array([[-r * temp * np.log(p) for p in j] for j in probs])
+        fig, ax = plt.subplots()
+        contours = ax.contourf(xedges[:-1], yedges[:-1], delta_g.transpose(),
+                               np.append(np.linspace(0, 20, 11), [40]),
+                               vmax=20)
+        ax.axis((1.5, 10, 1.5, 10))
+        ax.set_xlabel('CV 2')
+        ax.set_ylabel('CV 1')
+        ax.set_aspect('equal', 'box-forced')
+        fig.colorbar(contours, label='kcal / mol')
+        fig.tight_layout()
+        return fig
 
     def plot_ox_dists(self, save=False, save_format='png',
                       save_base_name='ox-dists',
