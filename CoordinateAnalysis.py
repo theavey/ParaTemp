@@ -207,9 +207,9 @@ class Taddol(MDa.Universe):
         cutoffs = self.oc_cutoffs
         cut_closed = cutoffs[0]
         cut_open = cutoffs[1]
-        self._data['closed_TAD'] = self._data['O-O'].apply(
+        self._data['closed_TAD'] = self.ox_dists['O-O'].apply(
             lambda x: cut_closed[0] <= x <= cut_closed[1])
-        self._data['open_TAD'] = self._data['O-O'].apply(
+        self._data['open_TAD'] = self.ox_dists['O-O'].apply(
             lambda x: cut_open[0] <= x <= cut_open[1])
 
     def plot_ox_dists(self, save=False, save_format='png',
