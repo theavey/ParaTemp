@@ -297,12 +297,12 @@ class Taddol(MDa.Universe):
         # TODO make the constants here arguments
         # TODO make this optionally save figure
         try:
-            self._cv_hist_data['counts']
+            counts = self._cv_hist_data['counts']
+            xedges = self._cv_hist_data['xedges']
+            yedges = self._cv_hist_data['yedges']
         except KeyError:
-            self.hist_2d_cvs(return_fig=False)
-        counts = self._cv_hist_data['counts']
-        xedges = self._cv_hist_data['xedges']
-        yedges = self._cv_hist_data['yedges']
+            counts, xedges, yedges = np.histogram2d(self.cv1_dists,
+                                                    self.cv2_dists, 32)
         probs = np.array([[i / counts.max() for i in j] for j in counts]) \
             + 1e-40
         r = 0.0019872  # kcal_th/(K mol)
@@ -310,7 +310,7 @@ class Taddol(MDa.Universe):
         fig, ax = plt.subplots()
         contours = ax.contourf(xedges[:-1], yedges[:-1], delta_g.transpose(),
                                np.append(np.linspace(0, 20, 11), [40]),
-                               vmax=20)
+                               vmax=20, **kwargs)
         ax.axis((1.5, 10, 1.5, 10))
         ax.set_xlabel('CV 2')
         ax.set_ylabel('CV 1')
