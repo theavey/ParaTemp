@@ -31,6 +31,7 @@ import MDAnalysis.analysis.distances as MDaadists
 import numpy as np
 import matplotlib as mpl
 import pandas as pd
+from typing import Iterable
 
 from .exceptions import InputError
 
@@ -44,15 +45,22 @@ class Taddol(MDa.Universe):
     def __init__(self, *args, **kwargs):
         """
 
-        :param verbosity: Setting whether to print details. Default: 1
+        :param verbosity: Setting whether to print details. If in the future
+        more levels of verbosity are desired, this may be changed to an int.
+        Default: 1
+        :type verbosity: int or bool
+        :param oc_cutoffs: Cutoffs of O-O distance for determining open/closed
+        TADDOL configurations. Default: ((1.0, 3.25), (3.75, 10.0))
+        :type oc_cutoffs: Iterable(Iterable(float, float), Iterable(float, float))
         :param args:
         :param kwargs:
         """
         # self.univ = (line below): I'm not sure if this is needed or if this
         # just automatically inherits everything
         # Maybe use the super() command? need to learn more about this
-        super(Taddol, self).__init__(*args, **kwargs)
         self._verbosity = kwargs.pop('verbosity', 1)
+        self._oc_cutoffs = kwargs.pop('oc_cutoffs', ((1.0, 3.25), (3.75, 10.0)))
+        super(Taddol, self).__init__(*args, **kwargs)
         self._data = pd.DataFrame(np.arange(0, self.trajectory.totaltime, self.trajectory.dt),
                                   columns=['Time'])
         self._num_frames = self.trajectory.n_frames
@@ -71,7 +79,8 @@ class Taddol(MDa.Universe):
             self._data['O-O']
         except KeyError:
             if self._verbosity:
-                print('Calculating oxygen distances...')
+                print('Calculating oxygen distances...\n'
+                      'This may take a few minutes.')
             self._calc_ox_dists()
         # might want to (optionally) return the time column here too
         # though, as a @property, this can't take arguments, so it would need
@@ -84,6 +93,9 @@ class Taddol(MDa.Universe):
 
         :return:
         """
+        # TODO Find a way to make this atom-ordering independent
+        # For example, this will break if TADDOL is not the first molecule
+        # listed.
         # aoxr aoxl aoxr
         first_group = self.select_atoms('bynum 7 9', 'bynum 7')
         # aoxl cyclon cyclon
@@ -106,7 +118,8 @@ class Taddol(MDa.Universe):
             self._data['pi-0']
         except KeyError:
             if self._verbosity:
-                print('Calculating pi distances...')
+                print('Calculating pi distances...\n'
+                      'This may take a few minutes.')
             self._calc_pi_dists()
         return self._data.filter(['pi-'+str(i) for i in range(16)])
 
@@ -142,44 +155,62 @@ class Taddol(MDa.Universe):
 
         :return:
         """
+        try:
+            self._data['open_TAD']
+        except KeyError:
+            if self._verbosity:
+                print('Finding open/closed configurations...')
+            self._calc_open_closed()
+        return self._data[self._data['open_TAD'] is True].filter(
+            ('O-O', 'O(l)-Cy', 'O(r)-Cy'))
 
     @property
     def closed_ox_dists(self):
         """
-        oxygen distances in a open TADDOL configuration
+        oxygen distances in a closed TADDOL configuration
 
         :return:
         """
+        try:
+            self._data['closed_TAD']
+        except KeyError:
+            if self._verbosity:
+                print('Finding open/closed configurations...')
+            self._calc_open_closed()
+        return self._data[self._data['closed_TAD'] is True].filter(
+            ('O-O', 'O(l)-Cy', 'O(r)-Cy'))
 
-    def _calc_open_closed_dists(self, cutoffs=((1.0, 3.25), (3.75, 10.0))):
+    @property
+    def oc_cutoffs(self):
+        """
+        Cutoffs for O-O distance for determining open/closed TADDOL configs
+
+        :return:
+        """
+        return self._oc_cutoffs
+
+    @oc_cutoffs.setter
+    def oc_cutoffs(self, value):
+        try:
+            [[value[i][j] for i in range(2)] for j in range(2)]
+        except (TypeError, IndexError):
+            raise TypeError('cutoffs must be an iterable of shape (2, 2)')
+
+    def _calc_open_closed(self, cutoffs=self._oc_cutoffs):
         """
         Select the coordinates for open vs. closed TADDOL
 
         :param cutoffs:
         :return:
         """
-        if self.open_ox_dists is None and self.closed_ox_dists is None:
-            cut_closed = cutoffs[0]
-            cut_open = cutoffs[1]
-            set_open = []
-            set_closed = []
-            if self.ox_dists is None:
-                self._calc_ox_dists()
-            for ts in self.ox_dists:
-                if cut_open[0] <= ts[1] <= cut_open[1]:
-                    set_open.append(ts)
-                if cut_closed[0] <= ts[1] <= cut_closed[1]:
-                    set_closed.append(ts)
-            from pandas import DataFrame
-            columns = ['Time', 'O-O', 'Ol-Cy', 'Or-Cy']
-            self.open_ox_dists = DataFrame(set_open, columns=columns)
-            self.closed_ox_dists = DataFrame(set_closed, columns=columns)
-        else:
-            print('open/closed distances already calculated '
-                  'and saved in self.open_ox_dists and self.closed_ox_dists'
-                  '\nNot recalculating.\n'
-                  'To recalculate, set self.open_ox_dists and self.closed_ox_dists '
-                  'to None and rerun this function.')
+        # I'm not sure this function is necessary. These queries might be
+        # really fast already.
+        cut_closed = cutoffs[0]
+        cut_open = cutoffs[1]
+        self._data['closed_TAD'] = self._data['O-O'].apply(
+            lambda x: cut_closed[0] <= x <= cut_closed[1])
+        self._data['open_TAD'] = self._data['O-O'].apply(
+            lambda x: cut_open[0] <= x <= cut_open[1])
 
     def plot_ox_dists(self, save=False, save_format='png',
                       save_base_name='ox-dists',
