@@ -196,7 +196,7 @@ class Taddol(MDa.Universe):
         except (TypeError, IndexError):
             raise TypeError('cutoffs must be an iterable of shape (2, 2)')
 
-    def _calc_open_closed(self, cutoffs=self._oc_cutoffs):
+    def _calc_open_closed(self, cutoffs=oc_cutoffs):
         """
         Select the coordinates for open vs. closed TADDOL
 
