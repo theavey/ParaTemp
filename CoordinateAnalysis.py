@@ -260,7 +260,7 @@ class Taddol(MDa.Universe):
         except KeyError:
             if self._verbosity:
                 print('Finding open/closed configurations...')
-            self._calc_open_closed()
+            self.calc_open_closed()
         return self._data[self._data['open_TAD']].filter(
             ('O-O', 'O(l)-Cy', 'O(r)-Cy'))
 
@@ -276,7 +276,7 @@ class Taddol(MDa.Universe):
         except KeyError:
             if self._verbosity:
                 print('Finding open/closed configurations...')
-            self._calc_open_closed()
+            self.calc_open_closed()
         return self._data[self._data['closed_TAD']].filter(
             ('O-O', 'O(l)-Cy', 'O(r)-Cy'))
 
@@ -292,18 +292,22 @@ class Taddol(MDa.Universe):
     @oc_cutoffs.setter
     def oc_cutoffs(self, value):
         try:
-            [[value[i][j] for i in range(2)] for j in range(2)]
+            [[float(value[i][j]) for i in range(2)] for j in range(2)]
         except (TypeError, IndexError):
             raise TypeError('cutoffs must be an iterable of shape (2, 2)')
+        except ValueError:
+            raise SyntaxError('These values must be able to be cast as floats')
+        self._oc_cutoffs = value
 
-    def _calc_open_closed(self):
+    def calc_open_closed(self):
         """
         Select the coordinates for open vs. closed TADDOL
 
         :return:
         """
         # I'm not sure this function is necessary. These queries might be
-        # really fast already.
+        # really fast already. I think it's nice to have to use the default
+        # cutoffs and such.
         cutoffs = self.oc_cutoffs
         cut_closed = cutoffs[0]
         cut_open = cutoffs[1]
