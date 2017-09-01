@@ -274,12 +274,16 @@ class Taddol(MDa.Universe):
         self._data['CV1'] = cv_dists[:, 0]
         self._data['CV2'] = cv_dists[:, 1]
 
-    def hist_2d_cvs(self, return_fig=True, **kwargs):
+    def hist_2d_cvs(self, x=None, y=None, return_fig=True, **kwargs):
         """"""
         # TODO make the constants here arguments
         # TODO make this optionally save figure
+        if x is None:
+            x = self.cv1_dists
+        if y is None:
+            y = self.cv2_dists
         fig, ax = plt.subplots()
-        counts, xedges, yedges = ax.hist2d(self.cv1_dists, self.cv2_dists,
+        counts, xedges, yedges = ax.hist2d(x, y,
                                            32, **kwargs)[:3]
         self._cv_hist_data['counts'] = counts
         self._cv_hist_data['xedges'] = xedges
@@ -292,17 +296,21 @@ class Taddol(MDa.Universe):
         if return_fig:
             return fig
 
-    def fes_2d_cvs(self, temp=205., **kwargs):
+    def fes_2d_cvs(self, x=None, y=None, temp=205., **kwargs):
         """"""
         # TODO make the constants here arguments
         # TODO make this optionally save figure
+        # TODO check on cv1 vs. cv2 for x / y
+        if x is None:
+            x = self.cv1_dists
+        if y is None:
+            y = self.cv2_dists
         try:
             counts = self._cv_hist_data['counts']
             xedges = self._cv_hist_data['xedges']
             yedges = self._cv_hist_data['yedges']
         except KeyError:
-            counts, xedges, yedges = np.histogram2d(self.cv1_dists,
-                                                    self.cv2_dists, 32)
+            counts, xedges, yedges = np.histogram2d(x, y, 32)
             self._cv_hist_data['counts'] = counts
             self._cv_hist_data['xedges'] = xedges
             self._cv_hist_data['yedges'] = yedges
