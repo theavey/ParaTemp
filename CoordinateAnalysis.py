@@ -303,6 +303,9 @@ class Taddol(MDa.Universe):
         except KeyError:
             counts, xedges, yedges = np.histogram2d(self.cv1_dists,
                                                     self.cv2_dists, 32)
+            self._cv_hist_data['counts'] = counts
+            self._cv_hist_data['xedges'] = xedges
+            self._cv_hist_data['yedges'] = yedges
         probs = np.array([[i / counts.max() for i in j] for j in counts]) \
             + 1e-40
         r = 0.0019872  # kcal_th/(K mol)
