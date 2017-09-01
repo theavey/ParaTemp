@@ -161,7 +161,7 @@ class Taddol(MDa.Universe):
             if self._verbosity:
                 print('Finding open/closed configurations...')
             self._calc_open_closed()
-        return self._data[self._data['open_TAD'] is True].filter(
+        return self._data[self._data['open_TAD']].filter(
             ('O-O', 'O(l)-Cy', 'O(r)-Cy'))
 
     @property
@@ -177,7 +177,7 @@ class Taddol(MDa.Universe):
             if self._verbosity:
                 print('Finding open/closed configurations...')
             self._calc_open_closed()
-        return self._data[self._data['closed_TAD'] is True].filter(
+        return self._data[self._data['closed_TAD']].filter(
             ('O-O', 'O(l)-Cy', 'O(r)-Cy'))
 
     @property
