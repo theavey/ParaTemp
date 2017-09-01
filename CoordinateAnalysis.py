@@ -57,7 +57,6 @@ class Taddol(MDa.Universe):
                                   columns=['Time'])
         self._num_frames = self.trajectory.n_frames
         self.counts_hist_ox_dists = None
-        self.open_ox_dists, self.closed_ox_dists = None, None
 
     # TODO fix all properties with getters and setters
 
@@ -143,6 +142,15 @@ class Taddol(MDa.Universe):
 
         :return:
         """
+
+    @property
+    def closed_ox_dists(self):
+        """
+        oxygen distances in a open TADDOL configuration
+
+        :return:
+        """
+
     def _calc_open_closed_dists(self, cutoffs=((1.0, 3.25), (3.75, 10.0))):
         """
         Select the coordinates for open vs. closed TADDOL
