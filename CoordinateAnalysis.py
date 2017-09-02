@@ -32,6 +32,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from typing import Iterable
 from warnings import warn
+import os.path
 
 from .exceptions import InputError
 
@@ -64,8 +65,60 @@ class Taddol(MDa.Universe):
         self._data = pd.DataFrame(np.arange(0, self.trajectory.totaltime, self.trajectory.dt),
                                   columns=['Time'])
         self._num_frames = self.trajectory.n_frames
+        self._last_time = self.trajectory.totaltime
         self.counts_hist_ox_dists = None
         self._cv_hist_data = {}
+
+    def save_data(self, filename=None, overwrite=False):
+        """
+        Save calculated data to disk
+
+        :param filename: Filename to save the data as. Defaults to the name of
+        the trajectory with a '.h5' extension.
+        :type filename: str
+        :param overwrite: Whether to overwrite existing data on disk.
+        :type overwrite: bool
+        :return: None
+        """
+        if filename is None:
+            filename = os.path.splitext(self.trajectory.filename)[0] + '.h5'
+        with pd.HDFStore(filename) as store:
+            time = str(int(self._last_time))
+            try:
+                store[time]
+            except KeyError:
+                pass
+            else:
+                if overwrite:
+                    pass
+                else:
+                    raise IOError('Data of this name already exists in this store!'
+                                  'filename: {}, key: {}'.format(filename, time))
+            store[time] = self._data
+        print('Saved data to {}[{}]'.format(filename, time))
+
+    def read_data(self, filename=None):
+        """
+        Read calculated data from disk
+
+        This will read the data from disk and add it to self.data. Any existing
+        data will not be overwritten.
+        :param str filename: Filename from which to read the data. Defaults to
+        the name of the trajectory with a '.h5' extension.
+        :return: None
+        """
+        if filename is None:
+            filename = os.path.splitext(self.trajectory.filename)[0] + '.h5'
+        with pd.HDFStore(filename) as store:
+            time = str(int(self._last_time))
+            try:
+                read_df = store[time]
+            except KeyError:
+                raise IOError('This data does not exist!\n{}[{}]'.format(filename, time))
+        # TODO find a better (more efficient?) way to do this
+        for key in self._data:
+            read_df[key] = self._data[key]
+        self._data = read_df
 
     def calculate_distances(self, *args, **kwargs):
         """"""
