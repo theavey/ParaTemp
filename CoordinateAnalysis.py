@@ -126,7 +126,8 @@ class Taddol(MDa.Universe):
         first_group = self.select_atoms('protein and not protein')
         second_group = self.select_atoms('protein and not protein')
         column_names = []
-        if len(args) == 0 and len(kwargs) == 0: args = ['all']
+        if len(args) == 0 and len(kwargs) == 0:
+            args = ['all']
         if len(args) != 0:
             try:
                 args = [arg.lower() for arg in args]
@@ -520,20 +521,36 @@ class Taddol(MDa.Universe):
         # or better yet, use separate calc hist data function and just plot it
         pass  # TODO write this based on below
 
-    def fes_ox_dists(self, temp=791., save=False,
+    def fes_ox_dists(self, data=None, temp=791., save=False,
                      save_format='pdf',
                      save_base_name='ox-dists-fes',
                      display=True, **kwargs):
         """
+        Make FESs of the oxygen distances of a TADDOL from histogram data
 
-        :param temp:
-        :param save:
-        :param save_format:
-        :param save_base_name:
-        :param display:
+        :param data: Default: self.ox_dists. Data to form the FES from.
+        :type data: pd.DataFrame
+        :param float temp: Default: 791 K. Temperature of the trajectory used
+        to calculate the free energy.
+        :param bool save: Default: False. Whether to save the FESs to disk.
+        :param str save_format: Default: 'pdf'. Format in which to save the
+        figure.
+        :param str save_base_name: Default: 'ox-dists-fes'. Name of the saved
+        figure.
+        :param bool display: Default: True. Whether to return the figure after
+        producing it.
         :param kwargs: keyword arguments to pass to the plotter
         :return:
         """
+        try:
+            data['O-O']
+        except KeyError:
+            raise InputError(data, 'data must be a pd.DataFrame like object '
+                                   'with item O-O, O(l)-Cy, and O(r)-Cy.')
+        except TypeError:
+            if self._verbosity:
+                print('Using default data: self.ox_dists.')
+            data = self.ox_dists
         r = 0.0019872  # kcal_th/(K mol)
         delta_gs = []
         fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True, sharex=True)
@@ -542,7 +559,7 @@ class Taddol(MDa.Universe):
         # TODO find a more elegant way to do this
         colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
         for i, key in enumerate(('O-O', 'O(l)-Cy', 'O(r)-Cy')):
-            n, bins = np.histogram(self.ox_dists[key])
+            n, bins = np.histogram(data[key])
             n = [float(j) for j in n]
             # TODO find better way to account for zeros here rather than
             # just adding a small amount to each.
