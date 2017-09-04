@@ -83,7 +83,7 @@ class Taddol(MDa.Universe):
         if filename is None:
             filename = os.path.splitext(self.trajectory.filename)[0] + '.h5'
         with pd.HDFStore(filename) as store:
-            time = str(int(self._last_time))
+            time = 'time_' + str(int(self._last_time/1000)) + 'ns'
             try:
                 store[time]
             except KeyError:
