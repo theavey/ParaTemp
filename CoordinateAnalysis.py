@@ -32,6 +32,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from typing import Iterable
 from warnings import warn
+from . import exceptions
 import os.path
 
 from .exceptions import InputError
@@ -198,11 +199,7 @@ class Taddol(MDa.Universe):
                                                                        nc) +
                               '\nThis should not happen.')
         if self._num_frames != self.trajectory.n_frames:
-            # TODO define custom FileChangedError or similar
-            raise IOError('Number of frames in trajectory does not match the '
-                          'number when this was initialized.\nTry '
-                          'reinitializing the object or rewrite the code to '
-                          'deal with this in a smarter way.')
+            raise exceptions.FileChangedError()
         dists = np.zeros((self._num_frames, n1))
         for i, frame in enumerate(self.trajectory):
             MDa.lib.distances.calc_bonds(first_group.positions,
