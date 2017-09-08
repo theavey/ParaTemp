@@ -46,13 +46,16 @@ class Taddol(MDa.Universe):
     def __init__(self, *args, **kwargs):
         """
 
-        :param verbosity: Setting whether to print details. If in the future
-        more levels of verbosity are desired, this may be changed to an int.
+        :param verbosity: Setting whether to print details. If in the
+        future more levels of verbosity are desired, this may be
+        changed to an int.
         Default: 1
         :type verbosity: int or bool
-        :param oc_cutoffs: Cutoffs of O-O distance for determining open/closed
-        TADDOL configurations. Default: ((1.0, 3.25), (3.75, 10.0))
-        :type oc_cutoffs: Iterable(Iterable(float, float), Iterable(float, float))
+        :param oc_cutoffs: Cutoffs of O-O distance for determining
+        open/closed TADDOL configurations. Default: ((1.0, 3.25),
+                                                     (3.75, 10.0))
+        :type oc_cutoffs: Iterable(Iterable(float, float),
+                                   Iterable(float, float))
         :param args:
         :param kwargs:
         """
@@ -60,9 +63,11 @@ class Taddol(MDa.Universe):
         # just automatically inherits everything
         # Maybe use the super() command? need to learn more about this
         self._verbosity = kwargs.pop('verbosity', 1)
-        self._oc_cutoffs = kwargs.pop('oc_cutoffs', ((1.0, 3.25), (3.75, 10.0)))
+        self._oc_cutoffs = kwargs.pop('oc_cutoffs',
+                                      ((1.0, 3.25), (3.75, 10.0)))
         super(Taddol, self).__init__(*args, **kwargs)
-        self._data = pd.DataFrame(np.arange(0, self.trajectory.totaltime, self.trajectory.dt),
+        self._data = pd.DataFrame(np.arange(0, self.trajectory.totaltime,
+                                            self.trajectory.dt),
                                   columns=['Time'])
         self._num_frames = self.trajectory.n_frames
         self._last_time = self.trajectory.totaltime
@@ -73,8 +78,8 @@ class Taddol(MDa.Universe):
         """
         Save calculated data to disk
 
-        :param filename: Filename to save the data as. Defaults to the name of
-        the trajectory with a '.h5' extension.
+        :param filename: Filename to save the data as. Defaults to the
+        name of the trajectory with a '.h5' extension.
         :type filename: str
         :param overwrite: Whether to overwrite existing data on disk.
         :type overwrite: bool
@@ -92,8 +97,9 @@ class Taddol(MDa.Universe):
                 if overwrite:
                     pass
                 else:
-                    raise IOError('Data of this name already exists in this store!'
-                                  'filename: {}, key: {}'.format(filename, time))
+                    raise IOError('Data of this name already exists in this '
+                                  'store! filename: '
+                                  '{}, key: {}'.format(filename, time))
             store[time] = self._data
         print('Saved data to {}[{}]'.format(filename, time))
 
@@ -101,10 +107,10 @@ class Taddol(MDa.Universe):
         """
         Read calculated data from disk
 
-        This will read the data from disk and add it to self.data. Any existing
-        data will not be overwritten.
-        :param str filename: Filename from which to read the data. Defaults to
-        the name of the trajectory with a '.h5' extension.
+        This will read the data from disk and add it to self.data. Any
+        existing data will not be overwritten.
+        :param str filename: Filename from which to read the data.
+        Defaults to the name of the trajectory with a '.h5' extension.
         :return: None
         """
         if filename is None:
@@ -114,7 +120,8 @@ class Taddol(MDa.Universe):
             try:
                 read_df = store[time]
             except KeyError:
-                raise IOError('This data does not exist!\n{}[{}]'.format(filename, time))
+                raise IOError('This data does not exist!\n{}[{}]'.format(
+                    filename, time))
         # TODO find a better (more efficient?) way to do this
         for key in self._data:
             read_df[key] = self._data[key]
@@ -173,8 +180,8 @@ class Taddol(MDa.Universe):
                 try:
                     [int(atom) for atom in atoms]
                 except ValueError:
-                    raise NotImplementedError('Only selection by atom index is '
-                                              'currently supported.\nAt your '
+                    raise NotImplementedError('Only selection by atom index is'
+                                              ' currently supported.\nAt your '
                                               'own risk you can try assigning '
                                               'to self._data[{}].'.format(key))
                 first_group += self.select_atoms('bynum '+atoms[0])
@@ -184,7 +191,7 @@ class Taddol(MDa.Universe):
         n2 = second_group.n_atoms
         nc = len(column_names)
         if not nc == n1 == n2:
-            raise SyntaxError('Different numbers of atoms selectioned or number'
+            raise SyntaxError('Different numbers of atoms selections or number'
                               'of column labels '
                               '({}, {}, and {}, respectively).'.format(n1,
                                                                        n2,
@@ -207,7 +214,7 @@ class Taddol(MDa.Universe):
     @property
     def data(self):
         """
-        The pandas dataframe that is the backend to much of the added functions
+        The pd.DataFrame that is the backend to much of the added functions
 
         :return: the distances and properties for this trajectory
         :rtype: pd.DataFrame
@@ -784,7 +791,7 @@ def get_taddol_pi_dists(universe, sel_dict=False):
 def plot_dist_array(array, index_offset=1, num_data_rows=False,
                     n_rows=False, n_cols=False):
     """
-    Puts each row of array in a different axes of a figure. Returns the figure.
+    Puts each row of array in a different axes of a figure. Return figure.
 
     :param array:
     :param index_offset:
