@@ -73,6 +73,12 @@ class Taddol(MDa.Universe):
         self._last_time = self.trajectory.totaltime
         self.counts_hist_ox_dists = None
         self._cv_hist_data = {}
+        # dict of distance definitions
+        self._dict_dist_defs = {'ox': {'O-O': (7, 9),
+                                       'O(l)-Cy': (9, 13),
+                                       'O(r)-Cy': (7, 13)},
+                                'cv': {'CV1': (160, 9),
+                                       'CV2': (133, 8)}}
 
     def save_data(self, filename=None, overwrite=False):
         """
@@ -140,16 +146,6 @@ class Taddol(MDa.Universe):
                 args = [arg.lower() for arg in args]
             except AttributeError:
                 raise SyntaxError('All positional arguments must be strings')
-            if 'ox' in args:
-                args.remove('ox')
-                first_group += self.select_atoms('bynum 7 9', 'bynum 7')
-                second_group += self.select_atoms('bynum 9 13', 'bynum 13')
-                column_names += ['O-O', 'O(l)-Cy', 'O(r)-Cy']
-            if 'cv' in args or 'cvs' in args:
-                args.remove('cv')
-                first_group += self.select_atoms('bynum 160', 'bynum 133')
-                second_group += self.select_atoms('bynum 9', 'bynum 8')
-                column_names += ['CV1', 'CV2']
             if 'pi' in args:
                 args.remove('pi')
                 warn('pi distances have not yet been implemented and will not'
@@ -158,15 +154,19 @@ class Taddol(MDa.Universe):
                 args.remove('all')
                 print('"all" given or implied, calculating distances for '
                       'oxygens and CVs')
-                first_group += self.select_atoms('bynum 7 9', 'bynum 7 160',
-                                                 'bynum 133')
-                second_group += self.select_atoms('bynum 9 13', 'bynum 13',
-                                                  'bynum 9', 'bynum 8')
-                column_names += ['O-O', 'O(l)-Cy', 'O(r)-Cy', 'CV1', 'CV2']
-            if len(args) != 0:
-                print('The following positional arguments were given but not '
-                      'recognized: ', args)
-                print('They will be ignored.')
+                args.append('ox')
+                args.append('cv')
+            bad_args = []
+            for arg in args:
+                try:
+                    temp_dict = self._dict_dist_defs[arg].update(kwargs)
+                    kwargs = temp_dict.copy()
+                except KeyError:
+                    bad_args.append(arg)
+            if len(bad_args) != 0:
+                warn('The following positional arguments were given but not '
+                     'recognized: ' + str(bad_args) + '\nThey will be '
+                     'ignored.')
         if len(kwargs) != 0:
             for key in kwargs:
                 try:
@@ -184,8 +184,8 @@ class Taddol(MDa.Universe):
                                               ' currently supported.\nAt your '
                                               'own risk you can try assigning '
                                               'to self._data[{}].'.format(key))
-                first_group += self.select_atoms('bynum '+atoms[0])
-                second_group += self.select_atoms('bynum '+atoms[1])
+                first_group += self.select_atoms('bynum '+str(atoms[0]))
+                second_group += self.select_atoms('bynum '+str(atoms[1]))
                 column_names += key
         n1 = first_group.n_atoms
         n2 = second_group.n_atoms
