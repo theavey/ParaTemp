@@ -360,7 +360,7 @@ class Taddol(MDa.Universe):
         except KeyError:
             print('Calculating CV values...\n'
                   'This may take a few minutes.')
-            self._calc_cvs()
+            self.calculate_distances('cv')
         return self._data['CV1']
 
     @property
@@ -376,27 +376,8 @@ class Taddol(MDa.Universe):
         except KeyError:
             print('Calculating CV values...\n'
                   'This may take a few minutes.')
-            self._calc_cvs()
+            self.calculate_distances('cv')
         return self._data['CV2']
-
-    def _calc_cvs(self):
-        """
-        Calculate the CV values
-
-        :return: None
-        :rtype: None
-        """
-        # TODO generalize the atom selections, likely with a class variable
-        first_group = self.select_atoms('bynum 160', 'bynum 133')
-        second_group = self.select_atoms('bynum 9', 'bynum 8')
-        cv_dists = np.zeros((self._num_frames, 2))
-        for i, frame in enumerate(self.trajectory):
-            MDa.lib.distances.calc_bonds(first_group.positions,
-                                         second_group.positions,
-                                         box=self.dimensions,
-                                         result=cv_dists[i])
-        self._data['CV1'] = cv_dists[:, 0]
-        self._data['CV2'] = cv_dists[:, 1]
 
     def hist_2d_cvs(self, x=None, y=None, return_fig=True, **kwargs):
         """"""
