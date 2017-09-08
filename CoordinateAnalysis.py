@@ -75,6 +75,9 @@ class Taddol(MDa.Universe):
         self.counts_hist_ox_dists = None
         self._cv_hist_data = {}
         # dict of distance definitions
+        # TODO Find a way to make this atom-ordering independent
+        # For example, this will break if TADDOL is not the first molecule
+        # listed.
         self._dict_dist_defs = {'ox': {'O-O': (7, 9),
                                        'O(l)-Cy': (9, 13),
                                        'O(r)-Cy': (7, 13)},
@@ -238,34 +241,11 @@ class Taddol(MDa.Universe):
             if self._verbosity:
                 print('Calculating oxygen distances...\n'
                       'This may take a few minutes.')
-            self._calc_ox_dists()
+            self.calculate_distances('ox')
         # might want to (optionally) return the time column here too
         # though, as a @property, this can't take arguments, so it would need
         # to be some variable in the class
         return self._data.filter(('O-O', 'O(l)-Cy', 'O(r)-Cy'))
-
-    def _calc_ox_dists(self):
-        """
-        Calculate the three oxygen-related distances.
-
-        :return:
-        """
-        # TODO Find a way to make this atom-ordering independent
-        # For example, this will break if TADDOL is not the first molecule
-        # listed.
-        # aoxr aoxl aoxr
-        first_group = self.select_atoms('bynum 7 9', 'bynum 7')
-        # aoxl cyclon cyclon
-        second_group = self.select_atoms('bynum 9 13', 'bynum 13')
-        ox_dists = np.zeros((self._num_frames, 3))
-        for i, frame in enumerate(self.trajectory):
-            MDa.lib.distances.calc_bonds(first_group.positions,
-                                         second_group.positions,
-                                         box=self.dimensions,
-                                         result=ox_dists[i])
-        self._data['O-O'] = ox_dists[:, 0]
-        self._data['O(l)-Cy'] = ox_dists[:, 1]
-        self._data['O(r)-Cy'] = ox_dists[:, 2]
 
     @property
     def pi_dists(self):
@@ -280,17 +260,8 @@ class Taddol(MDa.Universe):
             if self._verbosity:
                 print('Calculating pi distances...\n'
                       'This may take a few minutes.')
-            self._calc_pi_dists()
+            self.calculate_distances('pi')
         return self._data.filter(['pi-'+str(i) for i in range(16)])
-
-    def _calc_pi_dists(self):
-        """
-        Calculate the 16 TADDOL pi dists.
-
-        :return:
-        """
-        raise NotImplementedError('calculating pi distances has not been '
-                                  'implemented yet. Try again later.')
 
     def _calc_counts_hist_ox_dists(self):
         """
