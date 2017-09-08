@@ -116,7 +116,7 @@ class Taddol(MDa.Universe):
         if filename is None:
             filename = os.path.splitext(self.trajectory.filename)[0] + '.h5'
         with pd.HDFStore(filename) as store:
-            time = str(int(self._last_time))
+            time = 'time_' + str(int(self._last_time/1000)) + 'ns'
             try:
                 read_df = store[time]
             except KeyError:
@@ -152,8 +152,8 @@ class Taddol(MDa.Universe):
                 column_names += ['CV1', 'CV2']
             if 'pi' in args:
                 args.remove('pi')
-                warn('pi distances have not yet been implemented and will not '
-                     'be calculated.')
+                warn('pi distances have not yet been implemented and will not'
+                     ' be calculated.')
             if 'all' in args:
                 args.remove('all')
                 print('"all" given or implied, calculating distances for '
@@ -175,7 +175,7 @@ class Taddol(MDa.Universe):
                     # assume it is iterable as is
                     atoms = kwargs[key]
                 if len(atoms) != 2:
-                    raise SyntaxError('This input should split to two atom'
+                    raise SyntaxError('This input should split to two atom '
                                       'indices: {}'.format(kwargs[key]))
                 try:
                     [int(atom) for atom in atoms]
@@ -198,6 +198,7 @@ class Taddol(MDa.Universe):
                                                                        nc) +
                               '\nThis should not happen.')
         if self._num_frames != self.trajectory.n_frames:
+            # TODO define custom FileChangedError or similar
             raise IOError('Number of frames in trajectory does not match the '
                           'number when this was initialized.\nTry '
                           'reinitializing the object or rewrite the code to '
