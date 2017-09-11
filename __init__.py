@@ -22,6 +22,22 @@
 #                                                                      #
 ########################################################################
 
-import energyHisto
-import para_temp_setup
-import CoordinateAnalysis
+from __future__ import absolute_import
+import sys
+from . import para_temp_setup
+import os
+from contextlib import contextmanager
+if sys.version_info.major == 2:
+    # These (at this point) require python 2 because of gromacs and MDAnalysis
+    from . import energyHisto
+    from . import CoordinateAnalysis
+
+
+@contextmanager
+def cd(newdir):
+    prevdir = os.getcwd()
+    os.chdir(os.path.expanduser(newdir))
+    try:
+        yield
+    finally:
+        os.chdir(prevdir)

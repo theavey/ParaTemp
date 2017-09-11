@@ -36,6 +36,25 @@ class InputError(Exception):
         self.msg = msg
 
     def __str__(self):
-        output = 'Incorrect input "{}". {}'.format(self.expr,
-                                                   self.msg)
+        output = 'Incorrect input "{}". {}'.format(self.expr, self.msg)
         return repr(output)
+
+
+class FileChangedError(Exception):
+    """
+    Exception raised for error when file changed between initialization
+    and when it is read from disk again later.
+
+    """
+
+    def __init__(self, msg=None):
+        self.msg = msg
+
+    def __str__(self):
+        output = ('Number of frames in trajectory does not match the '
+                  'number when this was initialized.\nTry '
+                  'reinitializing the object or rewrite the code to '
+                  'deal with this in a smarter way.')
+        if self.msg is not None:
+            output += '\n' + self.msg
+            return repr(output)

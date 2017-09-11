@@ -30,21 +30,23 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                  scaling_exponent=0.025, base_name='npt',
                  topology='../*top', multi_structure=False,
                  structure='../*gro', index='../index.ndx',
-                 temps_file='temperatures.dat'):
+                 temps_file='temperatures.dat', maxwarn='0'):
     """
     Compile TPR files for REMD run with GROMACS
 
-    :param template:
-    :param start_temp:
-    :param number:
-    :param scaling_exponent:
-    :param base_name:
-    :param topology:
-    :param multi_structure:
-    :param structure:
-    :param index:
-    :param temps_file:
-    :return:
+    :param template: name of template mdp file
+    :param start_temp: starting (lowest) temperature
+    :param number: number of replicas/walkers
+    :param scaling_exponent: exponent by which to scale the temperatures
+    :param base_name: base name for output mdp and tpr files
+    :param topology: name of topology file
+    :param multi_structure: bool, multiple (different) structure files
+    (uses glob expansion on the input structure base name)
+    :param structure: (base) name of structure file(s)
+    :param index: name of index file
+    :param temps_file: name of file in which to store temperatures
+    :param maxwarn: maximum number of warnings to ignore
+    :return: None
     """
     # if args.multi_structure:
     from glob import glob
@@ -52,6 +54,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
     structures.sort()
     structures.sort(key=len)
     temps = []
+    error = False
     from math import exp
     for i in range(number):
         mdp_name = base_name + str(i) + '.mdp'
@@ -71,7 +74,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                         '-c', structure,
                         '-n', index,
                         '-o', mdp_name.replace('mdp', 'tpr'),
-                        '-maxwarn', '2']
+                        '-maxwarn', maxwarn]
         with open('gromacs_compile_output.log', 'a') as log_file:
             from subprocess import Popen, PIPE, STDOUT
             proc = Popen(command_line,
@@ -79,7 +82,13 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                          stderr=STDOUT,
                          universal_newlines=True)
             for line in proc.stdout:
+                if error is True:  # Catch the next line after the error
+                    error = line
+                if 'Fatal error' in line:
+                    error = True  # Deal with this after writing log file
                 log_file.write(line)
+        if error:
+            raise RuntimeError(error)
     with open(temps_file, 'w') as temps_out:
         temps_out.write(str(temps))
         temps_out.write('\n')
