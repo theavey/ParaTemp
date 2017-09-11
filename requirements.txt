@@ -1,0 +1,7 @@
+#
+MDAnalysis
+pandas
+numpy
+matplotlib
+panedr
+gromacswrapper
