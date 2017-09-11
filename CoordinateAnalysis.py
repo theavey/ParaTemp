@@ -72,7 +72,6 @@ class Taddol(MDa.Universe):
                                   columns=['Time'])
         self._num_frames = self.trajectory.n_frames
         self._last_time = self.trajectory.totaltime
-        self.counts_hist_ox_dists = None
         self._cv_hist_data = {}
         # dict of distance definitions
         # TODO Find a way to make this atom-ordering independent
@@ -263,22 +262,6 @@ class Taddol(MDa.Universe):
             self.calculate_distances('pi')
         return self._data.filter(['pi-'+str(i) for i in range(16)])
 
-    def _calc_counts_hist_ox_dists(self):
-        """
-
-        :return:
-        """
-        if self.counts_hist_ox_dists is None:
-            if self.ox_dists is None:
-                self._calc_ox_dists()
-            # todo write this as below
-            pass
-        else:
-            print('ox histogram counts already calculated and saved in '
-                  'self.counts_hist_ox_dists\nNot recalculating.\n'
-                  'To recalculate, set self.counts_hist_ox_dists to None and '
-                  'rerun this function')
-
     @property
     def open_ox_dists(self):
         """
@@ -446,37 +429,82 @@ class Taddol(MDa.Universe):
         """
         Plot the three oxygen-related distances.
 
-        :param save:
-        :param save_format:
-        :param save_base_name:
-        :param display:
-        :param kwargs:
-        :return:
+        :param bool save: Default: False. Save the figure to disk.
+        :param str save_format: Default: 'png'. Format in which to save the
+        figure.
+        :param str save_base_name: Default: 'ox-dists'. Name for the saved
+        figure file.
+        :param bool display: Default: True. Return the figure, otherwise
+        return None.
+        :param dict kwargs: Keywords to pass to the plotting function.
+        :return: The figure of oxygen distances or None.
         """
-        if self.ox_dists is None:
-            self._calc_ox_dists()
-        pass  # TODO write this based on below
+        ox_dists = self.ox_dists
+        fig, axes = subplots()
+        axes.plot(self._data['Time'], ox_dists['O-O'], label='O-O', **kwargs)
+        axes.plot(self._data['Time'], ox_dists['O(l)-Cy'], label='O(l)-Cy',
+                  **kwargs)
+        axes.plot(self._data['Time'], ox_dists['O(r)-Cy'], label='O(r)-Cy',
+                  **kwargs)
+        axes.legend()
+        axes.set_xlabel('time / ps')
+        axes.set_ylabel('distance / $\mathrm{\AA}$')
+        if save:
+            fig.savefig(save_base_name + save_format)
+        if display:
+            return fig
+        else:
+            return None
 
-    def hist_ox_dists(self, n_bins=10, save=False, save_format='pdf',
-                      save_base_name='ox-dists-hist',
-                      display=True, separate=True, **kwargs):
+    def hist_ox_dists(self, data=None, n_bins=10, save=False,
+                      save_format='pdf', save_base_name='ox-dists-hist',
+                      display=True, **kwargs):
         """
         Make histogram of alcoholic O distances in TADDOL trajectory
 
-        :param n_bins:
-        :param save:
-        :param save_format:
-        :param save_base_name:
-        :param display:
-        :param separate:
-        :param kwargs:
-        :return:
+        :param data: Default: self.ox_dists. Data to form the histogram from.
+        :type data: pd.DataFrame
+        :param int n_bins: Default: 10. Number of bins for histograms.
+        :param bool save: Default: False. Save the figure to disk.
+        :param str save_format: Default: 'pdf'. Format in which to save the
+        figure.
+        :param str save_base_name: Default: 'ox-dists-hist'. Name for the saved
+        figure.
+        :param bool display: Default: True. Return the figure from the function
+        otherwise return None.
+        :param dict kwargs: Keyword arguments to pass to the plotting function.
+        :return: The figure of histograms of oxygen distances.
         """
-        if self.ox_dists is None:
-            self._calc_ox_dists()
-        # Save the histogram figures and/or data for making the FESs
-        # or better yet, use separate calc hist data function and just plot it
-        pass  # TODO write this based on below
+        try:
+            data['O-O']
+        except KeyError:
+            raise InputError(data, 'data must be a pd.DataFrame like object '
+                                   'with item O-O, O(l)-Cy, and O(r)-Cy.')
+        except TypeError:
+            if self._verbosity:
+                print('Using default data: self.ox_dists.')
+            data = self.ox_dists
+        fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True, sharex=True)
+        handles = []
+        # Use whatever the default colors for the system are
+        # TODO find a more elegant way to do this
+        colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
+        for i, key in enumerate(('O-O', 'O(l)-Cy', 'O(r)-Cy')):
+            n, bins = np.histogram(data[key], n_bins)
+            ax = axes.flat[i]
+            line, = ax.plot(bins[:-1], n, colors[i], **kwargs)
+            handles.append(line)
+            ax.set_ylabel(r'count')
+            ax.set_xlabel(r'distance / $\mathrm{\AA}$')
+        axes.flat[3].axis('off')
+        axes.flat[3].legend(handles, ['O-O', 'O(l)-Cy', 'O(r)-Cy'],
+                            loc='center')
+        if save:
+            fig.savefig(save_base_name + save_format)
+        if display:
+            return fig
+        else:
+            return None
 
     def fes_ox_dists(self, data=None, temp=791., save=False,
                      save_format='pdf',
