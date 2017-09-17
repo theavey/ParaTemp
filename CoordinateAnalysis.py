@@ -162,7 +162,8 @@ class Taddol(MDa.Universe):
             bad_args = []
             for arg in args:
                 try:
-                    temp_dict = self._dict_dist_defs[arg].update(kwargs)
+                    temp_dict = self._dict_dist_defs[arg]
+                    temp_dict.update(kwargs)
                     kwargs = temp_dict.copy()
                 except KeyError:
                     bad_args.append(arg)
