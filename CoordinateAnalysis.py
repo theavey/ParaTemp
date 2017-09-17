@@ -190,7 +190,7 @@ class Taddol(MDa.Universe):
                                               'to self._data[{}].'.format(key))
                 first_group += self.select_atoms('bynum '+str(atoms[0]))
                 second_group += self.select_atoms('bynum '+str(atoms[1]))
-                column_names += key
+                column_names += [key]
         n1 = first_group.n_atoms
         n2 = second_group.n_atoms
         nc = len(column_names)
