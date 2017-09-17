@@ -510,7 +510,7 @@ class Taddol(MDa.Universe):
                                  'able to plot at least four things')
             except AttributeError:
                 try:
-                    fig = axes.[3].figure
+                    fig = axes[3].figure
                 except IndexError:
                     raise InputError('axes={}'.format(axes), 'Input axes must '
                                      'be able to plot at least four things')
