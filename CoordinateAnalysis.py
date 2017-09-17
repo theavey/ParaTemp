@@ -200,7 +200,7 @@ class Taddol(MDa.Universe):
                               '({}, {}, and {}, respectively).'.format(n1,
                                                                        n2,
                                                                        nc) +
-                              '\nThis should not happen.')
+                              '\nThis should not happen.' + str(column_names))
         if self._num_frames != self.trajectory.n_frames:
             raise exceptions.FileChangedError()
         dists = np.zeros((self._num_frames, n1))
