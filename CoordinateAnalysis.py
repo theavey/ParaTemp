@@ -484,6 +484,9 @@ class Taddol(MDa.Universe):
         figure.
         :param bool display: Default: True. Return the figure from the function
         otherwise return None.
+        :param axes: Default: None. The axes objects on
+        which to make the plots. If None is supplied, new axes objects will
+        be created.
         :param dict kwargs: Keyword arguments to pass to the plotting function.
         :return: The figure of histograms of oxygen distances.
         """
@@ -535,7 +538,7 @@ class Taddol(MDa.Universe):
     def fes_ox_dists(self, data=None, temp=791., save=False,
                      save_format='pdf',
                      save_base_name='ox-dists-fes',
-                     display=True, **kwargs):
+                     display=True, axes=None, **kwargs):
         """
         Make FESs of the oxygen distances of a TADDOL from histogram data
 
@@ -550,6 +553,9 @@ class Taddol(MDa.Universe):
         figure.
         :param bool display: Default: True. Whether to return the figure after
         producing it.
+        :param axes: Default: None. The axes objects on
+        which to make the plots. If None is supplied, new axes objects will
+        be created.
         :param kwargs: keyword arguments to pass to the plotter
         :return:
         """
@@ -564,7 +570,21 @@ class Taddol(MDa.Universe):
             data = self.ox_dists
         r = 0.0019872  # kcal_th/(K mol)
         delta_gs = []
-        fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True, sharex=True)
+        if axes is None:
+            fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True,
+                                     sharex=True)
+        else:
+            try:
+                fig = axes.flat[3].figure
+            except (IndexError, TypeError):
+                raise InputError('axes={}'.format(axes), 'Input axes must be '
+                                 'able to plot at least four things')
+            except AttributeError:
+                try:
+                    fig = axes.[3].figure
+                except IndexError:
+                    raise InputError('axes={}'.format(axes), 'Input axes must '
+                                     'be able to plot at least four things')
         handles = []
         # Use whatever the default colors for the system are
         # TODO find a more elegant way to do this
