@@ -431,7 +431,7 @@ class Taddol(MDa.Universe):
 
     def plot_ox_dists(self, save=False, save_format='png',
                       save_base_name='ox-dists',
-                      display=True, **kwargs):
+                      display=True, ax=None, **kwargs):
         """
         Plot the three oxygen-related distances.
 
@@ -442,19 +442,25 @@ class Taddol(MDa.Universe):
         figure file.
         :param bool display: Default: True. Return the figure, otherwise
         return None.
+        :param matplotlib.axes.Axes ax: Default: None. The axes object on
+        which to make the plots. If None is supplied, a new axes object will
+        be created.
         :param dict kwargs: Keywords to pass to the plotting function.
         :return: The figure of oxygen distances or None.
         """
         ox_dists = self.ox_dists
-        fig, axes = subplots()
-        axes.plot(self._data['Time'], ox_dists['O-O'], label='O-O', **kwargs)
-        axes.plot(self._data['Time'], ox_dists['O(l)-Cy'], label='O(l)-Cy',
-                  **kwargs)
-        axes.plot(self._data['Time'], ox_dists['O(r)-Cy'], label='O(r)-Cy',
-                  **kwargs)
-        axes.legend()
-        axes.set_xlabel('time / ps')
-        axes.set_ylabel('distance / $\mathrm{\AA}$')
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.figure
+        ax.plot(self._data['Time'], ox_dists['O-O'], label='O-O', **kwargs)
+        ax.plot(self._data['Time'], ox_dists['O(l)-Cy'], label='O(l)-Cy',
+                **kwargs)
+        ax.plot(self._data['Time'], ox_dists['O(r)-Cy'], label='O(r)-Cy',
+                **kwargs)
+        ax.legend()
+        ax.set_xlabel('time / ps')
+        ax.set_ylabel('distance / $\mathrm{\AA}$')
         if save:
             fig.savefig(save_base_name + save_format)
         if display:
