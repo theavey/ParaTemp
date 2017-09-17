@@ -470,7 +470,7 @@ class Taddol(MDa.Universe):
 
     def hist_ox_dists(self, data=None, n_bins=10, save=False,
                       save_format='pdf', save_base_name='ox-dists-hist',
-                      display=True, **kwargs):
+                      display=True, axes=None, **kwargs):
         """
         Make histogram of alcoholic O distances in TADDOL trajectory
 
@@ -496,7 +496,21 @@ class Taddol(MDa.Universe):
             if self._verbosity:
                 print('Using default data: self.ox_dists.')
             data = self.ox_dists
-        fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True, sharex=True)
+        if axes is None:
+            fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True,
+                                     sharex=True)
+        else:
+            try:
+                fig = axes.flat[3].figure
+            except (IndexError, TypeError):
+                raise InputError('axes={}'.format(axes), 'Input axes must be '
+                                 'able to plot at least four things')
+            except AttributeError:
+                try:
+                    fig = axes.[3].figure
+                except IndexError:
+                    raise InputError('axes={}'.format(axes), 'Input axes must '
+                                     'be able to plot at least four things')
         handles = []
         # Use whatever the default colors for the system are
         # TODO find a more elegant way to do this
