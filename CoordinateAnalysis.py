@@ -362,7 +362,7 @@ class Taddol(MDa.Universe):
             self.calculate_distances('cv')
         return self._data['CV2']
 
-    def hist_2d_cvs(self, x=None, y=None, return_fig=True, **kwargs):
+    def hist_2d_cvs(self, x=None, y=None, return_fig=True, ax=None, **kwargs):
         """"""
         # TODO make the constants here arguments
         # TODO make this optionally save figure
@@ -370,7 +370,10 @@ class Taddol(MDa.Universe):
             x = self.cv1_dists
         if y is None:
             y = self.cv2_dists
-        fig, ax = plt.subplots()
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.figure
         counts, xedges, yedges = ax.hist2d(x, y,
                                            32, **kwargs)[:3]
         self._cv_hist_data['counts'] = counts
