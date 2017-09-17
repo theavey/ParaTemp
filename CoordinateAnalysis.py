@@ -387,7 +387,7 @@ class Taddol(MDa.Universe):
         if return_fig:
             return fig
 
-    def fes_2d_cvs(self, x=None, y=None, temp=205., **kwargs):
+    def fes_2d_cvs(self, x=None, y=None, temp=205., ax=None, **kwargs):
         """"""
         # TODO make the constants here arguments
         # TODO make this optionally save figure
@@ -414,7 +414,10 @@ class Taddol(MDa.Universe):
             + 1e-40
         r = 0.0019872  # kcal_th/(K mol)
         delta_g = np.array([[-r * temp * np.log(p) for p in j] for j in probs])
-        fig, ax = plt.subplots()
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.figure
         contours = ax.contourf(xedges[:-1], yedges[:-1], delta_g.transpose(),
                                np.append(np.linspace(0, 20, 11), [40]),
                                vmax=20, **kwargs)
