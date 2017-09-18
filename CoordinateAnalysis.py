@@ -364,8 +364,8 @@ class Taddol(MDa.Universe):
         return self._data['CV2']
 
     @staticmethod
-    def running_mean(x, N):
-        return np.convolve(x, np.ones((N,)) / N, mode='valid')
+    def running_mean(x, n=2):
+        return np.convolve(x, np.ones((n,)) / n, mode='valid')
 
     def hist_2d_cvs(self, x=None, y=None, return_fig=True, ax=None, **kwargs):
         """"""
@@ -461,8 +461,7 @@ class Taddol(MDa.Universe):
             fig, ax = plt.subplots()
         else:
             fig = ax.figure
-        xmids, ymids = (self.running_mean(xedges, 2),
-                        self.running_mean(yedges, 2))
+        xmids, ymids = self.running_mean(xedges), self.running_mean(yedges)
         contours = ax.contourf(xmids, ymids, delta_g.transpose(),
                                _bins, vmax=vmax, **kwargs)
         ax.axis((1.5, 10, 1.5, 10))
