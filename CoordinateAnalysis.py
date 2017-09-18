@@ -390,7 +390,29 @@ class Taddol(MDa.Universe):
 
     def fes_2d_cvs(self, x=None, y=None, temp=205., ax=None,
                    zrange=(0, 20, 11), zfinal=40, **kwargs):
-        """"""
+        """
+        plot FES in 2D along defined CVs
+
+        :param Iterable x: Default: self.cv1_dists. Length component to plot
+        along x axis.
+        :param Iterable y: Default: self.cv2_dists. Length component to plot
+        along y axis.
+        :param float temp: Default: 205. Temperature for Boltzmann weighting
+        calculation.
+        :param atplotlib.axes.Axes ax: Default: None. Axes on which to make the
+        FES. If None, a new axes and figure will be created.
+        :param zrange: Default: (0, 20, 11). Input to np.linspace for
+        determining contour levels. If a float-like is given, it will be set as
+        the max with 11+1 bins. If a len=2 list-like is given, it will be used
+        as the min and max with 11+1 bins. Otherwise, the input will be used
+        as-is for input to np.linspace.
+        :type zrange: Iterable or Float
+        :param zfinal: Default: 40. Energy at which to stop coloring the FES.
+        Anything above this energy will appear as white.
+        :param kwargs: Keyword arguments to pass to the plotting function.
+        :return: The figure of the FES.
+        :rtype: matplotlib.figure.Figure
+        """
         # TODO make the constants here arguments
         # TODO make this optionally save figure
         # TODO check on cv1 vs. cv2 for x / y
