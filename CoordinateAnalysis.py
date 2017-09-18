@@ -388,7 +388,8 @@ class Taddol(MDa.Universe):
         if return_fig:
             return fig
 
-    def fes_2d_cvs(self, x=None, y=None, temp=205., ax=None, **kwargs):
+    def fes_2d_cvs(self, x=None, y=None, temp=205., ax=None,
+                   zrange=(0, 20, 11), zfinal=40, **kwargs):
         """"""
         # TODO make the constants here arguments
         # TODO make this optionally save figure
@@ -411,6 +412,18 @@ class Taddol(MDa.Universe):
             if y is None:
                 y = self.cv2_dists
             counts, xedges, yedges = np.histogram2d(x, y, 32)
+        try:
+            float(zrange)
+            _zrange = [0, zrange, 11]
+        except TypeError:
+            if len(zrange) == 1:
+                _zrange = [0, zrange[0], 11]
+            elif len(zrange) == 2:
+                _zrange = list(zrange) + [11]
+            else:
+                # Don't check any further. Hopefully works as arg to
+                # np.linspace.
+                _zrange = zrange
         probs = np.array([[i / counts.max() for i in j] for j in counts]) \
             + 1e-40
         r = 0.0019872  # kcal_th/(K mol)
@@ -420,7 +433,7 @@ class Taddol(MDa.Universe):
         else:
             fig = ax.figure
         contours = ax.contourf(xedges[:-1], yedges[:-1], delta_g.transpose(),
-                               np.append(np.linspace(0, 20, 11), [40]),
+                               np.append(np.linspace(*_zrange), [zfinal]),
                                vmax=20, **kwargs)
         ax.axis((1.5, 10, 1.5, 10))
         ax.set_xlabel('CV 2')
