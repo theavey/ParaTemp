@@ -363,6 +363,10 @@ class Taddol(MDa.Universe):
             self.calculate_distances('cv')
         return self._data['CV2']
 
+    @staticmethod
+    def running_mean(x, N):
+        return np.convolve(x, np.ones((N,)) / N)[(N - 1):]
+
     def hist_2d_cvs(self, x=None, y=None, return_fig=True, ax=None, **kwargs):
         """"""
         # TODO make the constants here arguments
@@ -443,13 +447,7 @@ class Taddol(MDa.Universe):
             except TypeError:
                 dict_zrange = {1: [0, zrange[0], 11],
                                2: list(zrange) + [11]}
-                # TODO use dict.get(key, default) instead
-                try:
-                    _zrange = dict_zrange[len(zrange)]
-                except KeyError:
-                    # Don't check any further. Hopefully works as arg to
-                    # np.linspace.
-                    _zrange = zrange
+                _zrange = dict_zrange.get(len(zrange), zrange)
             _bins = np.append(np.linspace(*_zrange), [zfinal])
             vmax = _zrange[1]
         else:
@@ -463,9 +461,10 @@ class Taddol(MDa.Universe):
             fig, ax = plt.subplots()
         else:
             fig = ax.figure
-        contours = ax.contourf(xedges[:-1], yedges[:-1], delta_g.transpose(),
-                               _bins,
-                               vmax=vmax, **kwargs)
+        xmids, ymids = (self.running_mean(xedges, 2),
+                        self.running_mean(yedges, 2))
+        contours = ax.contourf(xmids, ymids, delta_g.transpose(),
+                               _bins, vmax=vmax, **kwargs)
         ax.axis((1.5, 10, 1.5, 10))
         ax.set_xlabel('CV 2')
         ax.set_ylabel('CV 1')
