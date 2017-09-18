@@ -434,7 +434,7 @@ class Taddol(MDa.Universe):
             fig = ax.figure
         contours = ax.contourf(xedges[:-1], yedges[:-1], delta_g.transpose(),
                                np.append(np.linspace(*_zrange), [zfinal]),
-                               vmax=20, **kwargs)
+                               vmax=_zrange[1], **kwargs)
         ax.axis((1.5, 10, 1.5, 10))
         ax.set_xlabel('CV 2')
         ax.set_ylabel('CV 1')
