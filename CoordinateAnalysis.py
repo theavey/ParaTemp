@@ -365,7 +365,7 @@ class Taddol(MDa.Universe):
 
     @staticmethod
     def running_mean(x, N):
-        return np.convolve(x, np.ones((N,)) / N)[(N - 1):]
+        return np.convolve(x, np.ones((N,)) / N)[(N - 1):][:-(N-1)]
 
     def hist_2d_cvs(self, x=None, y=None, return_fig=True, ax=None, **kwargs):
         """"""
