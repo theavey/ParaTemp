@@ -416,11 +416,11 @@ class Taddol(MDa.Universe):
             float(zrange)
             _zrange = [0, zrange, 11]
         except TypeError:
-            if len(zrange) == 1:
-                _zrange = [0, zrange[0], 11]
-            elif len(zrange) == 2:
-                _zrange = list(zrange) + [11]
-            else:
+            dict_zrange = {1: [0, zrange[0], 11],
+                           2: list(zrange) + [11]}
+            try:
+                _zrange = dict_zrange[len(zrange)]
+            except KeyError:
                 # Don't check any further. Hopefully works as arg to
                 # np.linspace.
                 _zrange = zrange
