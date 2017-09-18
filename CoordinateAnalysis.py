@@ -388,7 +388,7 @@ class Taddol(MDa.Universe):
         if return_fig:
             return fig
 
-    def fes_2d_cvs(self, x=None, y=None, temp=205., ax=None,
+    def fes_2d_cvs(self, x=None, y=None, temp=205., ax=None, bins=None,
                    zrange=(0, 20, 11), zfinal=40, **kwargs):
         """
         plot FES in 2D along defined CVs
@@ -401,6 +401,8 @@ class Taddol(MDa.Universe):
         calculation.
         :param atplotlib.axes.Axes ax: Default: None. Axes on which to make the
         FES. If None, a new axes and figure will be created.
+        :param Iterable bins: Default: None. The bins to be used for the z
+        ranges. If this is not None, zrange and zfinal are ignored.
         :param zrange: Default: (0, 20, 11). Input to np.linspace for
         determining contour levels. If a float-like is given, it will be set as
         the max with 11+1 bins. If a len=2 list-like is given, it will be used
@@ -434,18 +436,23 @@ class Taddol(MDa.Universe):
             if y is None:
                 y = self.cv2_dists
             counts, xedges, yedges = np.histogram2d(x, y, 32)
-        try:
-            float(zrange)
-            _zrange = [0, zrange, 11]
-        except TypeError:
-            dict_zrange = {1: [0, zrange[0], 11],
-                           2: list(zrange) + [11]}
+        if bins is None:
             try:
-                _zrange = dict_zrange[len(zrange)]
-            except KeyError:
-                # Don't check any further. Hopefully works as arg to
-                # np.linspace.
-                _zrange = zrange
+                float(zrange)
+                _zrange = [0, zrange, 11]
+            except TypeError:
+                dict_zrange = {1: [0, zrange[0], 11],
+                               2: list(zrange) + [11]}
+                # TODO use dict.get(key, default) instead
+                try:
+                    _zrange = dict_zrange[len(zrange)]
+                except KeyError:
+                    # Don't check any further. Hopefully works as arg to
+                    # np.linspace.
+                    _zrange = zrange
+            _bins = np.append(np.linspace(*_zrange), [zfinal])
+        else:
+            _bins = bins
         probs = np.array([[i / counts.max() for i in j] for j in counts]) \
             + 1e-40
         r = 0.0019872  # kcal_th/(K mol)
@@ -455,7 +462,7 @@ class Taddol(MDa.Universe):
         else:
             fig = ax.figure
         contours = ax.contourf(xedges[:-1], yedges[:-1], delta_g.transpose(),
-                               np.append(np.linspace(*_zrange), [zfinal]),
+                               _bins,
                                vmax=_zrange[1], **kwargs)
         ax.axis((1.5, 10, 1.5, 10))
         ax.set_xlabel('CV 2')
