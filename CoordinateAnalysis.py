@@ -451,8 +451,10 @@ class Taddol(MDa.Universe):
                     # np.linspace.
                     _zrange = zrange
             _bins = np.append(np.linspace(*_zrange), [zfinal])
+            vmax = _zrange[1]
         else:
             _bins = bins
+            vmax = bins[-1]
         probs = np.array([[i / counts.max() for i in j] for j in counts]) \
             + 1e-40
         r = 0.0019872  # kcal_th/(K mol)
@@ -463,7 +465,7 @@ class Taddol(MDa.Universe):
             fig = ax.figure
         contours = ax.contourf(xedges[:-1], yedges[:-1], delta_g.transpose(),
                                _bins,
-                               vmax=_zrange[1], **kwargs)
+                               vmax=vmax, **kwargs)
         ax.axis((1.5, 10, 1.5, 10))
         ax.set_xlabel('CV 2')
         ax.set_ylabel('CV 1')
