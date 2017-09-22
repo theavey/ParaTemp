@@ -215,6 +215,11 @@ class Taddol(MDa.Universe):
         for i, column in enumerate(column_names):
             self._data[column] = dists[:, i]
 
+    def calculate_dihedrals(self, *args, **kwargs):
+        """"""
+        # todo there should be a way to generalize the "calculate" functions
+        # use this function http://www.mdanalysis.org/docs/documentation_pages/lib/distances.html
+
     @property
     def data(self):
         """
