@@ -138,6 +138,9 @@ class Taddol(MDa.Universe):
 
     def calculate_distances(self, *args, **kwargs):
         """"""
+        # TODO document this function
+        # TODO find a way to take keyword type args with non-valid python
+        # identifies (e.g., "O-O").
         # Make empty atom selections to be appended to:
         first_group = self.select_atoms('protein and not protein')
         second_group = self.select_atoms('protein and not protein')
