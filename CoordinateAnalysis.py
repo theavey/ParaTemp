@@ -73,6 +73,7 @@ class Taddol(MDa.Universe):
         self._num_frames = self.trajectory.n_frames
         self._last_time = self.trajectory.totaltime
         self._cv_hist_data = {}
+        # TODO add temp argument and pass to FES functions
         # dict of distance definitions
         # TODO Find a way to make this atom-ordering independent
         # For example, this will break if TADDOL is not the first molecule
@@ -629,8 +630,6 @@ class Taddol(MDa.Universe):
             if self._verbosity:
                 print('Using default data: self.ox_dists.')
             data = self.ox_dists
-        r = 0.0019872  # kcal_th/(K mol)
-        delta_gs = []
         if axes is None:
             fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True,
                                      sharex=True)
@@ -646,6 +645,8 @@ class Taddol(MDa.Universe):
                 except IndexError:
                     raise InputError('axes={}'.format(axes), 'Input axes must '
                                      'be able to plot at least four things')
+        r = 0.0019872  # kcal_th/(K mol)
+        delta_gs = []
         handles = []
         # Use whatever the default colors for the system are
         # TODO find a more elegant way to do this
