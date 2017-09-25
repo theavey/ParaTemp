@@ -478,7 +478,9 @@ class Taddol(MDa.Universe):
             return fig
 
     def fes_2d_cvs(self, x=None, y=None, temp=205., ax=None, bins=None,
-                   zrange=(0, 20, 11), zfinal=40, n_bins=32, **kwargs):
+                   zrange=(0, 20, 11), zfinal=40, n_bins=32, transpose=False,
+                   xlabel='CV 1', ylabel='CV 2',
+                   **kwargs):
         """
         plot FES in 2D along defined CVs
 
@@ -502,13 +504,20 @@ class Taddol(MDa.Universe):
         Anything above this energy will appear as white.
         :param int n_bins: Default: 32. Number of bins in x and y for
         histogramming.
+        :param bool transpose: Default: False. Whether to transpose the data
+        and axes such that the input x will be along the y axis and the
+        inverse. Note, this also makes the xlabel on the y-axis and the
+        inverse.
+        :param str xlabel: Default: 'CV 1'. Label for x-axis (or y-axis if
+        transpose=True).
+        :param str ylabel: Default: 'CV 2'. Label for y-axis (or x-axis if
+        transpose=True).
         :param kwargs: Keyword arguments to pass to the plotting function.
         :return: The figure of the FES.
         :rtype: matplotlib.figure.Figure
         """
         # TODO make the constants here arguments
         # TODO make this optionally save figure
-        # TODO check on cv1 vs. cv2 for x / y
         if x is None and y is None:
             x = self.cv1_dists
             y = self.cv2_dists
@@ -549,11 +558,18 @@ class Taddol(MDa.Universe):
         else:
             fig = ax.figure
         xmids, ymids = self._running_mean(xedges), self._running_mean(yedges)
+        if not transpose:
+            # This is because np.histogram2d returns the counts oddly
+            delta_g = delta_g.transpose()
+            _xlabel, _ylabel = xlabel, ylabel
+        else:
+            xmids, ymids = ymids, xmids
+            _xlabel, _ylabel = ylabel, xlabel
         contours = ax.contourf(xmids, ymids, delta_g,
                                _bins, vmax=vmax, **kwargs)
         ax.axis((1.5, 10, 1.5, 10))
-        ax.set_xlabel('CV 2')
-        ax.set_ylabel('CV 1')
+        ax.set_xlabel(_xlabel)
+        ax.set_ylabel(_ylabel)
         ax.set_aspect('equal', 'box-forced')
         fig.colorbar(contours, label='kcal / mol')
         fig.tight_layout()
