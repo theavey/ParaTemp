@@ -515,7 +515,7 @@ class Taddol(MDa.Universe):
                 xedges = self._cv_hist_data['xedges']
                 yedges = self._cv_hist_data['yedges']
             except KeyError:
-                counts, xedges, yedges = np.histogram2d(x, y, 32)
+                counts, xedges, yedges = np.histogram2d(x, y, 64)
                 self._cv_hist_data['counts'] = counts
                 self._cv_hist_data['xedges'] = xedges
                 self._cv_hist_data['yedges'] = yedges
