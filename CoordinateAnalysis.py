@@ -478,7 +478,7 @@ class Taddol(MDa.Universe):
             return fig
 
     def fes_2d_cvs(self, x=None, y=None, temp=205., ax=None, bins=None,
-                   zrange=(0, 20, 11), zfinal=40, **kwargs):
+                   zrange=(0, 20, 11), zfinal=40, n_bins=32, **kwargs):
         """
         plot FES in 2D along defined CVs
 
@@ -500,6 +500,8 @@ class Taddol(MDa.Universe):
         :type zrange: Iterable or Float
         :param zfinal: Default: 40. Energy at which to stop coloring the FES.
         Anything above this energy will appear as white.
+        :param int n_bins: Default: 32. Number of bins in x and y for
+        histogramming.
         :param kwargs: Keyword arguments to pass to the plotting function.
         :return: The figure of the FES.
         :rtype: matplotlib.figure.Figure
@@ -515,7 +517,7 @@ class Taddol(MDa.Universe):
                 xedges = self._cv_hist_data['xedges']
                 yedges = self._cv_hist_data['yedges']
             except KeyError:
-                counts, xedges, yedges = np.histogram2d(x, y, 64)
+                counts, xedges, yedges = np.histogram2d(x, y, n_bins)
                 self._cv_hist_data['counts'] = counts
                 self._cv_hist_data['xedges'] = xedges
                 self._cv_hist_data['yedges'] = yedges
@@ -524,7 +526,7 @@ class Taddol(MDa.Universe):
                 x = self.cv1_dists
             if y is None:
                 y = self.cv2_dists
-            counts, xedges, yedges = np.histogram2d(x, y, 32)
+            counts, xedges, yedges = np.histogram2d(x, y, n_bins)
         if bins is None:
             try:
                 float(zrange)
