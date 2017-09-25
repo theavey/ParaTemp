@@ -83,6 +83,7 @@ class Taddol(MDa.Universe):
                                        'O(r)-Cy': (7, 13)},
                                 'cv': {'CV1': (160, 9),
                                        'CV2': (133, 8)}}
+        self._dict_dihed_defs = {}
 
     def save_data(self, filename=None, overwrite=False):
         """
@@ -141,7 +142,7 @@ class Taddol(MDa.Universe):
         """"""
         # TODO document this function
         # TODO find a way to take keyword type args with non-valid python
-        # identifies (e.g., "O-O").
+        # identifiers (e.g., "O-O").
         # Make empty atom selections to be appended to:
         first_group = self.select_atoms('protein and not protein')
         second_group = self.select_atoms('protein and not protein')
@@ -199,7 +200,7 @@ class Taddol(MDa.Universe):
         n2 = second_group.n_atoms
         nc = len(column_names)
         if not nc == n1 == n2:
-            raise SyntaxError('Different numbers of atoms selections or number'
+            raise SyntaxError('Different numbers of atom selections or number'
                               'of column labels '
                               '({}, {}, and {}, respectively).'.format(n1,
                                                                        n2,
@@ -219,7 +220,72 @@ class Taddol(MDa.Universe):
     def calculate_dihedrals(self, *args, **kwargs):
         """"""
         # todo there should be a way to generalize the "calculate" functions
-        # use this function http://www.mdanalysis.org/docs/documentation_pages/lib/distances.html
+        # use this function
+        # http://www.mdanalysis.org/docs/documentation_pages/lib/distances.html
+        # Make empty atom selections to be appended to:
+        groups = [self.select_atoms('protein and not protein')] * 4
+        column_names = []
+        if len(args) == 0 and len(kwargs) == 0:
+            raise InputError('calculate_dihedrals', 'No arguments given; '
+                                                    'nothing to calculate')
+        if len(args) != 0:
+            try:
+                args = [arg.lower() for arg in args]
+            except AttributeError:
+                raise SyntaxError('All positional arguments must be strings')
+            bad_args = []
+            for arg in args:
+                try:
+                    temp_dict = self._dict_dihed_defs[arg]
+                    temp_dict.update(kwargs)
+                    kwargs = temp_dict.copy()
+                except KeyError:
+                    bad_args.append(arg)
+            if len(bad_args) != 0:
+                warn('The following positional arguments were given but not '
+                     'recognized: ' + str(bad_args) + '\nThey will be '
+                                                      'ignored.')
+        if len(kwargs) != 0:
+            for key in kwargs:
+                try:
+                    atoms = kwargs[key].split()
+                except AttributeError:
+                    # assume it is iterable as is
+                    atoms = kwargs[key]
+                if len(atoms) != 4:
+                    raise SyntaxError('This input should split to four atom '
+                                      'indices: {}'.format(kwargs[key]))
+                try:
+                    [int(atom) for atom in atoms]
+                except ValueError:
+                    raise NotImplementedError('Only selection by atom index is'
+                                              ' currently supported.\nAt your '
+                                              'own risk you can try assigning '
+                                              'to self._data[{}].'.format(key))
+                for i in range(4):
+                    groups[i] += self.select_atoms('bynum ' + str(atoms[i]))
+                column_names += [key]
+        n_atoms = [x.n_atoms for x in groups]
+        nc = len(column_names)
+        if not (n_atoms.count(n_atoms[0]) == len(n_atoms)
+                and n_atoms[0] == nc):
+            raise SyntaxError('Different number of column labels or atom '
+                              'selections ({}, {}, {}, {} and {}, '
+                              'respectively).'.format(nc, *n_atoms) +
+                              '\nThis should not happen.')
+        if self._num_frames != self.trajectory.n_frames:
+            raise exceptions.FileChangedError()
+        diheds = np.zeros((self._num_frames, nc))
+        for i, frame in enumerate(self.trajectory):
+            MDa.lib.distances.calc_dihedrals(groups[0].positions,
+                                             groups[1].positions,
+                                             groups[2].positions,
+                                             groups[3].positions,
+                                             box=self.dimensions,
+                                             result=diheds[i])
+        for i, column in enumerate(column_names):
+            self._data[column] = diheds[:, i]
+
 
     @property
     def data(self):
