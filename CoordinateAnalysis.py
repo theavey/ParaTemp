@@ -373,7 +373,7 @@ class Taddol(MDa.Universe):
         return self._data['CV2']
 
     @staticmethod
-    def running_mean(x, n=2):
+    def _running_mean(x, n=2):
         """
         Calculate running mean over an iterable
 
@@ -480,7 +480,7 @@ class Taddol(MDa.Universe):
             fig, ax = plt.subplots()
         else:
             fig = ax.figure
-        xmids, ymids = self.running_mean(xedges), self.running_mean(yedges)
+        xmids, ymids = self._running_mean(xedges), self._running_mean(yedges)
         contours = ax.contourf(xmids, ymids, delta_g.transpose(),
                                _bins, vmax=vmax, **kwargs)
         ax.axis((1.5, 10, 1.5, 10))
