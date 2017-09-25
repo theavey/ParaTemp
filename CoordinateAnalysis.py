@@ -547,7 +547,7 @@ class Taddol(MDa.Universe):
         else:
             fig = ax.figure
         xmids, ymids = self._running_mean(xedges), self._running_mean(yedges)
-        contours = ax.contourf(xmids, ymids, delta_g.transpose(),
+        contours = ax.contourf(xmids, ymids, delta_g,
                                _bins, vmax=vmax, **kwargs)
         ax.axis((1.5, 10, 1.5, 10))
         ax.set_xlabel('CV 2')
