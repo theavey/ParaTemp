@@ -24,7 +24,7 @@
 ########################################################################
 
 from __future__ import absolute_import
-import CoordinateAnalysis as ca
+from . import CoordinateAnalysis as ca
 
 
 def test_running_mean():
