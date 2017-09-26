@@ -29,4 +29,4 @@ from . import CoordinateAnalysis as ca
 
 def test_running_mean():
     tl = [0, 2, 4]
-    assert ca.Taddol._running_mean(tl) == [1, 3]
+    assert (ca.Taddol._running_mean(tl) == [1, 3]).all()
