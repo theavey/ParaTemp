@@ -286,7 +286,6 @@ class Taddol(MDa.Universe):
         for i, column in enumerate(column_names):
             self._data[column] = diheds[:, i]
 
-
     @property
     def data(self):
         """
