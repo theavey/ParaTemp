@@ -24,17 +24,18 @@
 
 from __future__ import absolute_import
 
+import os.path
+from warnings import warn
+
 import MDAnalysis as MDa
-# import mdtraj as md  # Think I'm going with MDAnalysis instead
-import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+# import mdtraj as md  # Think I'm going with MDAnalysis instead
+import numpy as np
 import pandas as pd
 from typing import Iterable
-from warnings import warn
-from . import exceptions
-import os.path
 
+from . import exceptions
 from .exceptions import InputError
 
 

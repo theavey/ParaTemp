@@ -1,4 +1,5 @@
 
+"""This contains a set of tests for ParaTemp.CoordinateAnalysis"""
 
 ########################################################################
 #                                                                      #
@@ -23,21 +24,10 @@
 ########################################################################
 
 from __future__ import absolute_import
-import sys
-from . import para_temp_setup
-import os
-from contextlib import contextmanager
-if sys.version_info.major == 2:
-    # These (at this point) require python 2 because of gromacs and MDAnalysis
-    from . import energyHisto
-    from . import CoordinateAnalysis
+
+from ParaTemp import CoordinateAnalysis as ca
 
 
-@contextmanager
-def cd(newdir):
-    prevdir = os.getcwd()
-    os.chdir(os.path.expanduser(newdir))
-    try:
-        yield
-    finally:
-        os.chdir(prevdir)
+def test_running_mean():
+    tl = [0, 2, 4]
+    assert (ca.Taddol._running_mean(tl) == [1, 3]).all()
