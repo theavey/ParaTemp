@@ -1,4 +1,7 @@
+"""
+Common tools for general use, largely file/path management
 
+"""
 
 ########################################################################
 #                                                                      #
@@ -22,17 +25,27 @@
 #                                                                      #
 ########################################################################
 
-from __future__ import absolute_import
 
-import sys
-
-from . import para_temp_setup
-from .tools import copy_no_overwrite, cd
-
-if sys.version_info.major == 2:
-    # These (at this point) require python 2 because of gromacs and MDAnalysis
-    from . import CoordinateAnalysis
-    from . import energyHisto
-    from . import energyBinAnalysis
+import os
+import shutil
+from contextlib import contextmanager
 
 
+@contextmanager
+def cd(new_dir):
+    prev_dir = os.getcwd()
+    os.chdir(os.path.expanduser(new_dir))
+    try:
+        yield
+    finally:
+        os.chdir(prev_dir)
+
+
+def copy_no_overwrite(src, dst, silent=False):
+    if os.path.exists(dst):
+        if silent:
+            return dst
+        else:
+            raise OSError(17, 'File already exists', dst)
+    else:
+        return shutil.copy(src, dst)
