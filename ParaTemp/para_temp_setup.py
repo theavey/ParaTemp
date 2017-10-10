@@ -25,6 +25,13 @@
 # This is written to work with python 3 because it should be good to
 # be working on the newest version of python.
 
+import os
+
+import re
+import glob
+
+from .tools import cd, copy_no_overwrite
+
 
 def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                  scaling_exponent=0.025, base_name='npt',
@@ -166,3 +173,38 @@ def get_gro_files(trr_base='npt_PT_out', tpr_base='TOPO/npt',
         out_file = trr_file.replace('trr', 'gro')
         Trjconv_mpi(s=tpr_files[i], f=trr_file, o=out_file, dump=time,
                     input='0')()
+
+
+def get_n_solvent(folder, solvent='DCM'):
+    """
+    Find the number of solvent molecules of given type in topology file.
+
+    :param str folder: The folder in which to look for a file ending in '.top'.
+    :param str solvent: Default: 'DCM'
+    :return: The number of solvent molecules.
+    :rtype: int
+    """
+    re_n_solv = re.compile('(?:^\s*{}\s+)(\d+)'.format(solvent))
+    with cd(folder):
+        f_top = glob.glob('*.top')
+        if len(f_top) != 1:
+            raise ValueError('Found {} .top files in {}\nOnly can deal with '
+                             '1'.format(len(f_top), folder))
+        else:
+            f_top = f_top[0]
+        with open(f_top, 'r') as file_top:
+            for line in file_top:
+                solv_match = re_n_solv.search(line)
+                if solv_match:
+                    return int(solv_match.group(1))
+            else:
+                # Not the right error, but fine for now
+                raise ValueError("Didn't find n_solv in {}".format(folder))
+
+
+def copy_topology(f_from, f_to, overwrite=False):
+    os.makedirs(f_to, exist_ok=True)
+    to_copy = glob.glob(f_from+'/*.top')
+    to_copy += glob.glob(f_from+'/*.itp')
+    for path in to_copy:
+        copy_no_overwrite(path, f_to, silent=overwrite)
