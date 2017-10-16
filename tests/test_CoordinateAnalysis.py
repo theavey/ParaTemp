@@ -25,7 +25,7 @@
 
 from __future__ import absolute_import
 
-from ParaTemp import CoordinateAnalysis as ca
+from ..ParaTemp import CoordinateAnalysis as ca
 
 
 def test_running_mean():
