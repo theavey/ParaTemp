@@ -33,7 +33,7 @@ import matplotlib.pyplot as plt
 # import mdtraj as md  # Think I'm going with MDAnalysis instead
 import numpy as np
 import pandas as pd
-from typing import Iterable
+from typing import Iterable, Tuple
 
 from . import exceptions
 from .exceptions import InputError
@@ -42,8 +42,7 @@ from .exceptions import InputError
 # TODO move all import statements to the beginning (out of functions)
 
 
-class Taddol(MDa.Universe):
-    """"""
+class Universe(MDa.Universe):
 
     def __init__(self, *args, **kwargs):
         """
@@ -53,11 +52,6 @@ class Taddol(MDa.Universe):
         changed to an int.
         Default: 1
         :type verbosity: int or bool
-        :param oc_cutoffs: Cutoffs of O-O distance for determining
-        open/closed TADDOL configurations. Default: ((1.0, 3.25),
-                                                     (3.75, 10.0))
-        :type oc_cutoffs: Iterable(Iterable(float, float),
-                                   Iterable(float, float))
         :param args:
         :param kwargs:
         """
@@ -65,25 +59,15 @@ class Taddol(MDa.Universe):
         # just automatically inherits everything
         # Maybe use the super() command? need to learn more about this
         self._verbosity = kwargs.pop('verbosity', 1)
-        self._oc_cutoffs = kwargs.pop('oc_cutoffs',
-                                      ((1.0, 3.25), (3.75, 10.0)))
-        super(Taddol, self).__init__(*args, **kwargs)
+        super(Universe, self).__init__(*args, **kwargs)
         self._data = pd.DataFrame(np.arange(0, self.trajectory.totaltime,
                                             self.trajectory.dt),
                                   columns=['Time'])
         self._num_frames = self.trajectory.n_frames
         self._last_time = self.trajectory.totaltime
-        self._cv_hist_data = {}
         # TODO add temp argument and pass to FES functions
         # dict of distance definitions
-        # TODO Find a way to make this atom-ordering independent
-        # For example, this will break if TADDOL is not the first molecule
-        # listed.
-        self._dict_dist_defs = {'ox': {'O-O': (7, 9),
-                                       'O(l)-Cy': (9, 13),
-                                       'O(r)-Cy': (7, 13)},
-                                'cv': {'CV1': (160, 9),
-                                       'CV2': (133, 8)}}
+        self._dict_dist_defs = {}
         self._dict_dihed_defs = {}
 
     def save_data(self, filename=None, overwrite=False):
@@ -155,16 +139,6 @@ class Taddol(MDa.Universe):
                 args = [arg.lower() for arg in args]
             except AttributeError:
                 raise SyntaxError('All positional arguments must be strings')
-            if 'pi' in args:
-                args.remove('pi')
-                warn('pi distances have not yet been implemented and will not'
-                     ' be calculated.')
-            if 'all' in args:
-                args.remove('all')
-                print('"all" given or implied, calculating distances for '
-                      'oxygens and CVs')
-                args.append('ox')
-                args.append('cv')
             bad_args = []
             for arg in args:
                 try:
@@ -303,6 +277,229 @@ class Taddol(MDa.Universe):
         # and I'm not sure I want to mess with their item access stuff.
         return self._data
 
+    @staticmethod
+    def _running_mean(x, n=2):
+        """
+        Calculate running mean over an iterable
+
+        Taken from https://stackoverflow.com/a/22621523/3961920
+
+        :param Iterable x: List over which to calculate the mean.
+        :param int n: Default: 2. Width for the means.
+        :return: Array of the running mean values.
+        :rtype: np.ndarray
+        """
+        return np.convolve(x, np.ones((n,)) / n, mode='valid')
+
+    def fes_2d(self, x=None, y=None, temp=205., ax=None, bins=None,
+               zrange=(0, 20, 11), zfinal=40, n_bins=32, transpose=False,
+               xlabel='x', ylabel='y', scale=True,
+               **kwargs):
+        """
+        plot FES in 2D along defined values
+
+        :param Iterable x: Default: None. Length component to plot
+        along x axis.
+        :param Iterable y: Default: None. Length component to plot
+        along y axis.
+        :param float temp: Default: 205. Temperature for Boltzmann weighting
+        calculation.
+        :param matplotlib.axes.Axes ax: Default: None. Axes on which to make the
+        FES. If None, a new axes and figure will be created.
+        :param Iterable bins: Default: None. The bins to be used for the z
+        ranges. If this is not None, zrange and zfinal are ignored.
+        :param zrange: Default: (0, 20, 11). Input to np.linspace for
+        determining contour levels. If a float-like is given, it will be set as
+        the max with 11+1 bins. If a len=2 list-like is given, it will be used
+        as the min and max with 11+1 bins. Otherwise, the input will be used
+        as-is for input to np.linspace.
+        :type zrange: Iterable or Float
+        :param zfinal: Default: 40. Energy at which to stop coloring the FES.
+        Anything above this energy will appear as white.
+        :param int n_bins: Default: 32. Number of bins in x and y for
+        histogramming.
+        :param bool transpose: Default: False. Whether to transpose the data
+        and axes such that the input x will be along the y axis and the
+        inverse. Note, this also makes the xlabel on the y-axis and the
+        inverse.
+        :param str xlabel: Default: 'x'. Label for x-axis (or y-axis if
+        transpose=True).
+        :param str ylabel: Default: 'y'. Label for y-axis (or x-axis if
+        transpose=True).
+        :param bool scale: Default: True. Include a colorbar scale in the
+        figure of the axes.
+        :param kwargs: Keyword arguments to pass to the plotting function.
+        :return: The contours, the figure, and the axes
+        :rtype: Tuple(matplotlib.contour.QuadContourSet,
+        matplotlib.figure.Figure, matplotlib.axes.Axes)
+        """
+        # TODO make the constants here arguments
+        counts, xedges, yedges = np.histogram2d(x, y, n_bins)
+        if bins is None:
+            try:
+                float(zrange)
+                _zrange = [0, zrange, 11]
+            except TypeError:
+                dict_zrange = {1: [0, zrange[0], 11],
+                               2: list(zrange) + [11]}
+                _zrange = dict_zrange.get(len(zrange), zrange)
+            _bins = np.append(np.linspace(*_zrange), [zfinal])
+            vmax = _zrange[1]
+        else:
+            _bins = bins
+            vmax = bins[-1]
+        probs = np.array([[i / counts.max() for i in j] for j in counts]) \
+            + 1e-40
+        r = 0.0019872  # kcal_th/(K mol)
+        delta_g = np.array([[-r * temp * np.log(p) for p in j] for j in probs])
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.figure
+        xmids, ymids = self._running_mean(xedges), self._running_mean(yedges)
+        if not transpose:
+            # This is because np.histogram2d returns the counts oddly
+            delta_g = delta_g.transpose()
+            _xlabel, _ylabel = xlabel, ylabel
+        else:
+            xmids, ymids = ymids, xmids
+            _xlabel, _ylabel = ylabel, xlabel
+        contours = ax.contourf(xmids, ymids, delta_g,
+                               _bins, vmax=vmax, **kwargs)
+        ax.set_xlabel(_xlabel)
+        ax.set_ylabel(_ylabel)
+        ax.set_aspect('equal', 'box-forced')
+        if scale:
+            fig.colorbar(contours, label='kcal / mol')
+            fig.tight_layout()
+        return contours
+
+
+class Taddol(Universe):
+    """"""
+
+    def __init__(self, *args, **kwargs):
+        """
+
+        :param verbosity: Setting whether to print details. If in the
+        future more levels of verbosity are desired, this may be
+        changed to an int.
+        Default: 1
+        :type verbosity: int or bool
+        :param oc_cutoffs: Cutoffs of O-O distance for determining
+        open/closed TADDOL configurations. Default: ((1.0, 3.25),
+                                                     (3.75, 10.0))
+        :type oc_cutoffs: Iterable(Iterable(float, float),
+                                   Iterable(float, float))
+        :param args:
+        :param kwargs:
+        """
+        # self.univ = (line below): I'm not sure if this is needed or if this
+        # just automatically inherits everything
+        # Maybe use the super() command? need to learn more about this
+        self._verbosity = kwargs.pop('verbosity', 1)
+        self._oc_cutoffs = kwargs.pop('oc_cutoffs',
+                                      ((1.0, 3.25), (3.75, 10.0)))
+        super(Taddol, self).__init__(*args, **kwargs)
+        self._data = pd.DataFrame(np.arange(0, self.trajectory.totaltime,
+                                            self.trajectory.dt),
+                                  columns=['Time'])
+        self._num_frames = self.trajectory.n_frames
+        self._last_time = self.trajectory.totaltime
+        self._cv_hist_data = {}
+        # TODO add temp argument and pass to FES functions
+        # dict of distance definitions
+        # TODO Find a way to make this atom-ordering independent
+        # For example, this will break if TADDOL is not the first molecule
+        # listed.
+        self._dict_dist_defs = {'ox': {'O-O': (7, 9),
+                                       'O(l)-Cy': (9, 13),
+                                       'O(r)-Cy': (7, 13)},
+                                'cv': {'CV1': (160, 9),
+                                       'CV2': (133, 8)}}
+        self._dict_dihed_defs = {}
+
+
+
+    def calculate_distances(self, *args, **kwargs):
+        """"""
+        # TODO document this function
+        # TODO find a way to take keyword type args with non-valid python
+        # identifiers (e.g., "O-O").
+        # Make empty atom selections to be appended to:
+        first_group = self.select_atoms('protein and not protein')
+        second_group = self.select_atoms('protein and not protein')
+        column_names = []
+        if len(args) == 0 and len(kwargs) == 0:
+            args = ['all']
+        if len(args) != 0:
+            try:
+                args = [arg.lower() for arg in args]
+            except AttributeError:
+                raise SyntaxError('All positional arguments must be strings')
+            if 'pi' in args:
+                args.remove('pi')
+                warn('pi distances have not yet been implemented and will not'
+                     ' be calculated.')
+            if 'all' in args:
+                args.remove('all')
+                print('"all" given or implied, calculating distances for '
+                      'oxygens and CVs')
+                args.append('ox')
+                args.append('cv')
+            bad_args = []
+            for arg in args:
+                try:
+                    temp_dict = self._dict_dist_defs[arg]
+                    temp_dict.update(kwargs)
+                    kwargs = temp_dict.copy()
+                except KeyError:
+                    bad_args.append(arg)
+            if len(bad_args) != 0:
+                warn('The following positional arguments were given but not '
+                     'recognized: ' + str(bad_args) + '\nThey will be '
+                     'ignored.')
+        if len(kwargs) != 0:
+            for key in kwargs:
+                try:
+                    atoms = kwargs[key].split()
+                except AttributeError:
+                    # assume it is iterable as is
+                    atoms = kwargs[key]
+                if len(atoms) != 2:
+                    raise SyntaxError('This input should split to two atom '
+                                      'indices: {}'.format(kwargs[key]))
+                try:
+                    [int(atom) for atom in atoms]
+                except ValueError:
+                    raise NotImplementedError('Only selection by atom index is'
+                                              ' currently supported.\nAt your '
+                                              'own risk you can try assigning '
+                                              'to self._data[{}].'.format(key))
+                first_group += self.select_atoms('bynum '+str(atoms[0]))
+                second_group += self.select_atoms('bynum '+str(atoms[1]))
+                column_names += [key]
+        n1 = first_group.n_atoms
+        n2 = second_group.n_atoms
+        nc = len(column_names)
+        if not nc == n1 == n2:
+            raise SyntaxError('Different numbers of atom selections or number'
+                              'of column labels '
+                              '({}, {}, and {}, respectively).'.format(n1,
+                                                                       n2,
+                                                                       nc) +
+                              '\nThis should not happen.')
+        if self._num_frames != self.trajectory.n_frames:
+            raise exceptions.FileChangedError()
+        dists = np.zeros((self._num_frames, n1))
+        for i, frame in enumerate(self.trajectory):
+            MDa.lib.distances.calc_bonds(first_group.positions,
+                                         second_group.positions,
+                                         box=self.dimensions,
+                                         result=dists[i])
+        for i, column in enumerate(column_names):
+            self._data[column] = dists[:, i]
+
     @property
     def ox_dists(self):
         """
@@ -437,20 +634,6 @@ class Taddol(MDa.Universe):
                   'This may take a few minutes.')
             self.calculate_distances('cv')
         return self._data['CV2']
-
-    @staticmethod
-    def _running_mean(x, n=2):
-        """
-        Calculate running mean over an iterable
-
-        Taken from https://stackoverflow.com/a/22621523/3961920
-
-        :param Iterable x: List over which to calculate the mean.
-        :param int n: Default: 2. Width for the means.
-        :return: Array of the running mean values.
-        :rtype: np.ndarray
-        """
-        return np.convolve(x, np.ones((n,)) / n, mode='valid')
 
     def hist_2d_cvs(self, x=None, y=None, return_fig=True, ax=None, **kwargs):
         """"""
