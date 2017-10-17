@@ -176,7 +176,7 @@ class Universe(MDa.Universe):
         nc = len(column_names)
         if not nc == n1 == n2:
             raise SyntaxError('Different numbers of atom selections or number'
-                              'of column labels '
+                              ' of column labels '
                               '({}, {}, and {}, respectively).'.format(n1,
                                                                        n2,
                                                                        nc) +
