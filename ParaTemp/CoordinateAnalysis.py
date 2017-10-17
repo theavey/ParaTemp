@@ -60,10 +60,10 @@ class Universe(MDa.Universe):
         # Maybe use the super() command? need to learn more about this
         self._verbosity = kwargs.pop('verbosity', 1)
         super(Universe, self).__init__(*args, **kwargs)
-        self._data = pd.DataFrame(np.arange(0, self.trajectory.totaltime,
-                                            self.trajectory.dt),
-                                  columns=['Time'])
         self._num_frames = self.trajectory.n_frames
+        self._data = pd.DataFrame(np.linspace(0, self.trajectory.totaltime,
+                                              num=self._num_frames),
+                                  columns=['Time'])
         self._last_time = self.trajectory.totaltime
         # TODO add temp argument and pass to FES functions
         # dict of distance definitions
@@ -461,18 +461,9 @@ class Taddol(Universe):
         :param args:
         :param kwargs:
         """
-        # self.univ = (line below): I'm not sure if this is needed or if this
-        # just automatically inherits everything
-        # Maybe use the super() command? need to learn more about this
-        self._verbosity = kwargs.pop('verbosity', 1)
         self._oc_cutoffs = kwargs.pop('oc_cutoffs',
                                       ((1.0, 3.25), (3.75, 10.0)))
         super(Taddol, self).__init__(*args, **kwargs)
-        self._data = pd.DataFrame(np.arange(0, self.trajectory.totaltime,
-                                            self.trajectory.dt),
-                                  columns=['Time'])
-        self._num_frames = self.trajectory.n_frames
-        self._last_time = self.trajectory.totaltime
         self._cv_hist_data = {}
         # TODO add temp argument and pass to FES functions
         # dict of distance definitions

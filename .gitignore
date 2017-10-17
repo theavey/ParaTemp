@@ -4,3 +4,6 @@ ParaTemp.iml
 
 # ignore compiled python files
 *.pyc
+
+# ignore MDAnalysis xtc-reading files
+/tests/data/*.npz
