@@ -291,21 +291,23 @@ class Universe(MDa.Universe):
         """
         return np.convolve(x, np.ones((n,)) / n, mode='valid')
 
-    def fes_2d(self, x=None, y=None, temp=205., ax=None, bins=None,
+    def fes_2d(self, x, y, temp=205., ax=None, bins=None,
                zrange=(0, 20, 11), zfinal=40, n_bins=32, transpose=False,
                xlabel='x', ylabel='y', scale=True,
                **kwargs):
         """
         plot FES in 2D along defined values
 
-        :param Iterable x: Default: None. Length component to plot
-        along x axis.
-        :param Iterable y: Default: None. Length component to plot
-        along y axis.
+        :param x: Value along x axis to plot. If a string is given, the data
+        will be taken from self.data[x].
+        :type x: Iterable or str
+        :param y: Value along y axis to plot. If a string is given, the data
+        will be taken from self.data[y].
+        :type y: Iterable or str
         :param float temp: Default: 205. Temperature for Boltzmann weighting
         calculation.
-        :param matplotlib.axes.Axes ax: Default: None. Axes on which to make the
-        FES. If None, a new axes and figure will be created.
+        :param matplotlib.axes.Axes ax: Default: None. Axes on which to make
+        the FES. If None, a new axes and figure will be created.
         :param Iterable bins: Default: None. The bins to be used for the z
         ranges. If this is not None, zrange and zfinal are ignored.
         :param zrange: Default: (0, 20, 11). Input to np.linspace for
@@ -329,12 +331,30 @@ class Universe(MDa.Universe):
         :param bool scale: Default: True. Include a colorbar scale in the
         figure of the axes.
         :param kwargs: Keyword arguments to pass to the plotting function.
-        :return: The contours, the figure, and the axes
-        :rtype: Tuple(matplotlib.contour.QuadContourSet,
-        matplotlib.figure.Figure, matplotlib.axes.Axes)
+        :return: The delta G values, the bin centers, the contours, the figure,
+         and the axes
+        :rtype: Tuple(np.ndarray, Tuple(np.ndarray, np.ndarray),
+        matplotlib.contour.QuadContourSet, matplotlib.figure.Figure,
+        matplotlib.axes.Axes)
         """
         # TODO make the constants here arguments
-        counts, xedges, yedges = np.histogram2d(x, y, n_bins)
+        if type(x) is str:
+            try:
+                _x = self.data[x]
+            except KeyError:
+                raise InputError(x, 'input as a str must be an existing'
+                                    'key for the data in this object')
+        else:
+            _x = x
+        if type(y) is str:
+            try:
+                _y = self.data[y]
+            except KeyError:
+                raise InputError(y, 'input as a str must be an existing'
+                                    'key for the data in this object')
+        else:
+            _x = y
+        counts, xedges, yedges = np.histogram2d(_x, _y, n_bins)
         if bins is None:
             try:
                 float(zrange)
@@ -372,7 +392,54 @@ class Universe(MDa.Universe):
         if scale:
             fig.colorbar(contours, label='kcal / mol')
             fig.tight_layout()
-        return contours
+        return delta_g, (xmids, ymids), contours, fig, ax
+
+    def fes_1d(self, data, temp=205., xlabel=r'distance / $\mathrm{\AA}$',
+               ax=None, **kwargs):
+        """
+        Make FES of some time series data
+
+        :param data: Data to form the FES from. If a string is given, the data
+        will be taken from self.data[data].
+        :type data: Iterable or str
+        :param float temp: Default: 205 K. Temperature of the trajectory used
+        to calculate the free energy.
+        :param str xlabel: Default: 'distance / $\mathrm{\AA}$'. The label for
+        the x axis.
+        :param ax: Default: None. The axes objects on which to make the plots.
+        If None is supplied, new axes objects will be created.
+        :type ax: matplotlib.axes.Axes
+        :param kwargs: keyword arguments to pass to the plotter
+        :return: The delta G values, the bin centers, the lines object, the
+        figure and the axes
+        :rtype: Tuple(np.ndarray, np.ndarray, matplotlib.lines.Line2D,
+        matplotlib.figure.Figure, matplotlib.axes.Axes)
+        """
+        if type(data) is str:
+            try:
+                _data = self.data[data]
+            except KeyError:
+                raise InputError(data, 'input as a str must be an existing'
+                                       'key for the data in this object')
+        else:
+            _data = data
+        if ax is None:
+            _fig, _ax = plt.subplots()
+        else:
+            _ax = ax
+            _fig = ax.figure
+        r = 0.0019872  # kcal_th/(K mol)
+        n, bins = np.histogram(_data)
+        n = [float(j) for j in n]
+        # TODO find better way to account for zeros here rather than
+        # just adding a small amount to each.
+        prob = np.array([j / max(n) for j in n]) + 1e-40
+        delta_g = np.array([-r * temp * np.log(p) for p in prob])
+        bin_mids = self._running_mean(bins, 2)
+        lines = _ax.plot(bin_mids, delta_g, **kwargs)
+        _ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
+        _ax.set_xlabel(xlabel)
+        return delta_g, bin_mids, lines, _fig, _ax
 
 
 class Taddol(Universe):
@@ -418,8 +485,6 @@ class Taddol(Universe):
                                 'cv': {'CV1': (160, 9),
                                        'CV2': (133, 8)}}
         self._dict_dihed_defs = {}
-
-
 
     def calculate_distances(self, *args, **kwargs):
         """"""
