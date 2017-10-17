@@ -31,3 +31,11 @@ from ..ParaTemp import CoordinateAnalysis as ca
 def test_running_mean():
     tl = [0, 2, 4]
     assert (ca.Taddol._running_mean(tl) == [1, 3]).all()
+
+
+class TestXTCUniverse(object):
+
+    Univ = ca.Universe('tests/data/spc2.gro', 'tests/data/t-spc2-traj.xtc')
+
+    def test_distance(self):
+        self.Univ.calculate_distances(a='1 2')
