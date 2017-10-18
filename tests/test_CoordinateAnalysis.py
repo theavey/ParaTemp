@@ -30,39 +30,56 @@ import numpy as np
 import matplotlib
 matplotlib.use('agg')
 
-from ..ParaTemp import CoordinateAnalysis as ca
-
 
 def test_matplotlib_testing_backend():
+    # Travis should fail if this isn't true, but hopefully this makes it
+    # clearer as to why it failed.
     assert matplotlib.get_backend() == 'agg'
 
 
 def test_running_mean():
+    from ..ParaTemp import CoordinateAnalysis as ca
     tl = [0, 2, 4]
     assert (ca.Taddol._running_mean(tl) == [1, 3]).all()
 
 
 class TestXTCUniverse(object):
 
-    Univ = ca.Universe('tests/test-data/spc2.gro', 'tests/test-data/t-spc2-traj.xtc')
-    delta_g_ref = np.load('tests/ref-data/spc2-fes1d-delta-gs.npy')
-    bins_ref = np.load('tests/ref-data/spc2-fes1d-bins.npy')
+    @pytest.fixture
+    def univ(self):
+        from ..ParaTemp import CoordinateAnalysis as ca
+        _univ = ca.Universe('tests/test-data/spc2.gro',
+                            'tests/test-data/t-spc2-traj.xtc')
+        _univ.calculate_distances(a='4 5')
+        return _univ
 
-    def test_distance(self):
-        self.Univ.calculate_distances(a='4 5')
-        assert self.Univ.data['a'][0] == pytest.approx(self.Univ.data['a'][1])
+    @pytest.fixture
+    def ref_a_dists(self):
+        import pandas
+        return pandas.Series.from_csv('tests/ref-data/spc2-a-dists.csv')
 
-    def test_fes_1d_data_str(self):
+    @pytest.fixture
+    def ref_delta_g(self):
+        return np.load('tests/ref-data/spc2-fes1d-delta-gs.npy')
+
+    @pytest.fixture
+    def ref_bins(self):
+        return np.load('tests/ref-data/spc2-fes1d-bins.npy')
+
+    def test_distance(self, univ, ref_a_dists):
+        assert np.isclose(ref_a_dists, univ.data['a']).all()
+
+    def test_fes_1d_data_str(self, univ, ref_delta_g, ref_bins):
         delta_g_str, bins_str, lines_str, fig_str, ax_str = \
-            self.Univ.fes_1d('a')
-        assert (delta_g_str == self.delta_g_ref).all()
-        assert (bins_str == self.bins_ref).all()
+            univ.fes_1d('a')
+        assert (delta_g_str == ref_delta_g).all()
+        assert (bins_str == ref_bins).all()
 
-    def test_fes_1d_data_data(self):
+    def test_fes_1d_data_data(self, univ, ref_delta_g, ref_bins):
         delta_g_data, bins_data, lines_data, fig_data, ax_data = \
-            self.Univ.fes_1d(self.Univ.data['a'])
-        assert (delta_g_data == self.delta_g_ref).all()
-        assert (bins_data == self.bins_ref).all()
+            univ.fes_1d(univ.data['a'])
+        assert (delta_g_data == ref_delta_g).all()
+        assert (bins_data == ref_bins).all()
 
 # TODO add further Universe tests
 #       fes_2d
