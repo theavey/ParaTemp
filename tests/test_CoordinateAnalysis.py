@@ -27,8 +27,14 @@ from __future__ import absolute_import
 
 import pytest
 import numpy as np
+import matplotlib
+matplotlib.use('agg')
 
 from ..ParaTemp import CoordinateAnalysis as ca
+
+
+def test_matplotlib_testing_backend():
+    assert matplotlib.get_backend() == 'agg'
 
 
 def test_running_mean():
