@@ -25,6 +25,9 @@
 
 from __future__ import absolute_import
 
+import pytest
+import numpy as np
+
 from ..ParaTemp import CoordinateAnalysis as ca
 
 
@@ -35,7 +38,30 @@ def test_running_mean():
 
 class TestXTCUniverse(object):
 
-    Univ = ca.Universe('tests/data/spc2.gro', 'tests/data/t-spc2-traj.xtc')
+    Univ = ca.Universe('tests/test-data/spc2.gro', 'tests/test-data/t-spc2-traj.xtc')
+    delta_g_ref = np.load('tests/ref-data/spc2-fes1d-delta-gs.npy')
+    bins_ref = np.load('tests/ref-data/spc2-fes1d-bins.npy')
 
     def test_distance(self):
-        self.Univ.calculate_distances(a='1 2')
+        self.Univ.calculate_distances(a='4 5')
+        assert self.Univ.data['a'][0] == pytest.approx(self.Univ.data['a'][1])
+
+    def test_fes_1d_data_str(self):
+        delta_g_str, bins_str, lines_str, fig_str, ax_str = \
+            self.Univ.fes_1d('a')
+        assert (delta_g_str == self.delta_g_ref).all()
+        assert (bins_str == self.bins_ref).all()
+
+    def test_fes_1d_data_data(self):
+        delta_g_data, bins_data, lines_data, fig_data, ax_data = \
+            self.Univ.fes_1d(self.Univ.data['a'])
+        assert (delta_g_data == self.delta_g_ref).all()
+        assert (bins_data == self.bins_ref).all()
+
+# TODO add further Universe tests
+#       fes_2d
+#       save_data
+#       read_data
+#       calculate_dihedrals
+#       figure from fes_1d
+#       figure from fes_2d
