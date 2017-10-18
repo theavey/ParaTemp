@@ -353,7 +353,7 @@ class Universe(MDa.Universe):
                 raise InputError(y, 'input as a str must be an existing'
                                     'key for the data in this object')
         else:
-            _x = y
+            _y = y
         counts, xedges, yedges = np.histogram2d(_x, _y, n_bins)
         if bins is None:
             try:
@@ -367,7 +367,7 @@ class Universe(MDa.Universe):
             vmax = _zrange[1]
         else:
             _bins = bins
-            vmax = bins[-1]
+            vmax = list(bins)[-1]
         probs = np.array([[i / counts.max() for i in j] for j in counts]) \
             + 1e-40
         r = 0.0019872  # kcal_th/(K mol)
