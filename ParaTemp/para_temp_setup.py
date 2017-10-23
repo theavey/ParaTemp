@@ -52,7 +52,9 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
     :param structure: (base) name of structure file(s)
     :param index: name of index file
     :param temps_file: name of file in which to store temperatures
-    :param maxwarn: maximum number of warnings to ignore
+    :param maxwarn: maximum number of warnings to ignore. str is applied to
+    this argument, so type shouldn't matter significantly.
+    :type maxwarn: int or str
     :return: None
     """
     # if args.multi_structure:
@@ -81,7 +83,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                         '-c', structure,
                         '-n', index,
                         '-o', mdp_name.replace('mdp', 'tpr'),
-                        '-maxwarn', maxwarn]
+                        '-maxwarn', str(maxwarn)]
         with open('gromacs_compile_output.log', 'a') as log_file:
             from subprocess import Popen, PIPE, STDOUT
             proc = Popen(command_line,
