@@ -55,7 +55,8 @@ def find_energies():
         output_name = ('energy' + re.search('[0-9]*(?=\.edr)',
                                             file_name).group(0) + '.xvg')
         if not os.path.isfile(output_name):
-            gromacs.tools.Energy_mpi(f=file_name, o=output_name, input='15')()
+            gromacs.tools.Energy_mpi(f=file_name, o=output_name,
+                                     input='Total-Energy')()
         output_files += [output_name]
     output_files.sort()
     output_files.sort(key=len)
