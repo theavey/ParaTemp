@@ -417,7 +417,7 @@ class Universe(MDa.Universe):
             fig.tight_layout()
         return delta_g, (xmids, ymids), contours, fig, ax
 
-    def fes_1d(self, data, temp=None., xlabel=r'distance / $\mathrm{\AA}$',
+    def fes_1d(self, data, temp=None, xlabel=r'distance / $\mathrm{\AA}$',
                ax=None, **kwargs):
         """
         Make FES of some time series data
