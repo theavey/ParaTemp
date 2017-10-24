@@ -1,4 +1,4 @@
-
+"""This contains a set of tests for ParaTemp.tools"""
 
 ########################################################################
 #                                                                      #
@@ -24,15 +24,15 @@
 
 from __future__ import absolute_import
 
-import sys
-
-from . import para_temp_setup
-from .tools import copy_no_overwrite, cd, get_temperatures
-
-if sys.version_info.major == 2:
-    # These (at this point) require python 2 because of gromacs and MDAnalysis
-    from . import CoordinateAnalysis
-    from . import energyHisto
-    from . import energyBinAnalysis
+import pytest
+import numpy as np
 
 
+@pytest.fixture
+def ref_temps():
+    return np.load('tests/ref-data/temperatures.npy')
+
+
+def test_get_temps(ref_temps):
+    from ..ParaTemp import get_temperatures
+    assert (get_temperatures('tests/test-data/temperatures.dat') == ref_temps).all()

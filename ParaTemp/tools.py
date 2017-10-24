@@ -29,6 +29,7 @@ Common tools for general use, largely file/path management
 import os
 import shutil
 from contextlib import contextmanager
+import numpy as np
 
 
 @contextmanager
@@ -49,3 +50,16 @@ def copy_no_overwrite(src, dst, silent=False):
             raise OSError(17, 'File already exists', dst)
     else:
         return shutil.copy(src, dst)
+
+
+def get_temperatures(filename='TOPO/temperatures.dat'):
+    """
+    Get temperatures of replicas from sim. setup with para_temp_setup
+
+    :param filename: The location of the file with the temperatures.
+    :return: list of temperatures
+    :rtype: numpy.ndarray
+    """
+    with open(filename, 'r') as t_file:
+        temps = list(t_file.read()[1:-2].split(', '))
+    return np.array([float(temp) for temp in temps])
