@@ -1009,11 +1009,10 @@ class Taddol(Universe):
         colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
         for i, key in enumerate(('O-O', 'O(l)-Cy', 'O(r)-Cy')):
             n, bins = np.histogram(data[key])
-            n = [float(j) for j in n]
             # TODO find better way to account for zeros here rather than
             # just adding a small amount to each.
-            prob = np.array([j / max(n) for j in n]) + 1e-20
-            delta_g = np.array([-r * temp * np.log(p) for p in prob])
+            prob = n.astype(float) / n.max() + 1e-20
+            delta_g = -r * temp * np.log(prob)
             delta_gs.append(delta_g)
             ax = axes.flat[i]
             line, = ax.plot(bins[:-1], delta_g, colors[i], **kwargs)

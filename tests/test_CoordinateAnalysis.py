@@ -1,4 +1,3 @@
-
 """This contains a set of tests for ParaTemp.CoordinateAnalysis"""
 
 ########################################################################
