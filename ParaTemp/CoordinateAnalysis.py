@@ -52,6 +52,8 @@ class Universe(MDa.Universe):
         changed to an int.
         Default: 1
         :type verbosity: int or bool
+        :param float temp: Default: None. Temperature of this simulation to be
+        used for calculating free energy surfaces with weighted histograms.
         :param args:
         :param kwargs:
         """
@@ -59,13 +61,13 @@ class Universe(MDa.Universe):
         # just automatically inherits everything
         # Maybe use the super() command? need to learn more about this
         self._verbosity = kwargs.pop('verbosity', 1)
+        self._temperature = kwargs.pop('temp', None)
         super(Universe, self).__init__(*args, **kwargs)
         self._num_frames = self.trajectory.n_frames
         self._data = pd.DataFrame(np.linspace(0, self.trajectory.totaltime,
                                               num=self._num_frames),
                                   columns=['Time'])
         self._last_time = self.trajectory.totaltime
-        # TODO add temp argument and pass to FES functions
         # dict of distance definitions
         self._dict_dist_defs = {}
         self._dict_dihed_defs = {}
@@ -303,7 +305,7 @@ class Universe(MDa.Universe):
         """
         return np.convolve(x, np.ones((n,)) / n, mode='valid')
 
-    def fes_2d(self, x, y, temp=205., ax=None, bins=None,
+    def fes_2d(self, x, y, temp=None, ax=None, bins=None,
                zrange=(0, 20, 11), zfinal=40, n_bins=32, transpose=False,
                xlabel='x', ylabel='y', scale=True,
                **kwargs):
@@ -316,8 +318,10 @@ class Universe(MDa.Universe):
         :param y: Value along y axis to plot. If a string is given, the data
         will be taken from self.data[y].
         :type y: Iterable or str
-        :param float temp: Default: 205. Temperature for Boltzmann weighting
+        :param float temp: Default: None. Temperature for Boltzmann weighting
         calculation.
+        If None is provided, the temperature will be taken from
+        self._temperature
         :param matplotlib.axes.Axes ax: Default: None. Axes on which to make
         the FES. If None, a new axes and figure will be created.
         :param Iterable bins: Default: None. The bins to be used for the z
@@ -349,6 +353,13 @@ class Universe(MDa.Universe):
         matplotlib.contour.QuadContourSet, matplotlib.figure.Figure,
         matplotlib.axes.Axes)
         """
+        if temp is None:
+            _temp = self._temperature
+        else:
+            _temp = temp
+        if _temp is None:
+            raise ValueError('The temperature must be defined to calculate an'
+                             ' FES')
         # TODO make the constants here arguments
         if type(x) is str:
             try:
@@ -383,7 +394,7 @@ class Universe(MDa.Universe):
         probs = np.array([[i / counts.max() for i in j] for j in counts]) \
             + 1e-40
         r = 0.0019872  # kcal_th/(K mol)
-        delta_g = np.array([[-r * temp * np.log(p) for p in j] for j in probs])
+        delta_g = np.array([[-r * _temp * np.log(p) for p in j] for j in probs])
         if ax is None:
             fig, ax = plt.subplots()
         else:
@@ -406,7 +417,7 @@ class Universe(MDa.Universe):
             fig.tight_layout()
         return delta_g, (xmids, ymids), contours, fig, ax
 
-    def fes_1d(self, data, temp=205., xlabel=r'distance / $\mathrm{\AA}$',
+    def fes_1d(self, data, temp=None., xlabel=r'distance / $\mathrm{\AA}$',
                ax=None, **kwargs):
         """
         Make FES of some time series data
@@ -414,8 +425,10 @@ class Universe(MDa.Universe):
         :param data: Data to form the FES from. If a string is given, the data
         will be taken from self.data[data].
         :type data: Iterable or str
-        :param float temp: Default: 205 K. Temperature of the trajectory used
-        to calculate the free energy.
+        :param float temp: Default: None. Temperature for Boltzmann weighting
+        calculation.
+        If None is provided, the temperature will be taken from
+        self._temperature
         :param str xlabel: Default: 'distance / $\mathrm{\AA}$'. The label for
         the x axis.
         :param ax: Default: None. The axes objects on which to make the plots.
@@ -427,6 +440,13 @@ class Universe(MDa.Universe):
         :rtype: Tuple(np.ndarray, np.ndarray, matplotlib.lines.Line2D,
         matplotlib.figure.Figure, matplotlib.axes.Axes)
         """
+        if temp is None:
+            _temp = self._temperature
+        else:
+            _temp = temp
+        if _temp is None:
+            raise ValueError('The temperature must be defined to calculate an'
+                             ' FES')
         if type(data) is str:
             try:
                 _data = self.data[data]
@@ -446,7 +466,7 @@ class Universe(MDa.Universe):
         # TODO find better way to account for zeros here rather than
         # just adding a small amount to each.
         prob = np.array([j / max(n) for j in n]) + 1e-40
-        delta_g = np.array([-r * temp * np.log(p) for p in prob])
+        delta_g = np.array([-r * _temp * np.log(p) for p in prob])
         bin_mids = self._running_mean(bins, 2)
         lines = _ax.plot(bin_mids, delta_g, **kwargs)
         _ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')

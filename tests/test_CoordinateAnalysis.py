@@ -49,7 +49,8 @@ class TestXTCUniverse(object):
     def univ(self):
         from ..ParaTemp import CoordinateAnalysis as ca
         _univ = ca.Universe('tests/test-data/spc2.gro',
-                            'tests/test-data/t-spc2-traj.xtc')
+                            'tests/test-data/t-spc2-traj.xtc',
+                            temp=205.)
         _univ.calculate_distances(a='4 5')
         return _univ
 
