@@ -42,6 +42,7 @@ with cd(temp_dir):
             for line in f_log:
                 try:
                     final_time = regex_time.match(line).group(1)
+                    final_time = '{:.0f}'.format(float(final_time)/1000)
                 except AttributeError:
                     continue
             else:
