@@ -115,6 +115,7 @@ class Universe(MDa.Universe):
         :param bool ignore_no_data: Default: False. If True, not having data
         in the file will not raise an error.
         :return: None
+        :raises: IOError
         """
         if filename is None:
             filename = os.path.splitext(self.trajectory.filename)[0] + '.h5'
