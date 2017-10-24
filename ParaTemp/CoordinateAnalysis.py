@@ -78,6 +78,10 @@ class Universe(MDa.Universe):
         name of the trajectory with a '.h5' extension.
         :type filename: str
         :param overwrite: Whether to overwrite existing data on disk.
+        If it's True, it will completely overwrite the existing data store.
+        If it's False, but a store for this time already exists, only new
+        columns in self.data will be added to the store, and no data will be
+        overwritten.
         :type overwrite: bool
         :return: None
         """
@@ -86,20 +90,19 @@ class Universe(MDa.Universe):
         with pd.HDFStore(filename) as store:
             time = 'time_' + str(int(self._last_time/1000)) + 'ns'
             try:
-                store[time]
+                store_df = store[time]
             except KeyError:
-                pass
+                store_df = self._data
             else:
                 if overwrite:
-                    pass
+                    store_df = self._data
                 else:
-                    raise IOError('Data of this name already exists in this '
-                                  'store! filename: '
-                                  '{}, key: {}'.format(filename, time))
-            store[time] = self._data
+                    for col in set(self._data.columns).difference(store_df):
+                        store_df[col] = self._data[col]
+            store[time] = store_df
         print('Saved data to {}[{}]'.format(filename, time))
 
-    def read_data(self, filename=None):
+    def read_data(self, filename=None, ignore_no_data=False):
         """
         Read calculated data from disk
 
@@ -107,6 +110,8 @@ class Universe(MDa.Universe):
         existing data will not be overwritten.
         :param str filename: Filename from which to read the data.
         Defaults to the name of the trajectory with a '.h5' extension.
+        :param bool ignore_no_data: Default: False. If True, not having data
+        in the file will not raise an error.
         :return: None
         """
         if filename is None:
@@ -115,13 +120,20 @@ class Universe(MDa.Universe):
             time = 'time_' + str(int(self._last_time/1000)) + 'ns'
             try:
                 read_df = store[time]
+                keys_to_read = set(read_df.columns).difference(
+                    self._data.columns)
             except KeyError:
-                raise IOError('This data does not exist!\n{}[{}]'.format(
-                    filename, time))
-        # TODO find a better (more efficient?) way to do this
-        for key in self._data:
-            read_df[key] = self._data[key]
-        self._data = read_df
+                keys_to_read = []
+                read_df = pd.DataFrame()  # not necessary; stops IDE complaint
+                if not ignore_no_data:
+                    raise IOError('This data does not exist!\n{}[{}]'.format(
+                        filename, time))
+                else:
+                    if self._verbosity:
+                        print('No data to read in '
+                              '{}[{}]'.format(filename, time))
+        for key in keys_to_read:
+            self._data[key] = read_df[key]
 
     def calculate_distances(self, *args, **kwargs):
         """"""
