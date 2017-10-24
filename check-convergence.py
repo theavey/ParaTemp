@@ -22,7 +22,8 @@ regex_time = re.compile(r'Replica exchange at step \d+ time (\d+\.\d+)')
 
 start_dir = os.getcwd()
 temp_dir = "cctempdir"
-os.makedirs(temp_dir, exist_ok=True)
+if not os.path.exists(temp_dir):
+    os.makedirs(temp_dir)
 
 edrs = glob('*.edr')
 log_file = glob('*out*.log')[0]
