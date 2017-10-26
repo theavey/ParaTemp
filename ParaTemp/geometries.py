@@ -23,11 +23,63 @@
 ########################################################################
 
 import re
+import numpy as np
+from numpy.linalg import norm
 from vpython import vector
 import vpython.cyvector as cyvector
 # TODO figure out this import above
-from ParaTemp.exceptions import UnknownEnergyError
+from ParaTemp.exceptions import UnknownEnergyError, InputError
 # TODO add tests for these
+
+
+def rotation_matrix(axis, theta):
+    """
+    Return the rotation matrix associated with counterclockwise rotation about
+    the given axis by theta radians.
+
+    copied from
+    https://stackoverflow.com/questions/6802577/python-rotation-of-3d-vector
+    """
+    axis = np.asarray(axis)
+    axis = axis/np.sqrt(np.dot(axis, axis))
+    a = np.cos(theta/2.0)
+    b, c, d = -axis * np.sin(theta/2.0)
+    aa, bb, cc, dd = a*a, b*b, c*c, d*d
+    bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
+    return np.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
+                     [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
+                     [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
+
+
+class Vector(np.ndarray):
+
+    def __init__(self, *args, **kwargs):
+        super(Vector, self).__init__(*args, **kwargs)
+        if self.size != 3:
+            raise InputError(args, 'Length of vector must be 3.')
+
+    def cross(self, vec):
+        return np.cross(self, vec)
+
+    def diff_angle(self, vec):
+        return np.arccos(self.dot(vec) /
+                         (norm(self) * norm(vec)))
+
+    def rotate(self, axis, angle):
+        r_mat = rotation_matrix(axis, angle)
+        return self.dot(r_mat)   # TODO check (multiply on correct side?)
+
+    @property
+    def x(self):
+        return self[0]
+
+    @property
+    def y(self):
+        return self[1]
+
+    @property
+    def z(self):
+        return self[2]
 
 
 class XYZ(object):
@@ -46,7 +98,7 @@ class XYZ(object):
         data = [line.split() for line in f_lines[2:]]
         self.atoms = [atom[0] for atom in data]
         self.coords = [vector(*[float(coord) for coord in atom[1:4]]) for
-                       atom in data]
+                       atom in data]       # REPLACE
 
     def center_on(self, index):
         center = self.coords[index]
@@ -97,10 +149,10 @@ class XYZ(object):
             self.coords = arg.coords.copy()
         self._energy = None  # Moved atoms, don't know energy
 
-    def move_subset(self, movement, indicies):
-        if type(movement) is not cyvector.vector:
-            movement = vector(*movement)
-        for index in indicies:
+    def move_subset(self, movement, indices):
+        if type(movement) is not cyvector.vector:  # REPLACE
+            movement = vector(*movement)           # REPLACE
+        for index in indices:
             self.coords[index] = self.coords[index] + movement
         self._energy = None  # Moved atoms, don't know energy
 
@@ -111,7 +163,7 @@ class XYZ(object):
     def average_loc(self, *args):
         if len(args) == 1:  # if an Iterable is passed in
             args = args[0]
-        total_vec = vector(0, 0, 0)
+        total_vec = vector(0, 0, 0)                # REPLACE
         for i in args:
             total_vec = total_vec + self.coords[i]
         return total_vec / len(args)
