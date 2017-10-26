@@ -22,13 +22,15 @@
 #                                                                      #
 ########################################################################
 
+from __future__ import absolute_import
+
 import re
 import numpy as np
 from numpy.linalg import norm
-from vpython import vector
-import vpython.cyvector as cyvector
+# from vpython import vector
+# import vpython.cyvector as cyvector
 # TODO figure out this import above
-from ParaTemp.exceptions import UnknownEnergyError, InputError
+from .exceptions import UnknownEnergyError, InputError
 # TODO add tests for these
 
 
@@ -53,10 +55,17 @@ def rotation_matrix(axis, theta):
 
 class Vector(np.ndarray):
 
-    def __init__(self, *args, **kwargs):
-        super(Vector, self).__init__(*args, **kwargs)
-        if self.size != 3:
-            raise InputError(args, 'Length of vector must be 3.')
+    def __new__(cls, *xyz):
+        if len(xyz) != 3:
+            try:
+                xyz = xyz[0]
+            except IndexError:
+                raise InputError(xyz, '3 values are required to make a vector')
+        if len(xyz) != 3:
+            raise InputError(xyz, 'Length of vector must be 3.')
+        obj = super(Vector, cls).__new__(cls, shape=(3,),
+                                         buffer=np.array(xyz))
+        return obj
 
     def cross(self, vec):
         return np.cross(self, vec)
@@ -97,15 +106,15 @@ class XYZ(object):
         self._original_energy = self._energy
         data = [line.split() for line in f_lines[2:]]
         self.atoms = [atom[0] for atom in data]
-        self.coords = [vector(*[float(coord) for coord in atom[1:4]]) for
-                       atom in data]       # REPLACE
+        self.coords = [Vector([float(coord) for coord in atom[1:4]]) for
+                       atom in data]
 
     def center_on(self, index):
         center = self.coords[index]
         self.coords = [coord - center for coord in self.coords]
 
     def rotate_to_x_axis_on(self, index):
-        vec_x = vector(1, 0, 0)
+        vec_x = Vector(1, 0, 0)
         angle = self.coords[index].diff_angle(vec_x)
         axis = self.coords[index].cross(vec_x)
         self.coords = [coord.rotate(angle, axis) for coord in self.coords]
@@ -150,8 +159,8 @@ class XYZ(object):
         self._energy = None  # Moved atoms, don't know energy
 
     def move_subset(self, movement, indices):
-        if type(movement) is not cyvector.vector:  # REPLACE
-            movement = vector(*movement)           # REPLACE
+        if type(movement) is not Vector:
+            movement = Vector(*movement)
         for index in indices:
             self.coords[index] = self.coords[index] + movement
         self._energy = None  # Moved atoms, don't know energy
@@ -163,7 +172,7 @@ class XYZ(object):
     def average_loc(self, *args):
         if len(args) == 1:  # if an Iterable is passed in
             args = args[0]
-        total_vec = vector(0, 0, 0)                # REPLACE
+        total_vec = Vector(0, 0, 0)
         for i in args:
             total_vec = total_vec + self.coords[i]
         return total_vec / len(args)
@@ -210,8 +219,8 @@ class COM(XYZ):
                 self._footer.append(line)
                 continue
         self.atoms = [atom[0] for atom in data]
-        self.coords = [vector(*[float(coord) for
-                                   coord in atom[1:4]]) for atom in data]
+        self.coords = [Vector([float(coord) for
+                               coord in atom[1:4]]) for atom in data]
 
     def __str__(self):
         f_string = ('   {0: <10s} {1.x: > 10.5f} {1.y: > 10.5f} '
