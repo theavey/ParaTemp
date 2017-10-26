@@ -24,7 +24,10 @@
 
 import re
 from vpython import vector
-import vpython.cyvector.vector as cyvector
+import vpython.cyvector as cyvector
+# TODO figure out this import above
+from ParaTemp.exceptions import UnknownEnergyError
+# TODO add tests for these
 
 
 class XYZ(object):
@@ -36,10 +39,10 @@ class XYZ(object):
         if 'Energy' in self._header[1]:
             energy_match = re.search('(?:Energy:\s+)(-\d+\.\d+)',
                                      self._header[1])
-            self.energy = energy_match.group(1)
+            self._energy = float(energy_match.group(1))
         else:
-            self.energy = None
-        self._original_energy = self.energy
+            self._energy = None
+        self._original_energy = self._energy
         data = [line.split() for line in f_lines[2:]]
         self.atoms = [atom[0] for atom in data]
         self.coords = [vector(*[float(coord) for coord in atom[1:4]]) for
@@ -77,19 +80,29 @@ class XYZ(object):
         else:
             return _n_atoms
 
+    @property
+    def energy(self):
+        if self._energy is None:
+            raise UnknownEnergyError()
+        return self._energy
+
+    @property
+    def original_energy(self):
+        return self._original_energy
+
     def replace_coords(self, arg):
         if type(arg) is str:
             self.coords = XYZ(arg).coords.copy()
         else:
             self.coords = arg.coords.copy()
-        self.energy = None  # Moved atoms, don't know energy
+        self._energy = None  # Moved atoms, don't know energy
 
     def move_subset(self, movement, indicies):
-        if type(movement) is not cyvector:
+        if type(movement) is not cyvector.vector:
             movement = vector(*movement)
         for index in indicies:
             self.coords[index] = self.coords[index] + movement
-        self.energy = None  # Moved atoms, don't know energy
+        self._energy = None  # Moved atoms, don't know energy
 
     def write(self, f_name):
         with open(f_name, 'w') as f_file:

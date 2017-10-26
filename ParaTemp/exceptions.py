@@ -58,3 +58,22 @@ class FileChangedError(Exception):
         if self.msg is not None:
             output += '\n' + self.msg
             return repr(output)
+
+
+class UnknownEnergyError(Exception):
+    """
+    Exception raised when an object does not know it's energy, but it's queried
+
+    """
+
+    def __init__(self, msg=None):
+        self.msg = msg
+
+    def __str__(self):
+        standard_response = ("The energy is unknown either because it wasn't "
+                             "in the original file or the coordinates have "
+                             "changed.\nCould try XYZ.original_energy")
+        if self.msg is None:
+            return repr(standard_response)
+        else:
+            return repr(self.msg)
