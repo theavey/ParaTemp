@@ -123,7 +123,7 @@ class XYZ(object):
     def __str__(self):
         f_string = ('   {0: <10s} {1.x: > 10.5f} {1.y: > 10.5f} '
                     '{1.z: > 10.5f}\n')
-        output_list = self._header.copy()
+        output_list = list(self._header)
         output_list += [f_string.format(self.atoms[i], self.coords[i]) for i
                         in range(len(self.atoms))]
         return ''.join(output_list)
@@ -222,11 +222,11 @@ class COM(XYZ):
     def __str__(self):
         f_string = ('   {0: <10s} {1.x: > 10.5f} {1.y: > 10.5f} '
                     '{1.z: > 10.5f}\n')
-        output_list = self._header.copy()
-        output_list += self._title.copy()
-        output_list += self._cm.copy()
+        output_list = list(self._header)
+        output_list += list(self._title)
+        output_list += list(self._cm)
         output_list += [f_string.format(self.atoms[i], self.coords[i]) for i
                         in range(len(self.atoms))]
         output_list += ['\n']
-        output_list += self._footer.copy()
+        output_list += list(self._footer)
         return ''.join(output_list)
