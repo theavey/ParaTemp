@@ -27,9 +27,6 @@ from __future__ import absolute_import
 import re
 import numpy as np
 from numpy.linalg import norm
-# from vpython import vector
-# import vpython.cyvector as cyvector
-# TODO figure out this import above
 from .exceptions import UnknownEnergyError, InputError
 # TODO add tests for these
 
@@ -64,7 +61,7 @@ class Vector(np.ndarray):
         if len(xyz) != 3:
             raise InputError(xyz, 'Length of vector must be 3.')
         obj = super(Vector, cls).__new__(cls, shape=(3,),
-                                         buffer=np.array(xyz))
+                                         buffer=np.array(xyz, dtype=float))
         return obj
 
     def cross(self, vec):
@@ -76,7 +73,7 @@ class Vector(np.ndarray):
 
     def rotate(self, axis, angle):
         r_mat = rotation_matrix(axis, angle)
-        return self.dot(r_mat)   # TODO check (multiply on correct side?)
+        return np.dot(r_mat, self)
 
     @property
     def x(self):
