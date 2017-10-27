@@ -29,8 +29,10 @@ import os
 
 import re
 import glob
+import subprocess
 
 from .tools import cd, copy_no_overwrite
+from .exceptions import InputError
 
 
 def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
@@ -211,3 +213,69 @@ def copy_topology(f_from, f_to, overwrite=False):
     to_copy += glob.glob(f_from+'/*.itp')
     for path in to_copy:
         copy_no_overwrite(path, f_to, silent=overwrite)
+
+
+class _BlankStream(object):
+    def write(self, string):
+        pass
+
+
+def extend_tprs(base_name, time, sub_script=None, submit=True,
+                extend_infix='-extend', verbose=True, log='extend-tpr.log'):
+    """"""
+    re_split_name = re.compile(r'({})(\d+\.tpr)'.format(base_name))
+    with open(log, 'w') as _log:
+        tpr_names = glob.glob(base_name+'*.tpr')
+        if len(tpr_names) < 1:
+            raise InputError(base_name,
+                             'no files found for {}'.format(base_name+'*.tpr'))
+        if verbose:
+            print('Extending {} tpr files'.format(len(tpr_names)))
+        for tpr_name in tpr_names:
+            tpr_groups = re_split_name.match(tpr_name)
+            new_tpr_name = tpr_groups.group(1)+extend_infix+tpr_groups.group(2)
+            _extend_tpr(tpr_name, new_tpr_name, time, _log)
+        if verbose:
+            print(' '*4+'Done extending tpr files.')
+        if sub_script is not None:
+            if verbose:
+                print('Editing '
+                      '{} for new tpr names with {}'.format(sub_script,
+                                                            extend_infix))
+            _change_tpr_name_in_subscript(base_name, base_name+extend_infix,
+                                          sub_script, _log)
+        if submit:
+            if verbose('Submitting job')
+        job_info = _submit_script(sub_script, _log)
+
+
+def _extend_tpr(old_name, new_name, time, log_stream=_BlankStream()):
+    """"""
+    log_stream.write('Extending {} as {}'.format(old_name, new_name))
+    cl = ['gmx_mpi', 'convert-tpr',
+          '-s', old_name,
+          '-o', new_name,
+          '-extend', time]
+    returncode = subprocess.call(cl, stderr=log_stream, stdout=log_stream,
+                                 universal_newlines=True)
+    if returncode != 0:
+        raise subprocess.CalledProcessError(returncode, ' '.join(cl))
+
+
+def _change_tpr_name_in_subscript(old_base, new_base, sub_script,
+                                  log_stream=_BlankStream()):
+    """"""
+    log_stream.write('Editing '
+                     '{} for new tpr names with {}'.format(sub_script,
+                                                           new_base))
+    log_stream.write('Copying submission script as backup to '
+                     '{}'.format(sub_script+'.bak'))
+    copy_no_overwrite(sub_script, sub_script+'.bak')
+    with open(sub_script+'.bak', 'r') as old_f, open(sub_script, 'w') as new_f:
+        for line in old_f:
+            line = line.replace(old_base, new_base)
+            new_f.write(line)
+
+
+def _submit_script(script_name, log_stream=_BlankStream()):
+    raise NotImplementedError
