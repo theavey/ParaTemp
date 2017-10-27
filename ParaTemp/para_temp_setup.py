@@ -93,7 +93,8 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
             for line in proc.stdout:
                 if error is True:  # Catch the next line after the error
                     error = line
-                if 'Fatal error' in line:
+                if ('Fatal error' in line or
+                        'File input/output error' in line):
                     error = True  # Deal with this after writing log file
                 log_file.write(line)
         if error:
