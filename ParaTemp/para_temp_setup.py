@@ -219,6 +219,9 @@ class _BlankStream(object):
     def write(self, string):
         pass
 
+    def fileno(self):
+        return 0  # Not sure if this works. Maybe None would be better
+
 
 def extend_tprs(base_name, time, sub_script=None, submit=True,
                 extend_infix='-extend', verbose=True, log='extend-tpr.log'):
@@ -245,7 +248,8 @@ def extend_tprs(base_name, time, sub_script=None, submit=True,
             _change_tpr_name_in_subscript(base_name, base_name+extend_infix,
                                           sub_script, _log)
         if submit:
-            if verbose('Submitting job')
+            if verbose:
+                print('Submitting job...')
         job_info = _submit_script(sub_script, _log)
 
 
@@ -278,4 +282,23 @@ def _change_tpr_name_in_subscript(old_base, new_base, sub_script,
 
 
 def _submit_script(script_name, log_stream=_BlankStream()):
-    raise NotImplementedError
+    """"""
+    cl = ['qsub', script_name]
+    proc = subprocess.Popen(cl, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, universal_newlines=True)
+    output = proc.communicate()[0]
+    log_stream.write(output)
+    return _job_info_from_qsub(output)
+
+
+def _job_info_from_qsub(output):
+    """
+    Get job information from the return from qsub
+
+    :param str output: the line returned from qsub
+    :return: the job number, the job name, and the job number and name as in the
+    given string
+    :rtype: Tuple(str, str, str)
+    """
+    match = re.search(r'(\d+)\s\("(\w.*)"\)', output)
+    return match.group(1), match.group(2), match.group(0)
