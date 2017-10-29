@@ -251,6 +251,8 @@ def extend_tprs(base_name, time, sub_script=None, submit=True,
             if verbose:
                 print('Submitting job...')
         job_info = _submit_script(sub_script, _log)
+        if verbose:
+            print('Job number {} has been submitted.'.format(job_info[2]))
 
 
 def _extend_tpr(old_name, new_name, time, log_stream=_BlankStream()):
