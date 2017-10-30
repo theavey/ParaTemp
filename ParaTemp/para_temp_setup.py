@@ -226,35 +226,54 @@ class _BlankStream(object):
         return 0  # Not sure if this works. Maybe None would be better
 
 
-def extend_tprs(base_name, time, sub_script=None, submit=False,
-                extend_infix='-extend', verbose=True, log='extend-tprs.log'):
+def extend_tprs(base_name, time, working_dir=None, sub_script=None,
+                submit=False, extend_infix='-extend', first_extension=True,
+                cpt_base='npt', verbose=True,
+                log='extend-tprs.log'):
     """
     Extend a set of tpr files
 
     :param str base_name: Base of the tpr files. This should return the file
-    names when globbed with '*.tpr' appended to this base name. Also, this will
-    cause issues when adding the infix if the file name doesn't fit the pattern
-    of '{base_name}{number}.tpr'.
+        names when globbed with '*.tpr' appended to this base name. Also, this
+        will cause issues when adding the infix if the file name doesn't fit
+        the pattern of '{base_name}{number}.tpr'.
     :param time: Amount of time in picoseconds by which to extend the job. This
-    will be cast to a string, so an int or string should be fine (not sure if
-    floats are okay).
+        will be cast to a string, so an int or string should be fine (not sure
+        if floats are okay).
     :type time: str or int
+    :param str working_dir: Default: None. If given, this directory will be
+        chnaged into and work will continue there. As long as sub_script is
+        given relative to the current directory at function execution,
+        it will still be found when needed later.
+        If working_dir is None, the working dir will be taken to be the
+        directory one directory above the location given in base_name.
     :param str sub_script: Default: None. Name of the submission script. If
-    given, the script will be edited to match the new name of the extended tpr
-    files.
+        given, the script will be edited to match the new name of the extended
+        tpr files.
     :param bool submit: Default: False. If true, the job will be submitted to
-    the queuing system.
+        the queuing system.
     :param str extend_infix: Default: '-extend'. str to put into the name of the
-    extended tpr files after the base_name and before the '[number].tpr'.
+        extended tpr files after the base_name and before the '[number].tpr'.
+    :param bool first_extension: Default: True. If True, '-cpi {checkpoint
+        base name}' will be added to the submission script so that it becomes a
+        run continuation.
+    :param str cpt_base: Default: npt. The first part of the name of the
+        checkpoint files that will end in '{number}.cpt'. The full checkpoint
+        base_name will be found using _find_cpt_base.
     :param bool verbose: Default: True. If True, a lot more status information
-    will be printed.
+        will be printed.
     :param str log: Name of file to which to log information on this process and
-    output from GROMACS tools.
+        output from GROMACS tools.
     :return: None
     """
-    re_split_name = re.compile(r'({})(\d+\.tpr)'.format(base_name))
+    if working_dir is None:
+        _working_dir = os.path.abspath(os.path.dirname(base_name)+'/../')
+    else:
+        _working_dir = working_dir
+    _sub_script = os.path.abspath(sub_script)
     _time = str(time)
-    with open(log, 'a') as _log:
+    re_split_name = re.compile(r'({})(\d+\.tpr)'.format(base_name))
+    with cd(_working_dir), open(log, 'a') as _log:
         tpr_names = glob.glob(base_name+'*.tpr')
         if len(tpr_names) < 1:
             raise InputError(base_name,
@@ -267,19 +286,20 @@ def extend_tprs(base_name, time, sub_script=None, submit=False,
             _extend_tpr(tpr_name, new_tpr_name, _time, _log)
         if verbose:
             print(' '*4+'Done extending tpr files.')
-        if sub_script is not None:
+        if _sub_script is not None:
             if verbose:
                 print('Editing '
-                      '{} for new tpr names with {}'.format(sub_script,
+                      '{} for new tpr names with {}'.format(_sub_script,
                                                             extend_infix))
-            # TODO need to add -cpi etc. into sub script
             _replace_string_in_file(base_name, base_name + extend_infix,
-                                    sub_script, _log)
+                                    _sub_script, _log)
+            if first_extension:
+                _cpt_base = _find_cpt_base(cpt_base)
+                _add_cpt_to_sub_script(_sub_script, _cpt_base, _log)
         if submit:
             if verbose:
                 print('Submitting job...')
-        # TODO need to cd into directory
-        job_info = _submit_script(sub_script, _log)
+        job_info = _submit_script(_sub_script, _log)
         if verbose:
             print('Job number {} has been submitted.'.format(job_info[2]))
 
@@ -335,6 +355,46 @@ def _replace_string_in_file(old_str, new_str, file_name,
         for line in old_f:
             line = line.replace(old_str, new_str)
             new_f.write(line)
+
+
+def _find_cpt_base(cpt_base):
+    """"""
+    possible_matches = glob.glob(cpt_base+'*.cpt')
+    for f_name in possible_matches:
+        match = re.match(r'({}.*)\d{}\.cpt'.format(cpt_base, '{1,3}'))
+        if match:
+            return match.group(1)
+    else:
+        raise ValueError('No checkpoint file name found based on the base '
+                         'name {}.'.format(cpt_base))
+
+
+def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream()):
+    """"""
+    re_mdrun_line = re.compile('mdrun_mpi|gmx_mpi\s+mdrun|gmx\s+mdrun_mpi')
+    with open(sub_script, 'r') as f_in:
+        lines_in = f_in.readlines()
+    try:
+        with open(sub_script, 'w') as f_out:
+            changed = False
+            for line in lines_in:
+                if not line.strip().startswith('#'):
+                    match = re_mdrun_line.search(line)
+                    if match:
+                        line = line + '-cpi {}'.format(cpt_base)
+                        changed = True
+                f_out.write(line)
+    except:
+        print('Error occurred, attempting to dump submission script to '
+              '"dump_sub_script.sh" before re-raising')
+        with open('dump_sub_script.sh', 'w') as f_out:
+            for line in lines_in:
+                f_out.write(line)
+        raise
+    if not changed:
+        raise ValueError('Could not find GROMACS mdrun line in submission '
+                         'script, so the checkpoint file ("-cpi ...") was not '
+                         'added to it.')
 
 
 def _submit_script(script_name, log_stream=_BlankStream()):
