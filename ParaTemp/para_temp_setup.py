@@ -216,6 +216,9 @@ def copy_topology(f_from, f_to, overwrite=False):
 
 
 class _BlankStream(object):
+    """
+    A class for use when not actually wanting to write to a file.
+    """
     def write(self, string):
         pass
 
@@ -223,11 +226,35 @@ class _BlankStream(object):
         return 0  # Not sure if this works. Maybe None would be better
 
 
-def extend_tprs(base_name, time, sub_script=None, submit=True,
-                extend_infix='-extend', verbose=True, log='extend-tpr.log'):
-    """"""
+def extend_tprs(base_name, time, sub_script=None, submit=False,
+                extend_infix='-extend', verbose=True, log='extend-tprs.log'):
+    """
+    Extend a set of tpr files
+
+    :param str base_name: Base of the tpr files. This should return the file
+    names when globbed with '*.tpr' appended to this base name. Also, this will
+    cause issues when adding the infix if the file name doesn't fit the pattern
+    of '{base_name}{number}.tpr'.
+    :param time: Amount of time in picoseconds by which to extend the job. This
+    will be cast to a string, so an int or string should be fine (not sure if
+    floats are okay).
+    :type time: str or int
+    :param str sub_script: Default: None. Name of the submission script. If
+    given, the script will be edited to match the new name of the extended tpr
+    files.
+    :param bool submit: Default: False. If true, the job will be submitted to
+    the queuing system.
+    :param str extend_infix: Default: '-extend'. str to put into the name of the
+    extended tpr files after the base_name and before the '[number].tpr'.
+    :param bool verbose: Default: True. If True, a lot more status information
+    will be printed.
+    :param str log: Name of file to which to log information on this process and
+    output from GROMACS tools.
+    :return: None
+    """
     re_split_name = re.compile(r'({})(\d+\.tpr)'.format(base_name))
-    with open(log, 'w') as _log:
+    _time = str(time)
+    with open(log, 'a') as _log:
         tpr_names = glob.glob(base_name+'*.tpr')
         if len(tpr_names) < 1:
             raise InputError(base_name,
@@ -237,7 +264,7 @@ def extend_tprs(base_name, time, sub_script=None, submit=True,
         for tpr_name in tpr_names:
             tpr_groups = re_split_name.match(tpr_name)
             new_tpr_name = tpr_groups.group(1)+extend_infix+tpr_groups.group(2)
-            _extend_tpr(tpr_name, new_tpr_name, time, _log)
+            _extend_tpr(tpr_name, new_tpr_name, _time, _log)
         if verbose:
             print(' '*4+'Done extending tpr files.')
         if sub_script is not None:
@@ -245,8 +272,8 @@ def extend_tprs(base_name, time, sub_script=None, submit=True,
                 print('Editing '
                       '{} for new tpr names with {}'.format(sub_script,
                                                             extend_infix))
-            _change_tpr_name_in_subscript(base_name, base_name+extend_infix,
-                                          sub_script, _log)
+            _replace_string_in_file(base_name, base_name + extend_infix,
+                                    sub_script, _log)
         if submit:
             if verbose:
                 print('Submitting job...')
@@ -256,35 +283,68 @@ def extend_tprs(base_name, time, sub_script=None, submit=True,
 
 
 def _extend_tpr(old_name, new_name, time, log_stream=_BlankStream()):
-    """"""
+    """
+    Extend a tpr file with GROMACS convert-tpr and write to log file
+
+    :param str old_name: Name of the old tpr file to be extended
+    :param str new_name: Name for the new extended tpr file
+    :param str time: Amount of time in picoseconds to extend the job
+    :param log_stream: Default: _BlankStream(). The file stream to which to log
+    information. The default will just not log anything.
+    :type: _BlankStream or BinaryIO
+    :return:
+    """
     log_stream.write('Extending {} as {}'.format(old_name, new_name))
     cl = ['gmx_mpi', 'convert-tpr',
           '-s', old_name,
           '-o', new_name,
           '-extend', time]
-    returncode = subprocess.call(cl, stderr=log_stream, stdout=log_stream,
-                                 universal_newlines=True)
-    if returncode != 0:
-        raise subprocess.CalledProcessError(returncode, ' '.join(cl))
+    return_code = subprocess.call(cl, stderr=log_stream, stdout=log_stream,
+                                  universal_newlines=True)
+    if return_code != 0:
+        raise subprocess.CalledProcessError(return_code, ' '.join(cl))
 
 
-def _change_tpr_name_in_subscript(old_base, new_base, sub_script,
-                                  log_stream=_BlankStream()):
-    """"""
+def _replace_string_in_file(old_str, new_str, file_name,
+                            log_stream=_BlankStream()):
+    """
+    Replace a specified string possibly in each line of a file.
+
+    The file will be copied with the extension '.bak' before edited, and this
+    copy operation will not overwrite an existing file.
+
+    This is intended for use in replaced tpr names in a submission script, but
+    it is not only specific to that use.
+    :param str old_str: String to be replaced.
+    :param str new_str: String to be inserted.
+    :param str file_name: Name of the file to be edited.
+    :param log_stream: Default: _BlankStream(). The file stream to which to log
+    information. The default will just not log anything.
+    :type: _BlankStream or BinaryIO
+    :return: None
+    """
     log_stream.write('Editing '
-                     '{} for new tpr names with {}'.format(sub_script,
-                                                           new_base))
-    log_stream.write('Copying submission script as backup to '
-                     '{}'.format(sub_script+'.bak'))
-    copy_no_overwrite(sub_script, sub_script+'.bak')
-    with open(sub_script+'.bak', 'r') as old_f, open(sub_script, 'w') as new_f:
+                     '{} for new string "{}"'.format(file_name,
+                                                     new_str))
+    log_stream.write('Copying file as backup to '
+                     '{}'.format(file_name + '.bak'))
+    copy_no_overwrite(file_name, file_name + '.bak')
+    with open(file_name + '.bak', 'r') as old_f, open(file_name, 'w') as new_f:
         for line in old_f:
-            line = line.replace(old_base, new_base)
+            line = line.replace(old_str, new_str)
             new_f.write(line)
 
 
 def _submit_script(script_name, log_stream=_BlankStream()):
-    """"""
+    """
+    Submit an existing submission script to qsub and return job information
+
+    :param str script_name: Name of the script file.
+    :param log_stream: Default: _BlankStream(). The file stream to which to log
+    information. The default will just not log anything.
+    :type: _BlankStream or BinaryIO
+    :return: the job information as output by _job_info_from_qsub
+    """
     cl = ['qsub', script_name]
     proc = subprocess.Popen(cl, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, universal_newlines=True)
