@@ -414,7 +414,7 @@ def cleanup_bad_gromacs_restart(out_base, working_dir='./', list_files=True,
                 print('-'*63)
                 print('{:^30} | {:^30}'.format('good', 'bad'))
                 print('-'*63)
-                for key in match_dict:
+                for key in sorted(match_dict):
                     print('{:>30} | {:>30}'.format(match_dict[key], key))
                 else:
                     print('-'*63)
