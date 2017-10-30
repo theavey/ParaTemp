@@ -291,7 +291,7 @@ def _extend_tpr(old_name, new_name, time, log_stream=_BlankStream()):
     :param str time: Amount of time in picoseconds to extend the job
     :param log_stream: Default: _BlankStream(). The file stream to which to log
     information. The default will just not log anything.
-    :type: _BlankStream or BinaryIO
+    :type log_stream: _BlankStream or BinaryIO
     :return:
     """
     log_stream.write('Extending {} as {}'.format(old_name, new_name))
@@ -320,7 +320,7 @@ def _replace_string_in_file(old_str, new_str, file_name,
     :param str file_name: Name of the file to be edited.
     :param log_stream: Default: _BlankStream(). The file stream to which to log
     information. The default will just not log anything.
-    :type: _BlankStream or BinaryIO
+    :type log_stream: _BlankStream or BinaryIO
     :return: None
     """
     log_stream.write('Editing '
@@ -342,7 +342,7 @@ def _submit_script(script_name, log_stream=_BlankStream()):
     :param str script_name: Name of the script file.
     :param log_stream: Default: _BlankStream(). The file stream to which to log
     information. The default will just not log anything.
-    :type: _BlankStream or BinaryIO
+    :type log_stream: _BlankStream or BinaryIO
     :return: the job information as output by _job_info_from_qsub
     """
     cl = ['qsub', script_name]
