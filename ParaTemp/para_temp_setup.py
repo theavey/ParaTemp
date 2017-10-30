@@ -370,7 +370,22 @@ def _job_info_from_qsub(output):
 
 def cleanup_bad_gromacs_restart(out_base, working_dir='./', list_files=True,
                                 replace_files=False, verbose=True):
-    """"""
+    """
+    Replace "new" files with GROMACS backed-up files after messed-up restart
+
+    No timestamps are accounted for, and this is purely based on the file
+    names and the default way GROMACS backs up files it would have otherwise
+    replaced.
+
+    :param out_base: Base name for output files, likely the same as the
+        '-deffnm' argument.
+    :param working_dir: Directory in which to look and do these replacements
+    :param list_files: If true, matched and unmatched files will all be printed
+    :param replace_files: If true, the backed-up files will be moved to
+        overwrite the "new" files.
+    :param verbose: If true, more file counts and such will be printed.
+    :return: None
+    """
     with cd(working_dir):
         good_files = glob.glob('#'+out_base+'*')
         bad_files = glob.glob(out_base+'*')
