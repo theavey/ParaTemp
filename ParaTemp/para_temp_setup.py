@@ -372,8 +372,8 @@ def cleanup_bad_gromacs_restart(out_base, working_dir='./', list_files=True,
                                 replace_files=False, verbose=True):
     """"""
     with cd(working_dir):
-        good_files = glob.glob('#'+out_base+'*')
-        bad_files = glob.glob(out_base+'*')
+        good_files = glob.glob('#'+out_base+'*').sort()
+        bad_files = glob.glob(out_base+'*').sort()
         if verbose:
             print('Found {} "bad" and {} "good" files.'.format(len(
                 bad_files), len(good_files)))
@@ -409,8 +409,10 @@ def cleanup_bad_gromacs_restart(out_base, working_dir='./', list_files=True,
             else:
                 print('No unmatched "bad" files')
             if len(match_dict) > 0:
-                print('Matched files:\n'
-                      '{:^30} | {:^30}'.format('good', 'bad'))
+                print('Matched files:\n')
+                print('-'*63)
+                print('{:^30} | {:^30}'.format('good', 'bad'))
+                print('-'*63)
                 for key in match_dict:
                     print('{:>30} | {:>30}'.format(match_dict[key], key))
                 else:
