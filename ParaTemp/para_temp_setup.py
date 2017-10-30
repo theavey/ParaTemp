@@ -266,27 +266,34 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
         output from GROMACS tools.
     :return: None
     """
+    _tpr_dir, _rel_base_name = os.path.split(os.path.abspath(base_name))
     if working_dir is None:
-        _working_dir = os.path.abspath(os.path.dirname(base_name)+'/../')
+        _working_dir = os.path.abspath(_tpr_dir+'/../')
     else:
         _working_dir = working_dir
-    _sub_script = os.path.abspath(sub_script)
+    if sub_script is not None:
+        _sub_script = os.path.abspath(sub_script)
+    else:
+        _sub_script = None  # Only needed so the IDE stops bothering me
     _time = str(time)
     re_split_name = re.compile(r'({})(\d+\.tpr)'.format(base_name))
     with cd(_working_dir), open(log, 'a') as _log:
-        tpr_names = glob.glob(base_name+'*.tpr')
-        if len(tpr_names) < 1:
-            raise InputError(base_name,
-                             'no files found for {}'.format(base_name+'*.tpr'))
-        if verbose:
-            print('Extending {} tpr files'.format(len(tpr_names)))
-        for tpr_name in tpr_names:
-            tpr_groups = re_split_name.match(tpr_name)
-            new_tpr_name = tpr_groups.group(1)+extend_infix+tpr_groups.group(2)
-            _extend_tpr(tpr_name, new_tpr_name, _time, _log)
-        if verbose:
-            print(' '*4+'Done extending tpr files.')
-        if _sub_script is not None:
+        with cd(_tpr_dir):
+            tpr_names = glob.glob(_rel_base_name+'*.tpr')
+            if len(tpr_names) < 1:
+                raise InputError(base_name, 'no files found for {}'.format(
+                                     base_name+'*.tpr'))
+            if verbose:
+                print('Extending {} tpr files'.format(len(tpr_names)))
+            for tpr_name in tpr_names:
+                tpr_groups = re_split_name.match(tpr_name)
+                new_tpr_name = (tpr_groups.group(1) + extend_infix +
+                                tpr_groups.group(2))
+                _extend_tpr(tpr_name, new_tpr_name, _time, _log)
+            if verbose:
+                print(' '*4+'Done extending tpr files.')
+        if sub_script is not None:
+            _sub_script = os.path.relpath(_sub_script)
             if verbose:
                 print('Editing '
                       '{} for new tpr names with {}'.format(_sub_script,
@@ -296,12 +303,16 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
             if first_extension:
                 _cpt_base = _find_cpt_base(cpt_base)
                 _add_cpt_to_sub_script(_sub_script, _cpt_base, _log)
-        if submit:
-            if verbose:
-                print('Submitting job...')
-        job_info = _submit_script(_sub_script, _log)
-        if verbose:
-            print('Job number {} has been submitted.'.format(job_info[2]))
+            if submit:
+                if verbose:
+                    print('Submitting job...')
+                job_info = _submit_script(_sub_script, _log)
+                if verbose:
+                    print('Job number {} has been submitted.'.format(
+                        job_info[2]))
+        elif submit:
+            print('Job not submitted because no submission script name was '
+                  'provided.')
 
 
 def _extend_tpr(old_name, new_name, time, log_stream=_BlankStream()):
