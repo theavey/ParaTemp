@@ -377,7 +377,7 @@ def _find_cpt_base(cpt_base):
     """"""
     possible_matches = glob.glob(cpt_base+'*.cpt')
     for f_name in possible_matches:
-        match = re.match(r'({}.*)\d{}\.cpt'.format(cpt_base, '{1,3}'))
+        match = re.match(r'({}.*)\d{}\.cpt'.format(cpt_base, '{1,3}'), f_name)
         if match:
             return match.group(1)
     else:
