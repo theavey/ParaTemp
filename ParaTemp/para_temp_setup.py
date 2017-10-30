@@ -301,8 +301,8 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
                 print('Editing '
                       '{} for new tpr names with {}'.format(_sub_script,
                                                             extend_infix))
-            _replace_string_in_file(_rel_base_name, _rel_base_name +
-                                    extend_infix, _sub_script, _log)
+            _replace_string_in_file(_rel_base_name+' ', _rel_base_name +
+                                    extend_infix+' ', _sub_script, _log)
             if first_extension:
                 _cpt_base = _find_cpt_base(cpt_base)
                 _add_cpt_to_sub_script(_sub_script, _cpt_base, _log)
@@ -377,7 +377,7 @@ def _find_cpt_base(cpt_base):
     """"""
     possible_matches = glob.glob(cpt_base+'*.cpt')
     for f_name in possible_matches:
-        match = re.match(r'({}.*)\d{}\.cpt'.format(cpt_base, '{1,3}'), f_name)
+        match = re.match(r'({}.*?)\d{}\.cpt'.format(cpt_base, '{1,3}'), f_name)
         if match:
             return match.group(1)
     else:
@@ -397,7 +397,7 @@ def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream()):
                 if not line.strip().startswith('#'):
                     match = re_mdrun_line.search(line)
                     if match:
-                        line = line + '-cpi {}'.format(cpt_base)
+                        line = line[:-1] + '-cpi {}\n'.format(cpt_base)
                         changed = True
                 f_out.write(line)
     except:
