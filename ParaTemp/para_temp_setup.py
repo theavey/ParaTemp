@@ -372,8 +372,9 @@ def cleanup_bad_gromacs_restart(out_base, working_dir='./', list_files=True,
                                 replace_files=False, verbose=True):
     """"""
     with cd(working_dir):
-        good_files = glob.glob('#'+out_base+'*').sort()
-        bad_files = glob.glob(out_base+'*').sort()
+        good_files = glob.glob('#'+out_base+'*')
+        bad_files = glob.glob(out_base+'*')
+        good_files.sort, bad_files.sort()
         if verbose:
             print('Found {} "bad" and {} "good" files.'.format(len(
                 bad_files), len(good_files)))
