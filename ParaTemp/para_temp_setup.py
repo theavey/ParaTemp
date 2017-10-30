@@ -298,8 +298,8 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
                 print('Editing '
                       '{} for new tpr names with {}'.format(_sub_script,
                                                             extend_infix))
-            _replace_string_in_file(base_name, base_name + extend_infix,
-                                    _sub_script, _log)
+            _replace_string_in_file(_rel_base_name, _rel_base_name +
+                                    extend_infix, _sub_script, _log)
             if first_extension:
                 _cpt_base = _find_cpt_base(cpt_base)
                 _add_cpt_to_sub_script(_sub_script, _cpt_base, _log)
@@ -327,7 +327,7 @@ def _extend_tpr(old_name, new_name, time, log_stream=_BlankStream()):
     :type log_stream: _BlankStream or BinaryIO
     :return:
     """
-    log_stream.write('Extending {} as {}'.format(old_name, new_name))
+    log_stream.write('Extending {} as {}\n'.format(old_name, new_name))
     cl = ['gmx_mpi', 'convert-tpr',
           '-s', old_name,
           '-o', new_name,
@@ -357,10 +357,10 @@ def _replace_string_in_file(old_str, new_str, file_name,
     :return: None
     """
     log_stream.write('Editing '
-                     '{} for new string "{}"'.format(file_name,
+                     '{} for new string "{}"\n'.format(file_name,
                                                      new_str))
     log_stream.write('Copying file as backup to '
-                     '{}'.format(file_name + '.bak'))
+                     '{}\n'.format(file_name + '.bak'))
     copy_no_overwrite(file_name, file_name + '.bak')
     with open(file_name + '.bak', 'r') as old_f, open(file_name, 'w') as new_f:
         for line in old_f:
