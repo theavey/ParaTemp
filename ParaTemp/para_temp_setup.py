@@ -374,7 +374,15 @@ def _replace_string_in_file(old_str, new_str, file_name,
 
 
 def _find_cpt_base(cpt_base):
-    """"""
+    """
+    Find checkpoint file base name in current directory
+
+    :param str cpt_base: Start of checkpoint file name that ends with a
+        number of one to three digits followed by '.cpt'
+    :return: The base name of the checkpoint files (everything but the number
+        and ".cpt")
+    :rtype: str
+    """
     possible_matches = glob.glob(cpt_base+'*.cpt')
     for f_name in possible_matches:
         match = re.match(r'({}.*?)\d{}\.cpt'.format(cpt_base, '{1,3}'), f_name)
@@ -387,7 +395,20 @@ def _find_cpt_base(cpt_base):
 
 def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
                            temp_bak_name='temp-submission-script.bak'):
-    """"""
+    """
+    Add a checkpoint file to GROMACS submission line
+
+    Note, only one replacement will be done here.
+    :param str sub_script: Name of the submission script
+    :param str cpt_base: Base name of the checkpoint file(s) to pass to GROMACS
+    :param log_stream: Default: _BlankStream(). The file stream to which to log
+    information. The default will just not log anything.
+    :type log_stream: _BlankStream or BinaryIO
+    :param temp_bak_name: Name for a temporary backup of the submission
+        script in case things go wrong. Assuming no exceptions are raise,
+        this will be deleted after the new file is written.
+    :return: None
+    """
     re_mdrun_line = re.compile('mdrun_mpi|gmx_mpi\s+mdrun|gmx\s+mdrun_mpi')
     log_stream.write('Adding "-cpi {}" to {}\n'.format( cpt_base, sub_script))
     log_stream.flush()
@@ -398,7 +419,7 @@ def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
     with open(sub_script, 'w') as f_out:
         changed = False
         for line in lines_in:
-            if not line.strip().startswith('#'):
+            if (not line.strip().startswith('#')) and (not changed):
                 match = re_mdrun_line.search(line)
                 if match:
                     line = line.replace('\n', ' ') + '-cpi {}\n'.format(
