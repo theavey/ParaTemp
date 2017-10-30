@@ -276,7 +276,7 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
     else:
         _sub_script = None  # Only needed so the IDE stops bothering me
     _time = str(time)
-    re_split_name = re.compile(r'({})(\d+\.tpr)'.format(base_name))
+    re_split_name = re.compile(r'({})(\d+\.tpr)'.format(_rel_base_name))
     with cd(_working_dir), open(log, 'a') as _log:
         with cd(_tpr_dir):
             tpr_names = glob.glob(_rel_base_name+'*.tpr')
