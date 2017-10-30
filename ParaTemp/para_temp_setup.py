@@ -225,6 +225,9 @@ class _BlankStream(object):
     def fileno(self):
         return 0  # Not sure if this works. Maybe None would be better
 
+    def flush(self):
+        pass
+
 
 def extend_tprs(base_name, time, working_dir=None, sub_script=None,
                 submit=False, extend_infix='-extend', first_extension=True,
@@ -328,6 +331,7 @@ def _extend_tpr(old_name, new_name, time, log_stream=_BlankStream()):
     :return:
     """
     log_stream.write('Extending {} as {}\n'.format(old_name, new_name))
+    log_stream.flush()
     cl = ['gmx_mpi', 'convert-tpr',
           '-s', old_name,
           '-o', new_name,
@@ -361,6 +365,7 @@ def _replace_string_in_file(old_str, new_str, file_name,
                                                      new_str))
     log_stream.write('Copying file as backup to '
                      '{}\n'.format(file_name + '.bak'))
+    log_stream.flush()
     copy_no_overwrite(file_name, file_name + '.bak')
     with open(file_name + '.bak', 'r') as old_f, open(file_name, 'w') as new_f:
         for line in old_f:
@@ -423,6 +428,7 @@ def _submit_script(script_name, log_stream=_BlankStream()):
                             stderr=subprocess.STDOUT, universal_newlines=True)
     output = proc.communicate()[0]
     log_stream.write(output)
+    log_stream.flush()
     return _job_info_from_qsub(output)
 
 
