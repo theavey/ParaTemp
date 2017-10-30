@@ -397,7 +397,8 @@ def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream()):
                 if not line.strip().startswith('#'):
                     match = re_mdrun_line.search(line)
                     if match:
-                        line = line[:-1] + '-cpi {}\n'.format(cpt_base)
+                        line = line.replace('\n', ' ') + '-cpi {}\n'.format(
+                            cpt_base)
                         changed = True
                 f_out.write(line)
     except:
