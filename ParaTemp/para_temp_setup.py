@@ -362,7 +362,7 @@ def _replace_string_in_file(old_str, new_str, file_name,
     """
     log_stream.write('Editing '
                      '{} for new string "{}"\n'.format(file_name,
-                                                     new_str))
+                                                       new_str))
     log_stream.write('Copying file as backup to '
                      '{}\n'.format(file_name + '.bak'))
     log_stream.flush()
@@ -385,29 +385,27 @@ def _find_cpt_base(cpt_base):
                          'name {}.'.format(cpt_base))
 
 
-def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream()):
+def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
+                           temp_bak_name='temp-submission-script.bak'):
     """"""
     re_mdrun_line = re.compile('mdrun_mpi|gmx_mpi\s+mdrun|gmx\s+mdrun_mpi')
+    log_stream.write('Adding "-cpi {}" to {}\n'.format( cpt_base, sub_script))
+    log_stream.flush()
     with open(sub_script, 'r') as f_in:
         lines_in = f_in.readlines()
-    try:
-        with open(sub_script, 'w') as f_out:
-            changed = False
-            for line in lines_in:
-                if not line.strip().startswith('#'):
-                    match = re_mdrun_line.search(line)
-                    if match:
-                        line = line.replace('\n', ' ') + '-cpi {}\n'.format(
-                            cpt_base)
-                        changed = True
-                f_out.write(line)
-    except:
-        print('Error occurred, attempting to dump submission script to '
-              '"dump_sub_script.sh" before re-raising')
-        with open('dump_sub_script.sh', 'w') as f_out:
-            for line in lines_in:
-                f_out.write(line)
-        raise
+    with open(temp_bak_name, 'w') as temp_out:
+        [temp_out.write(line) for line in lines_in]
+    with open(sub_script, 'w') as f_out:
+        changed = False
+        for line in lines_in:
+            if not line.strip().startswith('#'):
+                match = re_mdrun_line.search(line)
+                if match:
+                    line = line.replace('\n', ' ') + '-cpi {}\n'.format(
+                        cpt_base)
+                    changed = True
+            f_out.write(line)
+    os.remove(temp_bak_name)
     if not changed:
         raise ValueError('Could not find GROMACS mdrun line in submission '
                          'script, so the checkpoint file ("-cpi ...") was not '
