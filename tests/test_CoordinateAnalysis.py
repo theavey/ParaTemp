@@ -56,7 +56,8 @@ class TestXTCUniverse(object):
     @pytest.fixture
     def ref_a_dists(self):
         import pandas
-        return pandas.Series.from_csv('tests/ref-data/spc2-a-dists.csv')
+        return pandas.read_csv('tests/ref-data/spc2-a-dists.csv',
+                               index_col=0)
 
     @pytest.fixture
     def ref_delta_g(self):
