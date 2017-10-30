@@ -46,6 +46,7 @@ class TestXTCUniverse(object):
 
     @pytest.fixture
     def univ(self):
+        # TODO define as univ_w_a and define separate "clean" univ
         from ..ParaTemp import CoordinateAnalysis as ca
         _univ = ca.Universe('tests/test-data/spc2.gro',
                             'tests/test-data/t-spc2-traj.xtc',
@@ -68,6 +69,7 @@ class TestXTCUniverse(object):
         return np.load('tests/ref-data/spc2-fes1d-bins.npy')
 
     def test_distance(self, univ, ref_a_dists):
+        # TODO calculate distance here, using different parsing methods
         assert np.isclose(ref_a_dists, univ.data['a']).all()
 
     def test_fes_1d_data_str(self, univ, ref_delta_g, ref_bins):
