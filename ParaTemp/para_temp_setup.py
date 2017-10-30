@@ -25,14 +25,14 @@
 # This is written to work with python 3 because it should be good to
 # be working on the newest version of python.
 
-import os
-
-import re
 import glob
+import os
+import re
+import shutil
 import subprocess
 
-from .tools import cd, copy_no_overwrite
 from .exceptions import InputError
+from .tools import cd, copy_no_overwrite
 
 
 def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
@@ -272,11 +272,13 @@ def extend_tprs(base_name, time, sub_script=None, submit=False,
                 print('Editing '
                       '{} for new tpr names with {}'.format(sub_script,
                                                             extend_infix))
+            # TODO need to add -cpi etc. into sub script
             _replace_string_in_file(base_name, base_name + extend_infix,
                                     sub_script, _log)
         if submit:
             if verbose:
                 print('Submitting job...')
+        # TODO need to cd into directory
         job_info = _submit_script(sub_script, _log)
         if verbose:
             print('Job number {} has been submitted.'.format(job_info[2]))
@@ -364,3 +366,61 @@ def _job_info_from_qsub(output):
     """
     match = re.search(r'(\d+)\s\("(\w.*)"\)', output)
     return match.group(1), match.group(2), match.group(0)
+
+
+def cleanup_bad_gromacs_restart(out_base, working_dir='./', list_files=True,
+                                replace_files=False, verbose=True):
+    """"""
+    with cd(working_dir):
+        good_files = glob.glob('#'+out_base+'*')
+        bad_files = glob.glob(out_base+'*')
+        if verbose:
+            print('Found {} "bad" and {} "good" files.'.format(len(
+                bad_files), len(good_files)))
+        match_dict = dict()
+        unmatched_good, matched_bad = list(), list()
+        unmatched_bad = list(bad_files)
+        for g_name in good_files:
+            poss_bad_name = g_name[1:-3]  # remove # from start and end and .1
+            if poss_bad_name in bad_files:
+                unmatched_bad.remove(poss_bad_name)
+                match_dict[poss_bad_name] = g_name
+            else:
+                unmatched_good.append(g_name)
+        if verbose:
+            print('Total of {} matched files.'.format(len(match_dict)))
+        if len(unmatched_good) + len(unmatched_bad) != 0 and verbose:
+            print('Unmatched file counts:\n    '
+                  'good:{:>3}\n    bad:{:>3}'.format(len(unmatched_good),
+                                                     len(unmatched_bad)))
+        elif verbose:
+            print('No unmatched files.')
+        if list_files:
+            if len(unmatched_good) != 0:
+                print('Unmatched "good" files:')
+                for g_name in unmatched_good:
+                    print('    {}'.format(g_name))
+            else:
+                print('No unmatched "good" files')
+            if len(unmatched_bad) != 0:
+                print('Unmatched "bad" files:')
+                for b_name in unmatched_bad:
+                    print('    {}'.format(b_name))
+            else:
+                print('No unmatched "bad" files')
+            if len(match_dict) > 0:
+                print('Matched files:\n'
+                      '{:^30} | {:^30}'.format('good', 'bad'))
+                for key in match_dict:
+                    print('{:>30} | {:>30}'.format(match_dict[key], key))
+                else:
+                    print('-'*63)
+            else:
+                print('No matched files!!')
+        if replace_files:
+            if verbose:
+                print('Now replacing "bad" with matched "good" files.')
+            for b_name in match_dict:
+                shutil.move(match_dict[b_name], b_name)
+            if verbose:
+                print('Done replacing files.')
