@@ -46,13 +46,16 @@ class TestXTCUniverse(object):
 
     @pytest.fixture
     def univ(self):
-        # TODO define as univ_w_a and define separate "clean" univ
         from ..ParaTemp import CoordinateAnalysis as ca
         _univ = ca.Universe('tests/test-data/spc2.gro',
                             'tests/test-data/t-spc2-traj.xtc',
                             temp=205.)
-        _univ.calculate_distances(a='4 5')
         return _univ
+
+    @pytest.fixture
+    def univ_w_a(self, univ):
+        univ.calculate_distances(a='4 5')
+        return univ
 
     @pytest.fixture
     def ref_a_dists(self):
@@ -68,19 +71,27 @@ class TestXTCUniverse(object):
     def ref_bins(self):
         return np.load('tests/ref-data/spc2-fes1d-bins.npy')
 
-    def test_distance(self, univ, ref_a_dists):
-        # TODO calculate distance here, using different parsing methods
+    def test_distance_str(self, univ, ref_a_dists):
+        univ.calculate_distances(a='4 5')
         assert np.isclose(ref_a_dists, univ.data['a']).all()
 
-    def test_fes_1d_data_str(self, univ, ref_delta_g, ref_bins):
+    def test_distance_list_int(self, univ, ref_a_dists):
+        univ.calculate_distances(a=[4, 5])
+        assert np.isclose(ref_a_dists, univ.data['a']).all()
+
+    def test_distance_list_str(self, univ, ref_a_dists):
+        univ.calculate_distances(a=['4', '5'])
+        assert np.isclose(ref_a_dists, univ.data['a']).all()
+
+    def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
         delta_g_str, bins_str, lines_str, fig_str, ax_str = \
-            univ.fes_1d('a')
+            univ_w_a.fes_1d('a')
         assert (delta_g_str == ref_delta_g).all()
         assert (bins_str == ref_bins).all()
 
-    def test_fes_1d_data_data(self, univ, ref_delta_g, ref_bins):
+    def test_fes_1d_data_data(self, univ_w_a, ref_delta_g, ref_bins):
         delta_g_data, bins_data, lines_data, fig_data, ax_data = \
-            univ.fes_1d(univ.data['a'])
+            univ_w_a.fes_1d(univ_w_a.data['a'])
         assert (delta_g_data == ref_delta_g).all()
         assert (bins_data == ref_bins).all()
 
