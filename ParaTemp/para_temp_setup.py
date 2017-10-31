@@ -449,6 +449,9 @@ def _submit_script(script_name, log_stream=_BlankStream()):
     output = proc.communicate()[0]
     log_stream.write(output)
     log_stream.flush()
+    if proc.returncode != 0:
+        print(output)
+        raise subprocess.CalledProcessError(proc.returncode, ' '.join(cl))
     return _job_info_from_qsub(output)
 
 
@@ -462,6 +465,9 @@ def _job_info_from_qsub(output):
     :rtype: Tuple(str, str, str)
     """
     match = re.search(r'(\d+)\s\("(\w.*)"\)', output)
+    if not match:
+        raise ValueError('Output from qsub was not able to be parsed: \n'
+                         '    {}'.format(output))
     return match.group(1), match.group(2), match.group(0)
 
 
