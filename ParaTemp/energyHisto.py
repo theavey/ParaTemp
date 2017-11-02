@@ -492,7 +492,7 @@ def plot_std_dev_of_time(data, ax=None, xlabel='number of steps',
     :return:
     :rtype: List(matplotlib.lines.Lines2D), matplotlib.axes.Axes,
         matplotlib.figure.Figure
-    """
+    """  # TODO finish docstring
     if ax is None:
         _fig, _ax = plt.subplots()
     else:
@@ -508,12 +508,12 @@ def plot_std_dev_of_time(data, ax=None, xlabel='number of steps',
 class _WRBase(object):
     """
 
-    """
+    """  # TODO finish docstring
     def __init__(self, filename):
         """
 
         :param filename:
-        """
+        """  # TODO finish docstring
         self._wr_count = len(open(filename, 'r').readline().split()) - 1
         self._df = pd.read_csv(filename, sep='\s+', header=None,
                                names=['times']+[str(i) for i in range(
@@ -533,7 +533,7 @@ class _WRBase(object):
         :param n_cuts:
         :param set_internally:
         :return:
-        """
+        """  # TODO finish docstring
         times = np.linspace(len(self), 0, num=n_cuts, endpoint=False, dtype=int)
         result = pd.DataFrame({str(time): [
             self._df[col][:time].value_counts(sort=False, normalize=True).std()
@@ -554,7 +554,7 @@ class _WRBase(object):
         :param ylabel:
         :param kwargs:
         :return:
-        """
+        """  # TODO finish docstring
         if n_cuts == self._std_dev_of_t_cuts:
             _data = self._std_dev_of_t
         else:
@@ -563,3 +563,6 @@ class _WRBase(object):
             if arg is not None:
                 kwargs[arg_n] = arg
         return plot_std_dev_of_time(_data, **kwargs)
+
+
+# TODO add function to run make_indices and import both?
