@@ -33,6 +33,7 @@ import gromacs.formats
 import gromacs.tools
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 from .tools import all_elements_same
 
@@ -477,3 +478,88 @@ def make_rg_figures(save_base_name='pt', save=True, save_format='.pdf',
         return [rgs_t_plots, rgs_hists]
     else:
         return None
+
+
+def plot_std_dev_of_time(data, ax=None, xlabel='number of steps',
+                         ylabel='std. dev.', **kwargs):
+    """
+
+    :param data:
+    :param matplotlib.axes.Axes ax:
+    :param str xlabel:
+    :param str ylabel:
+    :param kwargs:
+    :return:
+    :rtype: List(matplotlib.lines.Lines2D), matplotlib.axes.Axes,
+        matplotlib.figure.Figure
+    """
+    if ax is None:
+        _fig, _ax = plt.subplots()
+    else:
+        _fig, _ax = ax.gcf(), ax
+    final_step = max([int(i) for i in data])
+    lines = _ax.plot(data, **kwargs)
+    _ax.set_xlim(xlimits=[0, final_step])
+    _ax.set_xlabel(xlabel)
+    _ax.set_ylabel(ylabel)
+    return lines, _ax, _fig
+
+
+class _WRBase(object):
+    """
+
+    """
+    def __init__(self, filename):
+        """
+
+        :param filename:
+        """
+        self._wr_count = len(open(filename, 'r').readline().split()) - 1
+        self._df = pd.read_csv(filename, sep='\s+', header=None,
+                               names=['times']+[str(i) for i in range(
+                                   self._wr_count)],
+                               index_col=0)
+        self._n_counts = pd.DataFrame({i: self._df[i].value_counts(
+            sort=False, normalize=True) for i in self._df})
+        self._std_dev_of_t = None
+        self._std_dev_of_t_cuts = None
+
+    def __len__(self):
+        return len(self._df)
+
+    def std_dev_of_time(self, n_cuts=10, set_internally=True):
+        """
+
+        :param n_cuts:
+        :param set_internally:
+        :return:
+        """
+        times = np.linspace(len(self), 0, num=n_cuts, endpoint=False, dtype=int)
+        result = pd.DataFrame({str(time): [
+            self._df[col][:time].value_counts(sort=False, normalize=True).std()
+            for col in self._df] for time in times}).T
+        if set_internally:
+            self._std_dev_of_t = result
+            self._std_dev_of_t_cuts = n_cuts
+        return result
+
+    def plot_std_dev_of_time(self, n_cuts=None, set_internally=True, ax=None,
+                             xlabel=None, ylabel=None, **kwargs):
+        """
+
+        :param n_cuts:
+        :param set_internally:
+        :param ax:
+        :param xlabel:
+        :param ylabel:
+        :param kwargs:
+        :return:
+        """
+        if n_cuts == self._std_dev_of_t_cuts:
+            _data = self._std_dev_of_t
+        else:
+            _data = self.std_dev_of_time(n_cuts, set_internally)
+        for arg, arg_n in ((ax, 'ax'), (xlabel, 'xlabel'), (ylabel, 'ylabel')):
+            if arg is not None:
+                kwargs[arg_n] = arg
+        return plot_std_dev_of_time(_data, **kwargs)
