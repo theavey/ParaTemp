@@ -34,7 +34,7 @@ import gromacs.tools
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ParaTemp.tools import all_elements_same
+from .tools import all_elements_same
 
 __version__ = '0.0.2'
 
