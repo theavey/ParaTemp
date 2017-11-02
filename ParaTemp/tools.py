@@ -63,3 +63,12 @@ def get_temperatures(filename='TOPO/temperatures.dat'):
     with open(filename, 'r') as t_file:
         temps = list(t_file.read()[1:-2].split(', '))
     return np.array([float(temp) for temp in temps])
+
+
+def all_elements_same(in_list):
+    """Check if all list elements the same.
+
+    all_elements_same is a quick function to see if all elements of a list
+    are the same. Based on http://stackoverflow.com/a/3844948/3961920
+    If they're all the same, returns True, otherwise returns False."""
+    return in_list.count(in_list[0]) == len(in_list)
