@@ -480,40 +480,54 @@ def make_rg_figures(save_base_name='pt', save=True, save_format='.pdf',
         return None
 
 
-def plot_std_dev_of_time(data, ax=None, xlabel='number of steps',
+def plot_std_dev_of_time(data, ax=None, xlabel='time / ns',
                          ylabel='std. dev.', **kwargs):
     """
+    Plot std. dev. as a function of time for checking PTMD convergence.
 
-    :param data:
-    :param matplotlib.axes.Axes ax:
-    :param str xlabel:
-    :param str ylabel:
-    :param kwargs:
-    :return:
+    :param pd.DataFrame data: Data to plot. The columns should be the indices 
+        of either replicas or walkers and the index (row labels) should be 
+        times (in nanoseconds, if using the default xlabel).
+    :param matplotlib.axes.Axes ax: Default: None. If given, the data will be 
+        plotted on the given Axes. Otherwise, a figure and axes will be created.
+    :param str xlabel: Default: 'time / ns'. The label for the the x axis. If
+        xlabel evaluates to False, the x axis label will not be set.
+    :param str ylabel: Default: 'std. dev.'. The label for the the y axis. If
+        ylabel evaluates to False, the y axis label will not be set.
+    :param kwargs: Keyword arguments to pass to Axes.plot().
+    :return: The lines (artists) from the plot, the axes, and the figure.
     :rtype: List(matplotlib.lines.Lines2D), matplotlib.axes.Axes,
         matplotlib.figure.Figure
-    """  # TODO finish docstring
-    if ax is None:
-        _fig, _ax = plt.subplots()
-    else:
-        _fig, _ax = ax.gcf(), ax
+    """
+    _ax = ax or plt.subplots()[1]
+    _fig = _ax.get_figure()
     final_step = max([int(i) for i in data])
     lines = _ax.plot(data, **kwargs)
     _ax.set_xlim(xlimits=[0, final_step])
-    _ax.set_xlabel(xlabel)
-    _ax.set_ylabel(ylabel)
+    _ax.set_xlabel(xlabel) if xlabel else None
+    _ax.set_ylabel(ylabel) if ylabel else None
     return lines, _ax, _fig
 
 
 class _WRBase(object):
     """
+    Base object for information about replica exchanges.
+    
+    
 
     """  # TODO finish docstring
-    def __init__(self, filename):
+    def __init__(self, filename, time_per_frame=0.002):
         """
+        Initialize by reading in a replica exchange info file.
 
-        :param filename:
-        """  # TODO finish docstring
+        :param str filename: Name of the xvg file to read in. The defaults
+            created by make_indices() are 'replica_index.xvg' and
+            'replica_temp.xvg'.
+        :param float time_per_frame: Default: 0.002. The amount of time (in
+            nanoseconds) between each point in the read in file. This is most
+            likely the amount of time between attempted exchanges.
+        """
+        self._time_per_frame = time_per_frame
         self._wr_count = len(open(filename, 'r').readline().split()) - 1
         self._df = pd.read_csv(filename, sep='\s+', header=None,
                                names=['times']+[str(i) for i in range(
@@ -529,13 +543,24 @@ class _WRBase(object):
 
     def std_dev_of_time(self, n_cuts=10, set_internally=True):
         """
+        StdDev of counts of walkers in replicas or the reverse as func. of time
 
-        :param n_cuts:
-        :param set_internally:
-        :return:
-        """  # TODO finish docstring
+        Standard deviations for the normalized counts of the times the
+        walkers spend in the replicas or the replicas for each replica,
+        depending on which file was read in.
+
+        :param int n_cuts: Default: 10. Number of points in time to take 
+            along the trajectory for finding the cumulative standard 
+            deviation in the counts.
+        :param bool set_internally: Default: True. If True, the results of 
+            this calculation will be stored
+        :return: The calculated standard deviations as a function of time.
+            The columns are the replica or walker index number and the index
+            (rows) are the times.
+        :rtype: pd.DataFrame
+        """
         times = np.linspace(len(self), 0, num=n_cuts, endpoint=False, dtype=int)
-        result = pd.DataFrame({str(time): [
+        result = pd.DataFrame({time*self._time_per_frame: [
             self._df[col][:time].value_counts(sort=False, normalize=True).std()
             for col in self._df] for time in times}).T
         if set_internally:
@@ -546,22 +571,34 @@ class _WRBase(object):
     def plot_std_dev_of_time(self, n_cuts=None, set_internally=True, ax=None,
                              xlabel=None, ylabel=None, **kwargs):
         """
+        Plot std. dev. as a function of time for checking PTMD convergence
 
-        :param n_cuts:
-        :param set_internally:
-        :param ax:
-        :param xlabel:
-        :param ylabel:
-        :param kwargs:
-        :return:
-        """  # TODO finish docstring
+        :param int n_cuts: Default: None. If defined, calculate std. dev. as a
+            function of time from self._df using self.std_dev_of_time.
+            If the value given is the same as the most recently calculated
+            (and stored) data from running std_dev_of_time, it will not be
+            recalculated.
+        :param bool set_internally: Default: True. If n_cuts causes
+            self.std_dev_of_time to run, this will be passed to that function.
+            There, if True, will cause it to save the results of
+            std_dev_of_time as an instance variable in this object.
+        :param matplotlib.axes.Axes ax: Default: None. If given, this will be
+            passed to plot_std_dev_of_time.
+        :param str xlabel: Default: None. If given, this will be
+            passed to plot_std_dev_of_time.
+        :param str ylabel: Default: None. If given, this will be
+            passed to plot_std_dev_of_time.
+        :param kwargs: keyword arguments to pass to the plotting function in
+            plot_std_dev_of_time.
+        :return: plot_std_dev_of_time()
+        """
         if n_cuts == self._std_dev_of_t_cuts:
-            _data = self._std_dev_of_t
+            _data = self._std_dev_of_t or self.std_dev_of_time()
         else:
             _data = self.std_dev_of_time(n_cuts, set_internally)
-        for arg, arg_n in ((ax, 'ax'), (xlabel, 'xlabel'), (ylabel, 'ylabel')):
-            if arg is not None:
-                kwargs[arg_n] = arg
+        for arg_n in 'ax', 'xlabel', 'ylabel':
+            if eval(arg_n) is not None:
+                kwargs[arg_n] = eval(arg_n)
         return plot_std_dev_of_time(_data, **kwargs)
 
 
