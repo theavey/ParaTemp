@@ -138,7 +138,7 @@ class Universe(MDa.Universe):
         for key in keys_to_read:
             self._data[key] = read_df[key]
 
-    def calculate_distances(self, *args, **kwargs):
+    def calculate_distances(self, recalculate=False, *args, **kwargs):
         """"""
         # TODO document this function
         # TODO find a way to take keyword type args with non-valid python
@@ -186,6 +186,14 @@ class Universe(MDa.Universe):
                 first_group += self.select_atoms('bynum '+str(atoms[0]))
                 second_group += self.select_atoms('bynum '+str(atoms[1]))
                 column_names += [key]
+        if not recalculate:
+            set_existing_data = set(self.data.columns)
+            set_new_data = set(column_names)
+            set_overlap = set_existing_data.union(set_new_data)
+            for col in set_overlap:
+                index_col = column_names.index(col)
+                del (column_names[index_col], first_group[index_col],
+                     second_group[index_col])
         n1 = first_group.n_atoms
         n2 = second_group.n_atoms
         nc = len(column_names)
