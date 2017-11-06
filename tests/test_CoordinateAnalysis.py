@@ -83,10 +83,17 @@ class TestXTCUniverse(object):
         univ.calculate_distances(a=['4', '5'])
         assert np.isclose(ref_a_dists, univ.data['a']).all()
 
-    def test_calculate_distance_no_recalc(self, univ_w_a, capsys):
+    def test_calculate_distances_no_recalc(self, univ_w_a, capsys):
         univ_w_a.calculate_distances(a=[4, 5])
         out, err = capsys.readouterr()
         assert out == 'Nothing (new) to calculate here.\n'
+
+    def test_calculate_distances_yes_recalc(self, univ_w_a):
+        """
+        :type univ_w_a: ParaTemp.CoordinateAnalysis.Universe
+        """
+        univ_w_a.calculate_distances(a='5 5', recalculate=True)
+        assert (np.array([0., 0.]) == univ_w_a.data['a']).all()
 
     def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
         """
@@ -111,7 +118,6 @@ class TestXTCUniverse(object):
         assert (bins_data == ref_bins).all()
 
 # TODO add further Universe tests
-#       recalculate=True
 #       ignore_file_change=True
 #       fes_2d
 #       save_data
