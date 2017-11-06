@@ -23,6 +23,7 @@
 ########################################################################
 
 from __future__ import absolute_import
+from six.moves import range
 
 import os.path
 from warnings import warn
@@ -138,8 +139,28 @@ class Universe(MDa.Universe):
         for key in keys_to_read:
             self._data[key] = read_df[key]
 
-    def calculate_distances(self, recalculate=False, *args, **kwargs):
-        """"""
+    def calculate_distances(self, recalculate=False, ignore_file_change=False,
+                            *args, **kwargs):
+        """
+        Calculate distances by iterating through the trajectory
+
+        :param recalculate: Default: False. If True, all requested
+            distances will be calculated.
+            If False, the union of the set of requested distance names and the
+            existing column titles in self.data will be removed from the
+            information to be calculated.
+        :param ignore_file_change: Default: False. If True, if the file has
+            changed since object instantiation, no error will be raised and
+            only information through the last frame when the object was
+            instantiated will be calculated. If self._verbosity, the fact that
+            the file has changed will be printed.
+            If False, if the length of the trajectory has changed,
+            FileChangedError will be raised.
+        :param args:
+        :param kwargs:
+        :return: None
+        :raises: exceptions.FileChangedError, SyntaxError, NotImplementedError
+        """
         # TODO document this function
         # TODO find a way to take keyword type args with non-valid python
         # identifiers (e.g., "O-O").
@@ -205,9 +226,16 @@ class Universe(MDa.Universe):
                                                                        nc) +
                               '\nThis should not happen.')
         if self._num_frames != self.trajectory.n_frames:
-            raise exceptions.FileChangedError()
+            if self._verbosity:
+                print('Current trajectory has {} frames, '.format(
+                    self.trajectory.n_frames) +
+                      'but this object was instantiated with ' 
+                      '{} frames.'.format(self._num_frames))
+            if not ignore_file_change:
+                raise exceptions.FileChangedError()
         dists = np.zeros((self._num_frames, n1))
-        for i, frame in enumerate(self.trajectory):
+        for i in range(self._num_frames):
+            self.trajectory[i]
             MDa.lib.distances.calc_bonds(first_group.positions,
                                          second_group.positions,
                                          box=self.dimensions,
