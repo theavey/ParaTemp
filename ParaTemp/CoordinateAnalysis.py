@@ -146,8 +146,8 @@ class Universe(MDa.Universe):
 
         :param recalculate: Default: False. If True, all requested
             distances will be calculated.
-            If False, the union of the set of requested distance names and the
-            existing column titles in self.data will be removed from the
+            If False, the intersection of the set of requested distance names
+            and the existing column titles in self.data will be removed from the
             information to be calculated.
         :param ignore_file_change: Default: False. If True, if the file has
             changed since object instantiation, no error will be raised and
@@ -187,6 +187,12 @@ class Universe(MDa.Universe):
                 warn('The following positional arguments were given but not '
                      'recognized: ' + str(bad_args) + '\nThey will be '
                      'ignored.')
+        if not recalculate:
+            set_existing_data = set(self.data.columns)
+            set_new_data = set(kwargs.keys())
+            set_overlap = set_existing_data.intersection(set_new_data)
+            for col in set_overlap:
+                del kwargs[col]
         if len(kwargs) != 0:
             for key in kwargs:
                 try:
@@ -207,14 +213,9 @@ class Universe(MDa.Universe):
                 first_group += self.select_atoms('bynum '+str(atoms[0]))
                 second_group += self.select_atoms('bynum '+str(atoms[1]))
                 column_names += [key]
-        if not recalculate:
-            set_existing_data = set(self.data.columns)
-            set_new_data = set(column_names)
-            set_overlap = set_existing_data.union(set_new_data)
-            for col in set_overlap:
-                index_col = column_names.index(col)
-                del (column_names[index_col], first_group[index_col],
-                     second_group[index_col])
+        else:
+            if self._verbosity:
+                print('Nothing (new) to calculate here.')
         n1 = first_group.n_atoms
         n2 = second_group.n_atoms
         nc = len(column_names)
