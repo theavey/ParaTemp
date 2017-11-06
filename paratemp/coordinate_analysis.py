@@ -103,7 +103,8 @@ class Universe(MDa.Universe):
                     for col in set(self._data.columns).difference(store_df):
                         store_df[col] = self._data[col]
             store[time] = store_df
-        print('Saved data to {}[{}]'.format(filename, time))
+        if self._verbosity:
+            print('Saved data to {}[{}]'.format(filename, time))
 
     def read_data(self, filename=None, ignore_no_data=False):
         """
