@@ -111,6 +111,8 @@ class TestXTCUniverse(object):
         assert (bins_data == ref_bins).all()
 
 # TODO add further Universe tests
+#       recalculate=True
+#       ignore_file_change=True
 #       fes_2d
 #       save_data
 #       read_data
