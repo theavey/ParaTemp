@@ -83,13 +83,28 @@ class TestXTCUniverse(object):
         univ.calculate_distances(a=['4', '5'])
         assert np.isclose(ref_a_dists, univ.data['a']).all()
 
+    def test_calculate_distance_no_recalc(self, univ_w_a, capsys):
+        univ_w_a.calculate_distances(a=[4, 5])
+        out, err = capsys.readouterr()
+        assert out == 'Nothing (new) to calculate here.\n'
+
     def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
+        """
+        :type univ_w_a: ParaTemp.CoordinateAnalysis.Universe
+        :type ref_delta_g: pandas.DataFrame
+        :type ref_bins: pandas.DataFrame
+        """
         delta_g_str, bins_str, lines_str, fig_str, ax_str = \
             univ_w_a.fes_1d('a')
         assert (delta_g_str == ref_delta_g).all()
         assert (bins_str == ref_bins).all()
 
     def test_fes_1d_data_data(self, univ_w_a, ref_delta_g, ref_bins):
+        """
+        :type univ_w_a: ParaTemp.CoordinateAnalysis.Universe
+        :type ref_delta_g: pandas.DataFrame
+        :type ref_bins: pandas.DataFrame
+        """
         delta_g_data, bins_data, lines_data, fig_data, ax_data = \
             univ_w_a.fes_1d(univ_w_a.data['a'])
         assert (delta_g_data == ref_delta_g).all()
