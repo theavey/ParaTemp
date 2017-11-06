@@ -50,13 +50,18 @@ class TestXTCUniverse(object):
         _univ = ca.Universe('tests/test-data/spc2.gro',
                             'tests/test-data/t-spc2-traj.xtc',
                             temp=205.)
-        _univ.calculate_distances(a='4 5')
         return _univ
+
+    @pytest.fixture
+    def univ_w_a(self, univ):
+        univ.calculate_distances(a='4 5')
+        return univ
 
     @pytest.fixture
     def ref_a_dists(self):
         import pandas
-        return pandas.Series.from_csv('tests/ref-data/spc2-a-dists.csv')
+        return pandas.read_csv('tests/ref-data/spc2-a-dists.csv',
+                               index_col=0)
 
     @pytest.fixture
     def ref_delta_g(self):
@@ -66,18 +71,27 @@ class TestXTCUniverse(object):
     def ref_bins(self):
         return np.load('tests/ref-data/spc2-fes1d-bins.npy')
 
-    def test_distance(self, univ, ref_a_dists):
+    def test_distance_str(self, univ, ref_a_dists):
+        univ.calculate_distances(a='4 5')
         assert np.isclose(ref_a_dists, univ.data['a']).all()
 
-    def test_fes_1d_data_str(self, univ, ref_delta_g, ref_bins):
+    def test_distance_list_int(self, univ, ref_a_dists):
+        univ.calculate_distances(a=[4, 5])
+        assert np.isclose(ref_a_dists, univ.data['a']).all()
+
+    def test_distance_list_str(self, univ, ref_a_dists):
+        univ.calculate_distances(a=['4', '5'])
+        assert np.isclose(ref_a_dists, univ.data['a']).all()
+
+    def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
         delta_g_str, bins_str, lines_str, fig_str, ax_str = \
-            univ.fes_1d('a')
+            univ_w_a.fes_1d('a')
         assert (delta_g_str == ref_delta_g).all()
         assert (bins_str == ref_bins).all()
 
-    def test_fes_1d_data_data(self, univ, ref_delta_g, ref_bins):
+    def test_fes_1d_data_data(self, univ_w_a, ref_delta_g, ref_bins):
         delta_g_data, bins_data, lines_data, fig_data, ax_data = \
-            univ.fes_1d(univ.data['a'])
+            univ_w_a.fes_1d(univ_w_a.data['a'])
         assert (delta_g_data == ref_delta_g).all()
         assert (bins_data == ref_bins).all()
 

@@ -25,14 +25,14 @@
 # This is written to work with python 3 because it should be good to
 # be working on the newest version of python.
 
-import os
-
-import re
 import glob
+import os
+import re
+import shutil
 import subprocess
 
-from .tools import cd, copy_no_overwrite
 from .exceptions import InputError
+from .tools import cd, copy_no_overwrite
 
 
 def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
@@ -225,61 +225,97 @@ class _BlankStream(object):
     def fileno(self):
         return 0  # Not sure if this works. Maybe None would be better
 
+    def flush(self):
+        pass
 
-def extend_tprs(base_name, time, sub_script=None, submit=False,
-                extend_infix='-extend', verbose=True, log='extend-tprs.log'):
+
+def extend_tprs(base_name, time, working_dir=None, sub_script=None,
+                submit=False, extend_infix='-extend', first_extension=True,
+                cpt_base='npt', verbose=True,
+                log='extend-tprs.log'):
     """
     Extend a set of tpr files
 
     :param str base_name: Base of the tpr files. This should return the file
-    names when globbed with '*.tpr' appended to this base name. Also, this will
-    cause issues when adding the infix if the file name doesn't fit the pattern
-    of '{base_name}{number}.tpr'.
+        names when globbed with '*.tpr' appended to this base name. Also, this
+        will cause issues when adding the infix if the file name doesn't fit
+        the pattern of '{base_name}{number}.tpr'.
     :param time: Amount of time in picoseconds by which to extend the job. This
-    will be cast to a string, so an int or string should be fine (not sure if
-    floats are okay).
+        will be cast to a string, so an int or string should be fine (not sure
+        if floats are okay).
     :type time: str or int
+    :param str working_dir: Default: None. If given, this directory will be
+        chnaged into and work will continue there. As long as sub_script is
+        given relative to the current directory at function execution,
+        it will still be found when needed later.
+        If working_dir is None, the working dir will be taken to be the
+        directory one directory above the location given in base_name.
     :param str sub_script: Default: None. Name of the submission script. If
-    given, the script will be edited to match the new name of the extended tpr
-    files.
+        given, the script will be edited to match the new name of the extended
+        tpr files.
     :param bool submit: Default: False. If true, the job will be submitted to
-    the queuing system.
+        the queuing system.
     :param str extend_infix: Default: '-extend'. str to put into the name of the
-    extended tpr files after the base_name and before the '[number].tpr'.
+        extended tpr files after the base_name and before the '[number].tpr'.
+    :param bool first_extension: Default: True. If True, '-cpi {checkpoint
+        base name}' will be added to the submission script so that it becomes a
+        run continuation.
+    :param str cpt_base: Default: npt. The first part of the name of the
+        checkpoint files that will end in '{number}.cpt'. The full checkpoint
+        base_name will be found using _find_cpt_base.
     :param bool verbose: Default: True. If True, a lot more status information
-    will be printed.
+        will be printed.
     :param str log: Name of file to which to log information on this process and
-    output from GROMACS tools.
+        output from GROMACS tools.
     :return: None
     """
-    re_split_name = re.compile(r'({})(\d+\.tpr)'.format(base_name))
+    _tpr_dir, _rel_base_name = os.path.split(os.path.abspath(base_name))
+    if working_dir is None:
+        _working_dir = os.path.abspath(_tpr_dir+'/../')
+    else:
+        _working_dir = working_dir
+    if sub_script is not None:
+        _sub_script = os.path.abspath(sub_script)
+    else:
+        _sub_script = None  # Only needed so the IDE stops bothering me
     _time = str(time)
-    with open(log, 'a') as _log:
-        tpr_names = glob.glob(base_name+'*.tpr')
-        if len(tpr_names) < 1:
-            raise InputError(base_name,
-                             'no files found for {}'.format(base_name+'*.tpr'))
-        if verbose:
-            print('Extending {} tpr files'.format(len(tpr_names)))
-        for tpr_name in tpr_names:
-            tpr_groups = re_split_name.match(tpr_name)
-            new_tpr_name = tpr_groups.group(1)+extend_infix+tpr_groups.group(2)
-            _extend_tpr(tpr_name, new_tpr_name, _time, _log)
-        if verbose:
-            print(' '*4+'Done extending tpr files.')
+    re_split_name = re.compile(r'({})(\d+\.tpr)'.format(_rel_base_name))
+    with cd(_working_dir), open(log, 'a') as _log:
+        with cd(_tpr_dir):
+            tpr_names = glob.glob(_rel_base_name+'*.tpr')
+            if len(tpr_names) < 1:
+                raise InputError(base_name, 'no files found for {}'.format(
+                                     base_name+'*.tpr'))
+            if verbose:
+                print('Extending {} tpr files'.format(len(tpr_names)))
+            for tpr_name in tpr_names:
+                tpr_groups = re_split_name.match(tpr_name)
+                new_tpr_name = (tpr_groups.group(1) + extend_infix +
+                                tpr_groups.group(2))
+                _extend_tpr(tpr_name, new_tpr_name, _time, _log)
+            if verbose:
+                print(' '*4+'Done extending tpr files.')
         if sub_script is not None:
+            _sub_script = os.path.relpath(_sub_script)
             if verbose:
                 print('Editing '
-                      '{} for new tpr names with {}'.format(sub_script,
+                      '{} for new tpr names with {}'.format(_sub_script,
                                                             extend_infix))
-            _replace_string_in_file(base_name, base_name + extend_infix,
-                                    sub_script, _log)
-        if submit:
-            if verbose:
-                print('Submitting job...')
-        job_info = _submit_script(sub_script, _log)
-        if verbose:
-            print('Job number {} has been submitted.'.format(job_info[2]))
+            _replace_string_in_file(_rel_base_name+' ', _rel_base_name +
+                                    extend_infix+' ', _sub_script, _log)
+            if first_extension:
+                _cpt_base = _find_cpt_base(cpt_base)
+                _add_cpt_to_sub_script(_sub_script, _cpt_base, _log)
+            if submit:
+                if verbose:
+                    print('Submitting job...')
+                job_info = _submit_script(_sub_script, _log)
+                if verbose:
+                    print('Job number {} has been submitted.'.format(
+                        job_info[2]))
+        elif submit:
+            print('Job not submitted because no submission script name was '
+                  'provided.')
 
 
 def _extend_tpr(old_name, new_name, time, log_stream=_BlankStream()):
@@ -291,10 +327,11 @@ def _extend_tpr(old_name, new_name, time, log_stream=_BlankStream()):
     :param str time: Amount of time in picoseconds to extend the job
     :param log_stream: Default: _BlankStream(). The file stream to which to log
     information. The default will just not log anything.
-    :type: _BlankStream or BinaryIO
+    :type log_stream: _BlankStream or BinaryIO
     :return:
     """
-    log_stream.write('Extending {} as {}'.format(old_name, new_name))
+    log_stream.write('Extending {} as {}\n'.format(old_name, new_name))
+    log_stream.flush()
     cl = ['gmx_mpi', 'convert-tpr',
           '-s', old_name,
           '-o', new_name,
@@ -320,19 +357,80 @@ def _replace_string_in_file(old_str, new_str, file_name,
     :param str file_name: Name of the file to be edited.
     :param log_stream: Default: _BlankStream(). The file stream to which to log
     information. The default will just not log anything.
-    :type: _BlankStream or BinaryIO
+    :type log_stream: _BlankStream or BinaryIO
     :return: None
     """
     log_stream.write('Editing '
-                     '{} for new string "{}"'.format(file_name,
-                                                     new_str))
+                     '{} for new string "{}"\n'.format(file_name,
+                                                       new_str))
     log_stream.write('Copying file as backup to '
-                     '{}'.format(file_name + '.bak'))
+                     '{}\n'.format(file_name + '.bak'))
+    log_stream.flush()
     copy_no_overwrite(file_name, file_name + '.bak')
     with open(file_name + '.bak', 'r') as old_f, open(file_name, 'w') as new_f:
         for line in old_f:
             line = line.replace(old_str, new_str)
             new_f.write(line)
+
+
+def _find_cpt_base(cpt_base):
+    """
+    Find checkpoint file base name in current directory
+
+    :param str cpt_base: Start of checkpoint file name that ends with a
+        number of one to three digits followed by '.cpt'
+    :return: The base name of the checkpoint files (everything but the number
+        and ".cpt")
+    :rtype: str
+    """
+    possible_matches = glob.glob(cpt_base+'*.cpt')
+    for f_name in possible_matches:
+        match = re.match(r'({}.*?)\d{}\.cpt'.format(cpt_base, '{1,3}'), f_name)
+        if match:
+            return match.group(1)
+    else:
+        raise ValueError('No checkpoint file name found based on the base '
+                         'name {}.'.format(cpt_base))
+
+
+def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
+                           temp_bak_name='temp-submission-script.bak'):
+    """
+    Add a checkpoint file to GROMACS submission line
+
+    Note, only one replacement will be done here.
+    :param str sub_script: Name of the submission script
+    :param str cpt_base: Base name of the checkpoint file(s) to pass to GROMACS
+    :param log_stream: Default: _BlankStream(). The file stream to which to log
+    information. The default will just not log anything.
+    :type log_stream: _BlankStream or BinaryIO
+    :param temp_bak_name: Name for a temporary backup of the submission
+        script in case things go wrong. Assuming no exceptions are raise,
+        this will be deleted after the new file is written.
+    :return: None
+    """
+    re_mdrun_line = re.compile('mdrun_mpi|gmx_mpi\s+mdrun|gmx\s+mdrun_mpi')
+    log_stream.write('Adding "-cpi {}" to {}\n'.format( cpt_base, sub_script))
+    log_stream.flush()
+    with open(sub_script, 'r') as f_in:
+        lines_in = f_in.readlines()
+    with open(temp_bak_name, 'w') as temp_out:
+        [temp_out.write(line) for line in lines_in]
+    with open(sub_script, 'w') as f_out:
+        changed = False
+        for line in lines_in:
+            if (not line.strip().startswith('#')) and (not changed):
+                match = re_mdrun_line.search(line)
+                if match:
+                    line = line.replace('\n', ' ') + '-cpi {}\n'.format(
+                        cpt_base)
+                    changed = True
+            f_out.write(line)
+    os.remove(temp_bak_name)
+    if not changed:
+        raise ValueError('Could not find GROMACS mdrun line in submission '
+                         'script, so the checkpoint file ("-cpi ...") was not '
+                         'added to it.')
 
 
 def _submit_script(script_name, log_stream=_BlankStream()):
@@ -342,7 +440,7 @@ def _submit_script(script_name, log_stream=_BlankStream()):
     :param str script_name: Name of the script file.
     :param log_stream: Default: _BlankStream(). The file stream to which to log
     information. The default will just not log anything.
-    :type: _BlankStream or BinaryIO
+    :type log_stream: _BlankStream or BinaryIO
     :return: the job information as output by _job_info_from_qsub
     """
     cl = ['qsub', script_name]
@@ -350,6 +448,10 @@ def _submit_script(script_name, log_stream=_BlankStream()):
                             stderr=subprocess.STDOUT, universal_newlines=True)
     output = proc.communicate()[0]
     log_stream.write(output)
+    log_stream.flush()
+    if proc.returncode != 0:
+        print(output)
+        raise subprocess.CalledProcessError(proc.returncode, ' '.join(cl))
     return _job_info_from_qsub(output)
 
 
@@ -363,4 +465,83 @@ def _job_info_from_qsub(output):
     :rtype: Tuple(str, str, str)
     """
     match = re.search(r'(\d+)\s\("(\w.*)"\)', output)
+    if not match:
+        raise ValueError('Output from qsub was not able to be parsed: \n'
+                         '    {}'.format(output))
     return match.group(1), match.group(2), match.group(0)
+
+
+def cleanup_bad_gromacs_restart(out_base, working_dir='./', list_files=True,
+                                replace_files=False, verbose=True):
+    """
+    Replace "new" files with GROMACS backed-up files after messed-up restart
+
+    No timestamps are accounted for, and this is purely based on the file
+    names and the default way GROMACS backs up files it would have otherwise
+    replaced.
+
+    :param out_base: Base name for output files, likely the same as the
+        '-deffnm' argument.
+    :param working_dir: Directory in which to look and do these replacements
+    :param list_files: If true, matched and unmatched files will all be printed
+    :param replace_files: If true, the backed-up files will be moved to
+        overwrite the "new" files.
+    :param verbose: If true, more file counts and such will be printed.
+    :return: None
+    """
+    with cd(working_dir):
+        good_files = glob.glob('#'+out_base+'*')
+        bad_files = glob.glob(out_base+'*')
+        good_files.sort, bad_files.sort()
+        if verbose:
+            print('Found {} "bad" and {} "good" files.'.format(len(
+                bad_files), len(good_files)))
+        match_dict = dict()
+        unmatched_good, matched_bad = list(), list()
+        unmatched_bad = list(bad_files)
+        for g_name in good_files:
+            poss_bad_name = g_name[1:-3]  # remove # from start and end and .1
+            if poss_bad_name in bad_files:
+                unmatched_bad.remove(poss_bad_name)
+                match_dict[poss_bad_name] = g_name
+            else:
+                unmatched_good.append(g_name)
+        if verbose:
+            print('Total of {} matched files.'.format(len(match_dict)))
+        if len(unmatched_good) + len(unmatched_bad) != 0 and verbose:
+            print('Unmatched file counts:\n    '
+                  'good:{:>3}\n    bad:{:>3}'.format(len(unmatched_good),
+                                                     len(unmatched_bad)))
+        elif verbose:
+            print('No unmatched files.')
+        if list_files:
+            if len(unmatched_good) != 0:
+                print('Unmatched "good" files:')
+                for g_name in unmatched_good:
+                    print('    {}'.format(g_name))
+            else:
+                print('No unmatched "good" files')
+            if len(unmatched_bad) != 0:
+                print('Unmatched "bad" files:')
+                for b_name in unmatched_bad:
+                    print('    {}'.format(b_name))
+            else:
+                print('No unmatched "bad" files')
+            if len(match_dict) > 0:
+                print('Matched files:\n')
+                print('-'*63)
+                print('{:^30} | {:^30}'.format('good', 'bad'))
+                print('-'*63)
+                for key in sorted(match_dict):
+                    print('{:>30} | {:>30}'.format(match_dict[key], key))
+                else:
+                    print('-'*63)
+            else:
+                print('No matched files!!')
+        if replace_files:
+            if verbose:
+                print('Now replacing "bad" with matched "good" files.')
+            for b_name in match_dict:
+                shutil.move(match_dict[b_name], b_name)
+            if verbose:
+                print('Done replacing files.')
