@@ -31,8 +31,8 @@ from .tools import copy_no_overwrite, cd, get_temperatures
 
 if sys.version_info.major == 2:
     # These (at this point) require python 2 because of gromacs and MDAnalysis
-    from . import CoordinateAnalysis
-    from . import energyHisto
-    from . import energyBinAnalysis
+    from . import coordinate_analysis
+    from . import energy_histo
+    from . import energy_bin_analysis
 
 

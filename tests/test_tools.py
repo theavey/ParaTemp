@@ -34,5 +34,5 @@ def ref_temps():
 
 
 def test_get_temps(ref_temps):
-    from ..ParaTemp import get_temperatures
+    from ..paratemp import get_temperatures
     assert (get_temperatures('tests/test-data/temperatures.dat') == ref_temps).all()

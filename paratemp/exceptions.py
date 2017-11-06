@@ -20,7 +20,7 @@
 #                                                                      #
 ########################################################################
 
-# This file defines exceptions that are useful for the ParaTemp package
+# This file defines exceptions that are useful for the paratemp package
 
 
 class InputError(Exception):

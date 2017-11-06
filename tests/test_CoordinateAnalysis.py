@@ -37,7 +37,7 @@ def test_matplotlib_testing_backend():
 
 
 def test_running_mean():
-    from ..ParaTemp import CoordinateAnalysis as ca
+    from ..paratemp import coordinate_analysis as ca
     tl = [0, 2, 4]
     assert (ca.Taddol._running_mean(tl) == [1, 3]).all()
 
@@ -46,7 +46,7 @@ class TestXTCUniverse(object):
 
     @pytest.fixture
     def univ(self):
-        from ..ParaTemp import CoordinateAnalysis as ca
+        from ..paratemp import coordinate_analysis as ca
         _univ = ca.Universe('tests/test-data/spc2.gro',
                             'tests/test-data/t-spc2-traj.xtc',
                             temp=205.)

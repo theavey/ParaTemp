@@ -5,14 +5,14 @@ import sys
 import re
 import pandas as pd
 import matplotlib.pyplot as plt
-import ParaTemp.energyHisto as eh
-from ParaTemp import cd
+import paratemp.energy_histo as eh
+from paratemp import cd
 from glob import glob
 from shutil import copyfile, rmtree
 
 
 if sys.version_info.major != 2:
-    raise ImportError('Last I checked, ParaTemp.energyHisto which uses '
+    raise ImportError('Last I checked, paratemp.energyHisto which uses '
                       'MDAnalysis will not work with python 3.*.')
 
 

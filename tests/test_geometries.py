@@ -32,7 +32,7 @@ class TestXYZ(object):
 
     @pytest.fixture
     def xyz(self):
-        from ..ParaTemp.geometries import XYZ
+        from ..paratemp.geometries import XYZ
         return XYZ('tests/test-data/stil-3htmf.xyz')
 
     def test_n_atoms(self, xyz):
@@ -51,27 +51,27 @@ class TestVector(object):
 
     @pytest.fixture
     def x_axis_int_list(self):
-        from ..ParaTemp.geometries import Vector
+        from ..paratemp.geometries import Vector
         return Vector([1, 0, 0])
 
     @pytest.fixture
     def x_axis_float_list(self):
-        from ..ParaTemp.geometries import Vector
+        from ..paratemp.geometries import Vector
         return Vector([1., 0., 0.])
 
     @pytest.fixture
     def x_axis_int(self):
-        from ..ParaTemp.geometries import Vector
+        from ..paratemp.geometries import Vector
         return Vector(1, 0, 0)
 
     @pytest.fixture
     def y_axis(self):
-        from ..ParaTemp.geometries import Vector
+        from ..paratemp.geometries import Vector
         return Vector(0, 1, 0)
 
     @pytest.fixture
     def z_axis(self):
-        from ..ParaTemp.geometries import Vector
+        from ..paratemp.geometries import Vector
         return Vector(0, 0, 1)
 
     def test_input_int_float(self, x_axis_int_list, x_axis_float_list):
