@@ -314,6 +314,14 @@ class Universe(MDa.Universe):
         for i, column in enumerate(column_names):
             self._data[column] = diheds[:, i]
 
+    def update_num_frames(self):
+        num_frames = self.trajectory.n_frames
+        if num_frames != self._num_frames:
+            if self._verbosity:
+                print('Updating num of frames from {} to {}'.format(
+                    self._num_frames, num_frames))
+            self._num_frames = num_frames
+
     @property
     def data(self):
         """
