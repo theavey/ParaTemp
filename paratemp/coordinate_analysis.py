@@ -319,8 +319,10 @@ class Universe(MDa.Universe):
         if num_frames != self._num_frames:
             if self._verbosity:
                 print('Updating num of frames from {} to {}'.format(
-                    self._num_frames, num_frames))
+                    self._num_frames, num_frames) +
+                      '\nand the final time.')
             self._num_frames = num_frames
+            self._last_time = self.trajectory.totaltime
 
     @property
     def data(self):
