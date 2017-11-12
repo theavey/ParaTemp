@@ -65,10 +65,10 @@ class Universe(MDa.Universe):
         self._temperature = kwargs.pop('temp', None)
         super(Universe, self).__init__(*args, **kwargs)
         self._num_frames = self.trajectory.n_frames
-        self._data = pd.DataFrame(np.linspace(0, self.trajectory.totaltime,
+        self._last_time = self.trajectory.totaltime
+        self._data = pd.DataFrame(np.linspace(0, self._last_time,
                                               num=self._num_frames),
                                   columns=['Time'])
-        self._last_time = self.trajectory.totaltime
         # dict of distance definitions
         self._dict_dist_defs = {}
         self._dict_dihed_defs = {}
