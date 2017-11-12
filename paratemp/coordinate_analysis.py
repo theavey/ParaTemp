@@ -66,12 +66,25 @@ class Universe(MDa.Universe):
         super(Universe, self).__init__(*args, **kwargs)
         self._num_frames = self.trajectory.n_frames
         self._last_time = self.trajectory.totaltime
-        self._data = pd.DataFrame(np.linspace(0, self._last_time,
-                                              num=self._num_frames),
-                                  columns=['Time'])
+        self._data = self._init_dataframe()
         # dict of distance definitions
         self._dict_dist_defs = {}
         self._dict_dihed_defs = {}
+
+    def _init_dataframe(self):
+        """
+        Initialize a pandas.DataFrame with Times column.
+
+        This uses self._last_time as the final time and self._num_frames as
+        the number of rows to put into the DataFrame to be returned.
+        This uses np.linspace to make the evenly spaced times that should
+        match with the times in the trajectory file.
+        :return: a DataFrame with one column of Times
+        :rtype: pd.DataFrame
+        """
+        return pd.DataFrame(np.linspace(0, self._last_time,
+                                        num=self._num_frames),
+                            columns=['Time'])
 
     def save_data(self, filename=None, overwrite=False):
         """
@@ -314,15 +327,46 @@ class Universe(MDa.Universe):
         for i, column in enumerate(column_names):
             self._data[column] = diheds[:, i]
 
-    def update_num_frames(self):
+    def update_num_frames(self, silent=False):
+        """
+        Update number of frames and last time from trajectory file
+
+        :param bool silent: Default: False. If True, nothing will be printed.
+        :return: None
+        """
         num_frames = self.trajectory.n_frames
         if num_frames != self._num_frames:
-            if self._verbosity:
+            if self._verbosity and not silent:
                 print('Updating num of frames from {} to {}'.format(
                     self._num_frames, num_frames) +
                       '\nand the final time.')
             self._num_frames = num_frames
             self._last_time = self.trajectory.totaltime
+
+    def update_data_len(self, update_time=True, silent=False):
+        """
+        Update the times and length of self.data based on trajectory file
+
+        :param update_time: Default: True. If True, self.update_num_frames
+            will be used to find the new length and final time of the
+            trajectory file. If false, these will just be read the instance
+            variables and not updated.
+        :param silent: Default: False. If True, nothing will be printed.
+        :return: None
+        """
+        if update_time:
+            self.update_num_frames(silent=True)
+        if self._data['Time'].iat[-1] != self._last_time:
+            old_len = len(self.data)
+            new_times_df = self._init_dataframe()
+            self._data = self._data.join(new_times_df.set_index('Time'),
+                                         on='Time')
+            if self._verbosity and not silent:
+                print('Updating data from '
+                      '{} frames to {} frames'.format(old_len, len(self._data)))
+        else:
+            if self._verbosity and not silent:
+                print('No need to update self.data')
 
     @property
     def data(self):
