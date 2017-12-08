@@ -43,7 +43,15 @@ def cd(new_dir):
 
 
 def copy_no_overwrite(src, dst, silent=False):
-    if os.path.exists(dst):
+    exists = False
+    if os.path.isdir(src):
+        raise OSError(21, 'Is a directory: {}'.format(src))
+    elif os.path.isdir(dst):
+        if os.path.isfile(os.path.join(dst, os.path.basename(src))):
+            exists = True
+    elif os.path.isfile(dst):
+        exists = True
+    if exists:
         if silent:
             return dst
         else:
