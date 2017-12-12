@@ -1,8 +1,10 @@
 from distutils.core import setup
+import versioneer
 
 setup(
     name='ParaTemp',
-    version='0.0.2-alpha',
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     packages=['paratemp'],
     url='https://github.com/theavey/ParaTemp',
     license='Apache License 2.0',
