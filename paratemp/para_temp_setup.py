@@ -33,6 +33,7 @@ import subprocess
 
 from .exceptions import InputError
 from .tools import cd, copy_no_overwrite
+from . import __version__ as _version
 
 
 def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
@@ -109,7 +110,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
 if __name__ == "__main__":
     from argparse import ArgumentParser
 
-    __version__ = '0.1.3'
+    __version__ = _version
 
     parser = ArgumentParser(description='A script to help setup parallel '
                                         'tempering jobs in GROMACS with '
