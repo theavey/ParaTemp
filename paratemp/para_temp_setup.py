@@ -79,7 +79,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                 if 'TempGoesHere' in line:
                     line = line.replace('TempGoesHere', str(temp))
                 out_file.write(line)
-        command_line = ['grompp_mpi',
+        command_line = ['gmx_mpi', 'grompp',
                         '-f', mdp_name,
                         '-p', topology,
                         '-c', structure,
