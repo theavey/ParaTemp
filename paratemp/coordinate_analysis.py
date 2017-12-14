@@ -48,13 +48,13 @@ class Universe(MDa.Universe):
     def __init__(self, *args, **kwargs):
         """
 
-        :param verbosity: Setting whether to print details. If in the
-        future more levels of verbosity are desired, this may be
-        changed to an int.
-        Default: 1
         :type verbosity: int or bool
+        :param verbosity: Default: 1. Setting whether to print details. If in
+            the future more levels of verbosity are desired, this may be
+            changed to an int.
+
         :param float temp: Default: None. Temperature of this simulation to be
-        used for calculating free energy surfaces with weighted histograms.
+            used for calculating free energy surfaces with weighted histograms.
         :param args:
         :param kwargs:
         """
@@ -79,6 +79,7 @@ class Universe(MDa.Universe):
         the number of rows to put into the DataFrame to be returned.
         This uses np.linspace to make the evenly spaced times that should
         match with the times in the trajectory file.
+
         :return: a DataFrame with one column of Times
         :rtype: pd.DataFrame
         """
@@ -91,13 +92,13 @@ class Universe(MDa.Universe):
         Save calculated data to disk
 
         :param str filename: Filename to save the data as. Defaults to the
-        name of the trajectory with a '.h5' extension.
+            name of the trajectory with a '.h5' extension.
 
         :param bool overwrite: Whether to overwrite existing data on disk.
-        If it's True, it will completely overwrite the existing data store.
-        If it's False, but a store for this time already exists, only new
-        columns in self.data will be added to the store, and no data will be
-        overwritten.
+            If it's True, it will completely overwrite the existing data store.
+            If it's False, but a store for this time already exists, only new
+            columns in self.data will be added to the store, and no data will be
+            overwritten.
 
         :return: None
         """
@@ -130,10 +131,11 @@ class Universe(MDa.Universe):
 
         This will read the data from disk and add it to self.data. Any
         existing data will not be overwritten.
+
         :param str filename: Filename from which to read the data.
-        Defaults to the name of the trajectory with a '.h5' extension.
+            Defaults to the name of the trajectory with a '.h5' extension.
         :param bool ignore_no_data: Default: False. If True, not having data
-        in the file will not raise an error.
+            in the file will not raise an error.
         :return: None
         :raises: IOError
         """
@@ -1066,17 +1068,17 @@ class Taddol(Universe):
         :param data: Default: self.ox_dists. Data to form the FES from.
         :type data: pd.DataFrame
         :param float temp: Default: 791 K. Temperature of the trajectory used
-        to calculate the free energy.
+            to calculate the free energy.
         :param bool save: Default: False. Whether to save the FESs to disk.
         :param str save_format: Default: 'pdf'. Format in which to save the
-        figure.
+            figure.
         :param str save_base_name: Default: 'ox-dists-fes'. Name of the saved
-        figure.
+            figure.
         :param bool display: Default: True. Whether to return the figure after
-        producing it.
+            producing it.
         :param axes: Default: None. The axes objects on
-        which to make the plots. If None is supplied, new axes objects will
-        be created.
+            which to make the plots. If None is supplied, new axes objects will
+            be created.
         :param kwargs: keyword arguments to pass to the plotter
         :return:
         """
