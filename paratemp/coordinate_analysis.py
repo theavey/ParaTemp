@@ -22,7 +22,7 @@
 #                                                                      #
 ########################################################################
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
 from six.moves import range
 
 import os.path
@@ -390,6 +390,19 @@ class Universe(MDa.Universe):
         # I doubt I could do the clever thing without subclassing DataFrame,
         # and I'm not sure I want to mess with their item access stuff.
         return self._data
+
+    @property
+    def final_time_str(self):
+        """"""
+        ps, ns, us, ms = (1, 'ps'), (1e3, 'ns'), (1e6, 'us'), (1e9, 'ms')
+        time_dict = {1: ps, 2: ps, 3: ps, 4: ns, 5: ns, 6: ns, 7: us, 8: us,
+                     9: us}
+        f_time = str(int(self._last_time))
+        try:
+            power, exten = time_dict[len(f_time)]
+        except KeyError:
+            power, exten = ms
+        return str(int(self._last_time/power)) + exten
 
     @staticmethod
     def _running_mean(x, n=2):
