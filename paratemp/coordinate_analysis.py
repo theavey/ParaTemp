@@ -90,17 +90,18 @@ class Universe(MDa.Universe):
         """
         Save calculated data to disk
 
-        :param filename: Filename to save the data as. Defaults to the
+        :param str filename: Filename to save the data as. Defaults to the
         name of the trajectory with a '.h5' extension.
-        :type filename: str
-        :param overwrite: Whether to overwrite existing data on disk.
+
+        :param bool overwrite: Whether to overwrite existing data on disk.
         If it's True, it will completely overwrite the existing data store.
         If it's False, but a store for this time already exists, only new
         columns in self.data will be added to the store, and no data will be
         overwritten.
-        :type overwrite: bool
+
         :return: None
         """
+        changed = False
         if filename is None:
             filename = os.path.splitext(self.trajectory.filename)[0] + '.h5'
         with pd.HDFStore(filename) as store:
@@ -108,14 +109,18 @@ class Universe(MDa.Universe):
             try:
                 store_df = store[time]
             except KeyError:
+                changed = True
                 store_df = self._data
             else:
                 if overwrite:
+                    changed = True
                     store_df = self._data
                 else:
                     for col in set(self._data.columns).difference(store_df):
+                        changed = True  # Only if new columns to save
                         store_df[col] = self._data[col]
-            store[time] = store_df
+            if changed:
+                store[time] = store_df
         if self._verbosity:
             print('Saved data to {}[{}]'.format(filename, time))
 
