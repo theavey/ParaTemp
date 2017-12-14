@@ -520,23 +520,29 @@ class Universe(MDa.Universe):
         """
         Make FES of some time series data
 
-        :param data: Data to form the FES from. If a string is given, the data
-        will be taken from self.data[data].
         :type data: Iterable or str
+        :param data: Data to form the FES from. If a string is given, the data
+            will be taken from self.data[data].
+
         :param float temp: Default: None. Temperature for Boltzmann weighting
-        calculation.
-        If None is provided, the temperature will be taken from
-        self._temperature
+            calculation.
+            If None is provided, the temperature will be taken from
+            self._temperature
+
         :param str xlabel: Default: 'distance / $\mathrm{\AA}$'. The label for
-        the x axis.
-        :param ax: Default: None. The axes objects on which to make the plots.
-        If None is supplied, new axes objects will be created.
+            the x axis.
+
         :type ax: matplotlib.axes.Axes
+        :param ax: Default: None. The axes objects on which to make the plots.
+            If None is supplied, new axes objects will be created.
+
         :param kwargs: keyword arguments to pass to the plotter
-        :return: The delta G values, the bin centers, the lines object, the
-        figure and the axes
+
         :rtype: Tuple(np.ndarray, np.ndarray, matplotlib.lines.Line2D,
-        matplotlib.figure.Figure, matplotlib.axes.Axes)
+            matplotlib.figure.Figure, matplotlib.axes.Axes)
+
+        :return: The delta G values, the bin centers, the lines object, the
+            figure and the axes
         """
         if temp is None:
             _temp = self._temperature
