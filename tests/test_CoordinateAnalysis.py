@@ -58,9 +58,23 @@ class TestXTCUniverse(object):
         return univ
 
     @pytest.fixture
+    def univ_pbc(self):
+        from ..paratemp import coordinate_analysis as ca
+        _univ = ca.Universe('tests/test-data/spc2.gro',
+                            'tests/test-data/spc2-traj-pbc.xtc',
+                            temp=205.)
+        return _univ
+
+    @pytest.fixture
     def ref_a_dists(self):
         import pandas
         return pandas.read_csv('tests/ref-data/spc2-a-dists.csv',
+                               index_col=0)
+
+    @pytest.fixture
+    def ref_a_pbc_dists(self):
+        import pandas
+        return pandas.read_csv('tests/ref-data/spc2-a-pbc-dists.csv',
                                index_col=0)
 
     @pytest.fixture
@@ -94,6 +108,10 @@ class TestXTCUniverse(object):
         """
         univ_w_a.calculate_distances(a='5 5', recalculate=True)
         assert (np.array([0., 0.]) == univ_w_a.data['a']).all()
+
+    def test_distance_pbc(self, univ_pbc, ref_a_pbc_dists):
+        univ_pbc.calculate_distances(a='4 5')
+        assert np.isclose(ref_a_pbc_dists['a'], univ_pbc.data['a']).all()
 
     def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
         """
