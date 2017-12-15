@@ -135,6 +135,15 @@ class TestXTCUniverse(object):
         assert (delta_g_data == ref_delta_g).all()
         assert (bins_data == ref_bins).all()
 
+    def test_final_time_str(self, univ):
+        assert univ.final_time_str == '2ps'
+        univ._last_time = 1001.0
+        assert univ.final_time_str == '1ns'
+        univ._last_time = 32111222.12
+        assert univ.final_time_str == '32us'
+        univ._last_time = 5.1e12
+        assert univ.final_time_str == '5100ms'
+
 # TODO add further Universe tests
 #       ignore_file_change=True
 #       fes_2d

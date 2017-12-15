@@ -356,8 +356,8 @@ class Universe(MDa.Universe):
 
         :param update_time: Default: True. If True, self.update_num_frames
             will be used to find the new length and final time of the
-            trajectory file. If false, these will just be read the instance
-            variables and not updated.
+            trajectory file. If False, these will just be read from the instance
+            variables and not updated based on the trajectory file.
         :param silent: Default: False. If True, nothing will be printed.
         :return: None
         """
