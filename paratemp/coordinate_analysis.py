@@ -102,7 +102,6 @@ class Universe(MDa.Universe):
 
         :return: None
         """
-        changed = False
         if filename is None:
             filename = os.path.splitext(self.trajectory.filename)[0] + '.h5'
         with pd.HDFStore(filename) as store:
@@ -111,20 +110,20 @@ class Universe(MDa.Universe):
             # can quickly(?) get the columns with
             # store.get_node("df").axis0.read() to see if I have any new
             # columns to add in the first place.
-            try:
-                store_df = store[time]
-            except KeyError:
-                changed = True
-                store_df = self._data
+            if overwrite or ('/'+time not in store.keys()):
+                store[time] = self._data
             else:
-                if overwrite:
-                    changed = True
-                    store_df = self._data
-                else:
-                    for col in set(self._data.columns).difference(store_df):
-                        changed = True  # Only if new columns to save
-                        store_df[col] = self._data[col]
-            if changed:
+                store_cols = store.get_node(time).axis0.read()
+                set_diff_cols = set(self._data.columns).difference(store_cols)
+                if not set_diff_cols:
+                    if self._verbosity:
+                        print('No data added to {}[{}]'.format(filename, time))
+                    return
+                store_df = store[time]  # seems this has to be done to add cols
+                # see https://stackoverflow.com/questions/15939603/
+                # append-new-columns-to-hdfstore-with-pandas
+                for col in set_diff_cols:
+                    store_df[col] = self._data[col]
                 store[time] = store_df
         if self._verbosity:
             print('Saved data to {}[{}]'.format(filename, time))
