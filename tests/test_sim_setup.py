@@ -1,4 +1,4 @@
-"""This contains a set of tests for ParaTemp.para_temp_setup"""
+"""This contains a set of tests for ParaTemp.sim_setup"""
 
 ########################################################################
 #                                                                      #
@@ -28,7 +28,7 @@ import pytest
 
 
 def test_job_info_from_qsub():
-    from ..paratemp.para_temp_setup import _job_info_from_qsub
+    from paratemp.sim_setup import _job_info_from_qsub
     job_info = _job_info_from_qsub('Your job 2306551 ("PT-NTD-CG") '
                                    'has been submitted')
     assert job_info == ('2306551', 'PT-NTD-CG', '2306551 ("PT-NTD-CG")')
