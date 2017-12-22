@@ -106,10 +106,7 @@ class Universe(MDa.Universe):
             filename = os.path.splitext(self.trajectory.filename)[0] + '.h5'
         with pd.HDFStore(filename) as store:
             time = 'time_' + str(int(self._last_time/1000)) + 'ns'
-            # TODO speed this up for no changes
-            # can quickly(?) get the columns with
-            # store.get_node("df").axis0.read() to see if I have any new
-            # columns to add in the first place.
+            # TODO use self.final_time_str
             if overwrite or ('/'+time not in store.keys()):
                 store[time] = self._data
             else:
@@ -146,6 +143,7 @@ class Universe(MDa.Universe):
             filename = os.path.splitext(self.trajectory.filename)[0] + '.h5'
         with pd.HDFStore(filename) as store:
             time = 'time_' + str(int(self._last_time/1000)) + 'ns'
+            # TODO use self.final_time_str
             try:
                 read_df = store[time]
                 keys_to_read = set(read_df.columns).difference(
