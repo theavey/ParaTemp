@@ -64,7 +64,7 @@ def get_temperatures(filename='TOPO/temperatures.dat'):
     """
     Get temperatures of replicas from sim. setup with para_temp_setup
 
-    :param filename: The location of the file with the temperatures.
+    :param str filename: The location of the file with the temperatures.
     :return: list of temperatures
     :rtype: numpy.ndarray
     """
@@ -78,7 +78,11 @@ def all_elements_same(in_list):
 
     all_elements_same is a quick function to see if all elements of a list
     are the same. Based on http://stackoverflow.com/a/3844948/3961920
-    If they're all the same, returns True, otherwise returns False."""
+    If they're all the same, returns True, otherwise returns False.
+
+    :param list in_list: List to check for equality of all elements.
+    :rtype: bool
+    :return: True if all elements the same; False otherwise."""
     return in_list.count(in_list[0]) == len(in_list)
 
 
@@ -106,11 +110,12 @@ def _replace_string_in_file(old_str, new_str, file_name,
 
     This is intended for use in replaced tpr names in a submission script, but
     it is not only specific to that use.
+
     :param str old_str: String to be replaced.
     :param str new_str: String to be inserted.
     :param str file_name: Name of the file to be edited.
     :param log_stream: Default: _BlankStream(). The file stream to which to log
-    information. The default will just not log anything.
+        information. The default will just not log anything.
     :type log_stream: _BlankStream or BinaryIO
     :return: None
     """
