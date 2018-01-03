@@ -46,20 +46,20 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
     """
     Compile TPR files for REMD run with GROMACS
 
-    :param template: name of template mdp file
-    :param start_temp: starting (lowest) temperature
-    :param number: number of replicas/walkers
-    :param scaling_exponent: exponent by which to scale the temperatures
-    :param base_name: base name for output mdp and tpr files
-    :param topology: name of topology file
-    :param multi_structure: bool, multiple (different) structure files
-    (uses glob expansion on the input structure base name)
-    :param structure: (base) name of structure file(s)
-    :param index: name of index file
-    :param temps_file: name of file in which to store temperatures
-    :param maxwarn: maximum number of warnings to ignore. str is applied to
-    this argument, so type shouldn't matter significantly.
+    :param str template: name of template mdp file
+    :param float start_temp: starting (lowest) temperature
+    :param int number: number of replicas/walkers
+    :param float scaling_exponent: exponent by which to scale the temperatures
+    :param str base_name: base name for output mdp and tpr files
+    :param str topology: name of topology file
+    :param bool multi_structure: multiple (different) structure files
+        (uses glob expansion on the input structure base name)
+    :param str structure: (base) name of structure file(s)
+    :param str index: name of index file
+    :param str temps_file: name of file in which to store temperatures
     :type maxwarn: int or str
+    :param maxwarn: maximum number of warnings to ignore. str is applied to
+        this argument, so type shouldn't matter significantly.
     :return: None
     """
     # if args.multi_structure:
@@ -256,7 +256,7 @@ def _extend_tpr(old_name, new_name, time, log_stream=_BlankStream()):
     :param str new_name: Name for the new extended tpr file
     :param str time: Amount of time in picoseconds to extend the job
     :param log_stream: Default: _BlankStream(). The file stream to which to log
-    information. The default will just not log anything.
+        information. The default will just not log anything.
     :type log_stream: _BlankStream or BinaryIO
     :return:
     """
@@ -298,12 +298,13 @@ def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
     Add a checkpoint file to GROMACS submission line
 
     Note, only one replacement will be done here.
+
     :param str sub_script: Name of the submission script
     :param str cpt_base: Base name of the checkpoint file(s) to pass to GROMACS
-    :param log_stream: Default: _BlankStream(). The file stream to which to log
-    information. The default will just not log anything.
     :type log_stream: _BlankStream or BinaryIO
-    :param temp_bak_name: Name for a temporary backup of the submission
+    :param log_stream: Default: _BlankStream(). The file stream to which to log
+        information. The default will just not log anything.
+    :param str temp_bak_name: Name for a temporary backup of the submission
         script in case things go wrong. Assuming no exceptions are raise,
         this will be deleted after the new file is written.
     :return: None
@@ -341,13 +342,14 @@ def cleanup_bad_gromacs_restart(out_base, working_dir='./', list_files=True,
     names and the default way GROMACS backs up files it would have otherwise
     replaced.
 
-    :param out_base: Base name for output files, likely the same as the
+    :param str out_base: Base name for output files, likely the same as the
         '-deffnm' argument.
-    :param working_dir: Directory in which to look and do these replacements
-    :param list_files: If true, matched and unmatched files will all be printed
-    :param replace_files: If true, the backed-up files will be moved to
+    :param str working_dir: Directory in which to look and do these replacements
+    :param str list_files: If true, matched and unmatched files will all be
+        printed
+    :param bool replace_files: If true, the backed-up files will be moved to
         overwrite the "new" files.
-    :param verbose: If true, more file counts and such will be printed.
+    :param bool verbose: If true, more file counts and such will be printed.
     :return: None
     """
     with cd(working_dir):
