@@ -30,6 +30,7 @@ import os
 import re
 import shutil
 import subprocess
+from typing import Callable, Iterable, Match
 
 from .tools import _BlankStream, _replace_string_in_file
 from .exceptions import InputError
@@ -131,3 +132,106 @@ def _job_info_from_qsub(output):
         raise ValueError('Output from qsub was not able to be parsed: \n'
                          '    {}'.format(output))
     return match.group(1), match.group(2), match.group(0)
+
+
+d_cgenff_ptad_repls = {1: 63, 9: 69, 8: 72, 120: 182}
+
+
+def _update_num(match, shift=120,
+                tad_repl_dict=d_cgenff_ptad_repls):
+    """
+    Return a string with an updated number based on atom-index changes
+
+    For a similar function to be used in the case of a changing catalyst that is
+    still going to be the first molecule, the `shift' functionality will need to
+    be updated/changed (or a different function can be defined and passed to
+    update_plumed_input).
+
+    :param Match match: Match object with two groups for the pre-string and
+        number to be changed. The first group is returned as-is. The second
+        group is the number that needs to be changed based on the rules.
+    :param int shift: Default: 120. Number by which to shift the reactants.
+        In most use cases, the catalyst was the first molecule, and gets moved
+        to after the reactants. If it gets moved to after the reactants,
+        the is the number of atoms in the original catalyst.
+    :param dict[int, int] tad_repl_dict: Default: d_cgenff_ptad_repls. dict
+        of atom index replacements to do for the catalyst.
+    :rtype: str
+    :return: pre-string combined with the new atom index
+    """
+    pre, s = match.groups()
+    try:
+        n = int(s)
+    except ValueError:
+        raise ValueError('"{}" cannot be converted to a valid int'.format(s))
+    if n < shift+1:
+        out = tad_repl_dict[n]
+    else:
+        out = n - shift
+    return pre + str(out)
+
+
+c_line_keywords = {'WHOLEMOLECULES', 'c1:', 'c2:',
+                   'g1:', 'g2:', 'g3:', 'g4:',
+                   'dm1:', 'dm2:'}
+d_line_keywords = {'tr5:', 'tr6:', 'FILE=COLVAR'}
+d_equil_repls = {'dm2:': ['72', '71'],
+                 'dm1:': ['40', '12']}
+
+
+def update_plumed_input(n_plu_in, n_plu_out,
+                        change_keys=c_line_keywords,
+                        num_updater=_update_num,
+                        delete_keys=d_line_keywords,
+                        equil=False,
+                        equil_changes=d_equil_repls):
+    """
+    Write a changed PLUMED input based on a previous PLUMED input
+
+    :param str n_plu_in: Name of PLUMED source file to be used as a template.
+        This file is not changed.
+    :param str n_plu_out: Name of the PLUMED file to be written. This file
+        will be overwritten if it already exists.
+    :type change_keys: set[str] or Iterable[str]
+    :param change_keys: Keywords to look for in lines that should be changed.
+        Note, these need to be found space separated in the lines to be changed.
+    :type num_updater: Callable[[Match], str]
+    :param num_updater: Default: _update_num. A function that takes a
+        re.MatchObject and returns a str. The match object will have two (
+        three including the full match) groups. The first will be a
+        pre-string that should be returned as-is, and the second will be a
+        string of an int that should be changed based on how the atom indices
+        have changed.
+    :type delete_keys: set[str] or Iterable[str]
+    :param delete_keys: Keywords to look for in lines that should be deleted.
+        Note, these need to be found space separated in the lines to be deleted.
+    :param bool equil: Default: False. If True, other specified changes can be
+        made to produce PLUMED input suitable for equilibration before a
+        production run
+    :param dict equil_changes: dict with changes to make for equilibration
+        PLUMED input. Note, the keys in this dict must match an appropriate
+        key in change_keys for this to work currently.
+    :return: None
+    """
+    with open(n_plu_in, 'r') as from_file, \
+            open(n_plu_out, 'w') as to_file:
+        for line in from_file:
+            c_key_match = set(line.split()) & set(change_keys)
+            if c_key_match:
+                line = re.sub(r'([=,-])(\d+)', num_updater, line)
+                if equil:
+                    if len(c_key_match) > 1:
+                        raise KeyError('More than one keyword matched in '
+                                       'line: {}'.format(c_key_match))
+                    key = c_key_match.pop()
+                    if key in equil_changes.keys():
+                        line = line.replace(*equil_changes[key])
+            elif set(line.split()) & set(delete_keys):
+                line = ''
+            elif equil and line.startswith('UPPER_WALLS'):
+                # soften the upper walls
+                line = line.replace('150.0,150.0 EXP=2,2', '75.0,75.0 EXP=1,1')
+                # pull them a little closer to make sure they're within the
+                # walls for the production simulation
+                line = line.replace('AT=12.0,12.0', 'AT=10.5,10.5')
+            to_file.write(line)
