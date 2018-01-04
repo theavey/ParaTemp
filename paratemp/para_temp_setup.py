@@ -99,10 +99,12 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                 if error is True:  # Catch the next line after the error
                     error = line
                 if ('Fatal error' in line or
-                        'File input/output error' in line):
+                        'File input/output error' in line or
+                        'Error in user input' in line):
                     error = True  # Deal with this after writing log file
                 log_file.write(line)
-        if error:
+        if error or proc.returncode != 0:
+            error = error if error else 'Unknown error. Check log file.'
             raise RuntimeError(error)
     with open(temps_file, 'w') as temps_out:
         temps_out.write(str(temps))
