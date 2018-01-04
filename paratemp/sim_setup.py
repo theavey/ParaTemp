@@ -138,7 +138,7 @@ d_cgenff_ptad_repls = {1: 63, 9: 69, 8: 72, 120: 182}
 
 
 def _update_num(match, shift=120,
-                tad_repl_dict=d_cgenff_ptad_repls):
+                cat_repl_dict=d_cgenff_ptad_repls):
     """
     Return a string with an updated number based on atom-index changes
 
@@ -154,7 +154,7 @@ def _update_num(match, shift=120,
         In most use cases, the catalyst was the first molecule, and gets moved
         to after the reactants. If it gets moved to after the reactants,
         the is the number of atoms in the original catalyst.
-    :param dict[int, int] tad_repl_dict: Default: d_cgenff_ptad_repls. dict
+    :param dict[int, int] cat_repl_dict: Default: d_cgenff_ptad_repls. dict
         of atom index replacements to do for the catalyst.
     :rtype: str
     :return: pre-string combined with the new atom index
@@ -165,7 +165,7 @@ def _update_num(match, shift=120,
     except ValueError:
         raise ValueError('"{}" cannot be converted to a valid int'.format(s))
     if n < shift+1:
-        out = tad_repl_dict[n]
+        out = cat_repl_dict[n]
     else:
         out = n - shift
     return pre + str(out)
