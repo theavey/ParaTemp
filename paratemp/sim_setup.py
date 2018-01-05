@@ -31,6 +31,7 @@ import re
 import shutil
 import subprocess
 from typing import Callable, Iterable, Match
+import warnings
 
 from .tools import _BlankStream, _replace_string_in_file
 from .exceptions import InputError
@@ -65,11 +66,17 @@ def get_n_solvent(folder, solvent='DCM'):
     """
     Find the number of solvent molecules of given type in topology file.
 
+    Note, this function is being deprecated in favor of the more general
+    function get_solv_count_top, which takes the strengths of this function
+    while also allowing for specification of an exact top file.
+
     :param str folder: The folder in which to look for a file ending in '.top'.
     :param str solvent: Default: 'DCM'
     :return: The number of solvent molecules.
     :rtype: int
     """
+    warnings.warn('This function is deprecated. Please use '
+                  'get_solv_count_top', DeprecationWarning)
     re_n_solv = re.compile('(?:^\s*{}\s+)(\d+)'.format(solvent))
     with cd(folder):
         f_top = glob.glob('*.top')
@@ -86,6 +93,137 @@ def get_n_solvent(folder, solvent='DCM'):
             else:
                 # Not the right error, but fine for now
                 raise ValueError("Didn't find n_solv in {}".format(folder))
+
+
+def get_solv_count_top(n_top=None, folder=None, res_name='DCM'):
+    """
+    Find the number of solvent molecules of given residue in topology file.
+
+    :param str n_top: Default: None. Name (and path) of the topology file. If
+        None, folder will be used, but this argument takes priority.
+    :param str folder: Default: None. If n_top is not provided, this is the
+        folder that will be searched for a file ending in '.top' to be searched.
+    :param str res_name: Default: 'DCM'. Name of the residue to look for in
+        the topology file. This is case insensitive (the re.IGNORECASE flag
+        is used).
+    :return: The found number of solvent molecules in the topology file.
+    :rtype: int
+    :raises ValueError: This is raised if more than one topology is found in
+        the given folder.
+    :raises RuntimeError: This is raised if the regex is unable to find the
+        line with the solvent count. This could also be raised if it cannot find
+        the molecules section.
+    """
+    re_n_solv = re.compile(r'(?:^\s*{}\s+)(\d+)'.format(res_name),
+                           flags=re.IGNORECASE)
+    n_top = _get_n_top(folder, n_top)
+    with open(n_top, 'r') as in_top:
+        mol_section = False
+        for line in in_top:
+            if line.strip().startswith(';'):
+                pass
+            elif not mol_section:
+                if re.search(r'\[\s*molecules\s*\]', line,
+                             flags=re.IGNORECASE):
+                    mol_section = True
+            else:
+                solv_match = re_n_solv.search(line)
+                if solv_match:
+                    return int(solv_match.group(1))
+        else:
+            # Not the right error, but fine for now
+            raise RuntimeError('Did not find a line with the solvent count in '
+                               '{}'.format(n_top))
+
+
+def _get_n_top(folder, n_top):
+    """
+
+    :param str folder:
+    :param str n_top:
+    :return:
+    :rtype: str
+    :raises ValueError: This is raised if more than one topology is found in
+        the given folder.
+    """
+    if n_top is None:
+        if folder is None:
+            raise InputError('Either folder or n_top must be specified')
+        with cd(folder):
+            n_top = glob.glob('*.top')
+            if len(n_top) != 1:
+                raise ValueError(
+                    'Found {} .top files in {}\n'.format(len(n_top), folder) +
+                    'Only can deal with 1')
+            else:
+                n_top = os.path.abspath(n_top[0])
+    return n_top
+
+
+def set_solv_count_top(n_top=None, folder=None, s_count=0,
+                       res_name='DCM', prepend='unequal-', verbose=True):
+    """
+    Set the number of solvent molecules for a given residue in topology file.
+
+    If the count of the solvent as found with get_solv_count_top is already
+    equal to s_count, nothing will changed or copied.
+
+    :param str n_top: Default: None. Name (and path) of the topology file. If
+        None, folder will be used, but this argument takes priority.
+    :param str folder: Default: None. If n_top is not provided, this is the
+        folder that will be searched for a file ending in '.top' to be used.
+    :param int s_count: Default: 0. The count of solvent molecules to be set
+        in the topology file.
+    :param str res_name: Default: 'DCM'. Name of the residue to look for in
+        the topology file. This is case insensitive (this and the line will
+        be made lower case when searching for it).
+    :param str prepend: Default: 'unequal-'. The string to prepend to the
+        topology file name when copying it (to keep a copy of the original).
+    :param bool verbose: Default: True. If True, messages will be printed if
+        no changes need to be made or after the changes have successfully been
+        made.
+    :return: None
+    :raises RuntimeError: This is raised if the it is unable to find the
+        line with the solvent count. This could also be raised if it cannot find
+        the molecules section.
+    """
+    n_top = _get_n_top(folder, n_top)
+    if s_count == get_solv_count_top(n_top=n_top, res_name=res_name):
+        if verbose:
+            print('Solvent count in {} already set at {}'.format(
+                        os.path.relpath(n_top), str(s_count)) +
+                  '\nNot copying or changing file.')
+        return None
+    bak_name = os.path.join(os.path.dirname(n_top),
+                            prepend+os.path.basename(n_top))
+    copy_no_overwrite(n_top, bak_name)
+    with open(n_top, 'r') as in_top:
+        lines = in_top.readlines()
+    with open(n_top, 'w') as out_top:
+        mol_section = False
+        done = False
+        for line in lines:
+            if line.strip().startswith(';'):
+                pass
+            elif not mol_section:
+                if re.search(r'\[\s*molecules\s*\]', line,
+                             flags=re.IGNORECASE):
+                    mol_section = True
+            elif not done and res_name.lower() in line.lower():
+                line = re.sub(r'\d+', str(s_count), line)
+                done = True
+            out_top.write(line)
+    if not done:
+        # Not the right error, but fine for now
+        raise RuntimeError('Did not find a line with the solvent count'
+                           ' in {}'.format(n_top))
+    elif verbose:
+        print('Solvent count in {} set at {}'.format(
+                    os.path.relpath(n_top), str(s_count)) +
+              '\nOriginal copied to {}.'.format(
+                    os.path.relpath(bak_name)
+              ))
+    return None
 
 
 def copy_topology(f_from, f_to, overwrite=False):
