@@ -24,8 +24,9 @@
 
 from __future__ import absolute_import
 
-import re
+import os
 import pytest
+import re
 
 
 def test_job_info_from_qsub():
@@ -81,3 +82,39 @@ class TestUpdateNum(object):
             _update_num(match_bad_few)
         with pytest.raises(ValueError, match='too many.*unpack'):
             _update_num(match_bad_many)
+
+
+@pytest.fixture
+def n_top_dc():
+    path = 'tests/test-data/ptad-cin-cg.top'
+    b_path = os.path.join(os.path.dirname(path),
+                          'unequal-'+os.path.basename(path))
+    yield os.path.abspath(path)
+    if os.path.isfile(b_path):
+        os.rename(b_path, path)
+
+
+@pytest.fixture
+def folder_dc(n_top_dc):
+    return os.path.dirname(n_top_dc)
+
+
+class TestGetSolvCountTop(object):
+
+    def test_get_solv_count_top(self, n_top_dc, folder_dc):
+        from ..paratemp.sim_setup import get_solv_count_top
+        assert get_solv_count_top(n_top_dc) == 361
+        assert get_solv_count_top(folder=folder_dc) == 361
+
+
+class TestSetSolvCountTop(object):
+
+    def test_set_solv_count_top_n(self, n_top_dc):
+        from ..paratemp.sim_setup import set_solv_count_top, get_solv_count_top
+        set_solv_count_top(n_top_dc, s_count=100)
+        assert get_solv_count_top(n_top_dc) == 100
+
+    def test_set_solv_count_top_folder(self, folder_dc, n_top_dc):
+        from ..paratemp.sim_setup import set_solv_count_top, get_solv_count_top
+        set_solv_count_top(folder=folder_dc, s_count=50)
+        assert get_solv_count_top(n_top_dc) == 50

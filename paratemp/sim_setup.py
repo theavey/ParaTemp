@@ -99,6 +99,10 @@ def get_solv_count_top(n_top=None, folder=None, res_name='DCM'):
     """
     Find the number of solvent molecules of given residue in topology file.
 
+    All lines that start with a semicolon or whitespace followed by a
+    semicolon will be automatically ignored (semicolons are the comment
+    characters in topology files).
+
     :param str n_top: Default: None. Name (and path) of the topology file. If
         None, folder will be used, but this argument takes priority.
     :param str folder: Default: None. If n_top is not provided, this is the
@@ -116,7 +120,7 @@ def get_solv_count_top(n_top=None, folder=None, res_name='DCM'):
     """
     re_n_solv = re.compile(r'(?:^\s*{}\s+)(\d+)'.format(res_name),
                            flags=re.IGNORECASE)
-    n_top = _get_n_top(folder, n_top)
+    n_top = _get_n_top(n_top, folder)
     with open(n_top, 'r') as in_top:
         mol_section = False
         for line in in_top:
@@ -136,12 +140,13 @@ def get_solv_count_top(n_top=None, folder=None, res_name='DCM'):
                                '{}'.format(n_top))
 
 
-def _get_n_top(folder, n_top):
+def _get_n_top(n_top, folder):
     """
+    Get path and name of topology file
 
-    :param str folder:
-    :param str n_top:
-    :return:
+    :param str n_top: None or path and file name of topology file.
+    :param str folder: None or folder containing one topology file.
+    :return: path to the topology file
     :rtype: str
     :raises ValueError: This is raised if more than one topology is found in
         the given folder.
@@ -168,6 +173,10 @@ def set_solv_count_top(n_top=None, folder=None, s_count=0,
     If the count of the solvent as found with get_solv_count_top is already
     equal to s_count, nothing will changed or copied.
 
+    All lines that start with a semicolon or whitespace followed by a
+    semicolon will be automatically ignored (semicolons are the comment
+    characters in topology files).
+
     :param str n_top: Default: None. Name (and path) of the topology file. If
         None, folder will be used, but this argument takes priority.
     :param str folder: Default: None. If n_top is not provided, this is the
@@ -187,7 +196,7 @@ def set_solv_count_top(n_top=None, folder=None, s_count=0,
         line with the solvent count. This could also be raised if it cannot find
         the molecules section.
     """
-    n_top = _get_n_top(folder, n_top)
+    n_top = _get_n_top(n_top, folder)
     if s_count == get_solv_count_top(n_top=n_top, res_name=res_name):
         if verbose:
             print('Solvent count in {} already set at {}'.format(
