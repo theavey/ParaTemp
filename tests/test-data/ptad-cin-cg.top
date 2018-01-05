@@ -1,0 +1,29 @@
+#include "/usr3/graduate/theavey/FFs/charmm36-nov2016.ff/forcefield.itp"
+
+; additional params for the molecule
+; 3HTMF parameters
+#include "3htmf.prm"
+; cinnamate parameters
+#include "cinna.prm"
+; catalyst parameters
+#include "tad.prm"
+; DCM parameters
+#include "dcm.prm"
+
+; Molecule structures
+#include "3htmf.itp"
+#include "cinna.itp"
+#include "tad.itp"
+#include "dcm.itp"
+
+;
+[ system ]
+; Name
+ptad_reaction
+
+[ molecules ]
+; Compound		  #mols
+3htmf			1
+cinna                   1
+tad                     1
+dcm                     361
