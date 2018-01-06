@@ -177,14 +177,14 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
         if floats are okay).
     :type time: str or int
     :param str working_dir: Default: None. If given, this directory will be
-        chnaged into and work will continue there. As long as sub_script is
-        given relative to the current directory at function execution,
-        it will still be found when needed later.
+        changed into and work will continue there.
         If working_dir is None, the working dir will be taken to be the
         directory one directory above the location given in base_name.
     :param str sub_script: Default: None. Name of the submission script. If
         given, the script will be edited to match the new name of the extended
         tpr files.
+        sub_script can be given as an absolute path or relative to current
+        directory (first priority) or relative to working_dir (checked second).
     :param bool submit: Default: False. If true, the job will be submitted to
         the queuing system.
     :param str extend_infix: Default: '-extend'. str to put into the name of the
@@ -207,7 +207,14 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
     else:
         _working_dir = working_dir
     if sub_script is not None:
-        _sub_script = os.path.abspath(sub_script)
+        second_poss = os.path.abspath(os.path.join(_working_dir, sub_script))
+        if os.path.isfile(sub_script):
+            _sub_script = os.path.abspath(sub_script)
+        elif os.path.isfile(second_poss):
+            _sub_script = second_poss
+        else:
+            raise OSError(2, 'Submit script not found relative to here or '
+                             'working_dir.')
     else:
         _sub_script = None  # Only needed so the IDE stops bothering me
     _time = str(time)
