@@ -193,13 +193,13 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
     :param bool first_extension: Default: True. If True, '-cpi {checkpoint
         base name}' will be added to the submission script so that it becomes a
         run continuation.
-    :param str cpt_base: Default: npt. The first part of the name of the
+    :param str cpt_base: Default: 'npt'. The first part of the name of the
         checkpoint files that will end in '{number}.cpt'. The full checkpoint
         base_name will be found using _find_cpt_base.
     :param bool verbose: Default: True. If True, a lot more status information
         will be printed.
-    :param str log: Name of file to which to log information on this process and
-        output from GROMACS tools.
+    :param str log: Default: 'extend-tprs.log'. Name of file to which to log
+        information on this process and output from GROMACS tools.
     :return: None
     """
     _tpr_dir, _rel_base_name = os.path.split(os.path.abspath(base_name))
