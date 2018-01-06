@@ -25,6 +25,7 @@
 # This is written to work with python 3 because it should be good to
 # be working on the newest version of python.
 
+import errno
 import glob
 import os
 import re
@@ -213,8 +214,8 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
         elif os.path.isfile(second_poss):
             _sub_script = second_poss
         else:
-            raise OSError(2, 'Submit script not found relative to here or '
-                             'working_dir.')
+            raise OSError(errno.ENOENT, 'Submit script not found relative to '
+                                        'here or working_dir.')
     else:
         _sub_script = None  # Only needed so the IDE stops bothering me
     _time = str(time)

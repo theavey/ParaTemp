@@ -26,6 +26,7 @@ Common tools for general use, largely file/path management
 ########################################################################
 
 
+import errno
 import os
 import shutil
 from contextlib import contextmanager
@@ -45,7 +46,7 @@ def cd(new_dir):
 def copy_no_overwrite(src, dst, silent=False):
     exists = False
     if os.path.isdir(src):
-        raise OSError(21, 'Is a directory: {}'.format(src))
+        raise OSError(errno.EISDIR, 'Is a directory: {}'.format(src))
     elif os.path.isdir(dst):
         if os.path.isfile(os.path.join(dst, os.path.basename(src))):
             exists = True
@@ -55,7 +56,7 @@ def copy_no_overwrite(src, dst, silent=False):
         if silent:
             return dst
         else:
-            raise OSError(17, 'File already exists', dst)
+            raise OSError(errno.EEXIST, 'File already exists', dst)
     else:
         return shutil.copy(src, dst)
 
