@@ -380,7 +380,8 @@ def update_plumed_input(n_plu_in, n_plu_out,
     if num_updater_kwargs is None:
         _num_updater = num_updater
     else:
-        def _num_updater(n): num_updater(n, **num_updater_kwargs)
+        def _num_updater(n):
+            num_updater(n, **num_updater_kwargs)
     with open(n_plu_in, 'r') as from_file, \
             open(n_plu_out, 'w') as to_file:
         for line in from_file:
