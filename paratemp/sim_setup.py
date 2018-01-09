@@ -234,7 +234,13 @@ def set_solv_count_top(n_top=None, folder=None, s_count=0,
 
 
 def copy_topology(f_from, f_to, overwrite=False):
-    os.makedirs(f_to, exist_ok=True)
+    try:
+        os.makedirs(f_to)
+    except OSError as e:
+        if e.errno == 17:
+            pass  # Ignore FileExistsError
+        else:
+            raise
     to_copy = glob.glob(f_from+'/*.top')
     to_copy += glob.glob(f_from+'/*.itp')
     for path in to_copy:
