@@ -592,13 +592,14 @@ class _WRBase(object):
             plot_std_dev_of_time.
         :return: plot_std_dev_of_time()
         """
+        p_kwargs = dict(ax=ax, xlabel=xlabel, ylabel=ylabel)
         if n_cuts == self._std_dev_of_t_cuts:
             _data = self._std_dev_of_t or self.std_dev_of_time()
         else:
             _data = self.std_dev_of_time(n_cuts, set_internally)
-        for arg_n in 'ax', 'xlabel', 'ylabel':
-            if eval(arg_n) is not None:
-                kwargs[arg_n] = eval(arg_n)
+        for key in p_kwargs:
+            if p_kwargs[key] is not None:
+                kwargs[key] = p_kwargs[key]
         return plot_std_dev_of_time(_data, **kwargs)
 
 
