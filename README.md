@@ -12,7 +12,7 @@ It is in part specialized for analyzing trajectories of TADDOL-catalyzed
 reactions, though I hope to generalize it more.
 
 All simulations have so far been from GROMACS, but with the powerful
-generality of [MDAnalysis](http://www.mdanalysis.org/), that should not
+generality of [MDAnalysis](https://www.mdanalysis.org/), that should not
 be a particular constraint for using this software.
 
 This package depends on MDAnalysis, NumPy, pandas, panedr, and
