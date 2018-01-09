@@ -89,9 +89,8 @@ def get_n_solvent(folder, solvent='DCM'):
                 solv_match = re_n_solv.search(line)
                 if solv_match:
                     return int(solv_match.group(1))
-            else:
-                # Not the right error, but fine for now
-                raise ValueError("Didn't find n_solv in {}".format(folder))
+            # Not the right error, but fine for now
+            raise ValueError("Didn't find n_solv in {}".format(folder))
 
 
 def get_solv_count_top(n_top=None, folder=None, res_name='DCM'):
@@ -133,10 +132,9 @@ def get_solv_count_top(n_top=None, folder=None, res_name='DCM'):
                 solv_match = re_n_solv.search(line)
                 if solv_match:
                     return int(solv_match.group(1))
-        else:
-            # Not the right error, but fine for now
-            raise RuntimeError('Did not find a line with the solvent count in '
-                               '{}'.format(n_top))
+        # Not the right error, but fine for now
+        raise RuntimeError('Did not find a line with the solvent count in '
+                           '{}'.format(n_top))
 
 
 def _get_n_top(n_top, folder):
