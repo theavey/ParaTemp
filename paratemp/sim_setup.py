@@ -337,6 +337,7 @@ d_equil_repls = {'dm2:': ['72', '71'],
 def update_plumed_input(n_plu_in, n_plu_out,
                         change_keys=c_line_keywords,
                         num_updater=_update_num,
+                        num_updater_kwargs=None,
                         delete_keys=d_line_keywords,
                         equil=False,
                         equil_changes=None):
@@ -357,6 +358,10 @@ def update_plumed_input(n_plu_in, n_plu_out,
         pre-string that should be returned as-is, and the second will be a
         string of an int that should be changed based on how the atom indices
         have changed.
+    :type num_updater_kwargs: dict or None
+    :param num_updater_kwargs: Default: None. If this is None (default),
+        num_updater will be used as is.
+        If this is given, the dict will be expanded as kwargs to num_updater.
     :type delete_keys: set[str] or Iterable[str]
     :param delete_keys: Keywords to look for in lines that should be deleted.
         Note, these need to be found space separated in the lines to be deleted.
@@ -372,12 +377,16 @@ def update_plumed_input(n_plu_in, n_plu_out,
     if equil and equil_changes is None:
         raise InputError('None', 'equil_changes must be defined when equil is '
                                  'True')
+    if num_updater_kwargs is None:
+        _num_updater = num_updater
+    else:
+        def _num_updater(n): num_updater(n, **num_updater_kwargs)
     with open(n_plu_in, 'r') as from_file, \
             open(n_plu_out, 'w') as to_file:
         for line in from_file:
             c_key_match = set(line.split()) & set(change_keys)
             if c_key_match:
-                line = re.sub(r'([=,-])(\d+)', num_updater, line)
+                line = re.sub(r'([=,-])(\d+)', _num_updater, line)
                 if equil:
                     if len(c_key_match) > 1:
                         raise KeyError('More than one keyword matched in '

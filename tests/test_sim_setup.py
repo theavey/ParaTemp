@@ -64,7 +64,7 @@ class TestUpdateNum(object):
     def test_update_num(self, match_10, rd1030):
         from ..paratemp.sim_setup import _update_num
         assert '=30' == _update_num(match_10, shift=10, cat_repl_dict=rd1030)
-        assert '=1' == _update_num(match_10, shift=9)
+        assert '=1' == _update_num(match_10, shift=9, cat_repl_dict=dict())
         assert '=1' == _update_num(match_10, shift=9, cat_repl_dict=rd1030)
 
     def test_update_num_raises(self, match_10, match_text, match_float,
@@ -74,14 +74,14 @@ class TestUpdateNum(object):
             _update_num(match_10, shift=10, cat_repl_dict=dict())
         with pytest.raises(ValueError,
                            match='cannot be converted to a valid int'):
-            _update_num(match_text)
+            _update_num(match_text, cat_repl_dict=dict())
         with pytest.raises(ValueError,
                            match='cannot be converted to a valid int'):
-            _update_num(match_float)
+            _update_num(match_float, cat_repl_dict=dict())
         with pytest.raises(ValueError, match='unpack'):
-            _update_num(match_bad_few)
+            _update_num(match_bad_few, cat_repl_dict=dict())
         with pytest.raises(ValueError, match='too many.*unpack'):
-            _update_num(match_bad_many)
+            _update_num(match_bad_many, cat_repl_dict=dict())
 
 
 @pytest.fixture
