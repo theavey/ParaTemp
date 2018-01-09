@@ -257,7 +257,7 @@ def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
         print('These values should be about the same if this is working'
               ' properly')
 
-    from numpy import array, arange
+    from numpy import arange
     energies_array = array(energies_panel)[:, :e_end:e_freq][
         indexer[:, :i_end:i_freq], arange(i_end/i_freq)]
     from pandas import Panel
