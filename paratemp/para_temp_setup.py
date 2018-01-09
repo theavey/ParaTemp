@@ -297,9 +297,8 @@ def _find_cpt_base(cpt_base):
         match = re.match(r'({}.*?)\d{}\.cpt'.format(cpt_base, '{1,3}'), f_name)
         if match:
             return match.group(1)
-    else:
-        raise ValueError('No checkpoint file name found based on the base '
-                         'name {}.'.format(cpt_base))
+    raise ValueError('No checkpoint file name found based on the base '
+                     'name {}.'.format(cpt_base))
 
 
 def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
