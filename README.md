@@ -1,4 +1,7 @@
+[![Build Status](https://travis-ci.org/theavey/ParaTemp.svg?branch=master)](https://travis-ci.org/theavey/ParaTemp)
+[![Code Health](https://landscape.io/github/theavey/ParaTemp/master/landscape.svg?style=flat)](https://landscape.io/github/theavey/ParaTemp/master)
 [![DOI](https://zenodo.org/badge/64339257.svg)](https://zenodo.org/badge/latestdoi/64339257)
+[![License](http://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat)](https://github.com/theavey/ParaTemp/blob/master/LICENSE)
 
 This is a package with many tools, functions, and some classes for
 analyzing and running molecular dynamics trajectories.
