@@ -150,7 +150,8 @@ def _get_n_top(n_top, folder):
     """
     if n_top is None:
         if folder is None:
-            raise InputError('Either folder or n_top must be specified')
+            raise InputError('None', 'Either folder or n_top must be '
+                             'specified')
         with cd(folder):
             n_top = glob.glob('*.top')
             if len(n_top) != 1:
