@@ -28,12 +28,11 @@ A set of functions for setuping up GROMACS simulations
 import glob
 import os
 import re
-import shutil
 import subprocess
 from typing import Callable, Iterable, Match
 import warnings
 
-from .tools import _BlankStream, _replace_string_in_file
+from .tools import _BlankStream
 from .exceptions import InputError
 from .tools import cd, copy_no_overwrite
 
