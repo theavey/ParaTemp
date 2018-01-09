@@ -45,10 +45,9 @@ with cd(temp_dir):
                     final_time = '{:.0f}'.format(float(final_time)/1000)
                 except AttributeError:
                     continue
-            else:
-                if final_time is None:
-                    print("Couldn't find final time from log file.")
-                    final_time = 'unk'
+            if final_time is None:
+                print("Couldn't find final time from log file.")
+                final_time = 'unk'
     else:
         colvars = dict()
         for i in range(16):
