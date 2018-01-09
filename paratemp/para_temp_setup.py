@@ -371,7 +371,7 @@ def cleanup_bad_gromacs_restart(out_base, working_dir='./', list_files=True,
             print('Found {} "bad" and {} "good" files.'.format(len(
                 bad_files), len(good_files)))
         match_dict = dict()
-        unmatched_good, matched_bad = list(), list()
+        unmatched_good = list()
         unmatched_bad = list(bad_files)
         for g_name in good_files:
             poss_bad_name = g_name[1:-3]  # remove # from start and end and .1
