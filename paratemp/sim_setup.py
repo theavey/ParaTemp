@@ -289,7 +289,7 @@ d_cgenff_ptad_repls = {1: 63, 9: 69, 8: 72, 120: 182}
 
 
 def _update_num(match, shift=120,
-                cat_repl_dict=d_cgenff_ptad_repls):
+                cat_repl_dict=None):
     """
     Return a string with an updated number based on atom-index changes
 
@@ -305,11 +305,15 @@ def _update_num(match, shift=120,
         In most use cases, the catalyst was the first molecule, and gets moved
         to after the reactants. If it gets moved to after the reactants,
         the is the number of atoms in the original catalyst.
-    :param dict[int, int] cat_repl_dict: Default: d_cgenff_ptad_repls. dict
-        of atom index replacements to do for the catalyst.
+    :param dict[int, int] cat_repl_dict: Default: None. dict of atom index
+        replacements to do for the catalyst.
+        This module does define d_cgenff_ptad_repls, which is an example of
+        this argument.
     :rtype: str
     :return: pre-string combined with the new atom index
     """
+    if cat_repl_dict is None:
+        raise InputError('None', 'cat_repl_dict must be defined')
     pre, s = match.groups()
     try:
         n = int(s)
@@ -322,10 +326,10 @@ def _update_num(match, shift=120,
     return pre + str(out)
 
 
-c_line_keywords = {'WHOLEMOLECULES', 'c1:', 'c2:',
-                   'g1:', 'g2:', 'g3:', 'g4:',
-                   'dm1:', 'dm2:'}
-d_line_keywords = {'tr5:', 'tr6:', 'FILE=COLVAR'}
+c_line_keywords = frozenset({'WHOLEMOLECULES', 'c1:', 'c2:',
+                             'g1:', 'g2:', 'g3:', 'g4:',
+                             'dm1:', 'dm2:'})
+d_line_keywords = frozenset({'tr5:', 'tr6:', 'FILE=COLVAR'})
 d_equil_repls = {'dm2:': ['72', '71'],
                  'dm1:': ['40', '12']}
 
@@ -335,7 +339,7 @@ def update_plumed_input(n_plu_in, n_plu_out,
                         num_updater=_update_num,
                         delete_keys=d_line_keywords,
                         equil=False,
-                        equil_changes=d_equil_repls):
+                        equil_changes=None):
     """
     Write a changed PLUMED input based on a previous PLUMED input
 
@@ -359,11 +363,15 @@ def update_plumed_input(n_plu_in, n_plu_out,
     :param bool equil: Default: False. If True, other specified changes can be
         made to produce PLUMED input suitable for equilibration before a
         production run
-    :param dict equil_changes: dict with changes to make for equilibration
-        PLUMED input. Note, the keys in this dict must match an appropriate
-        key in change_keys for this to work currently.
+    :param dict equil_changes: Default: None. dict with changes to make for
+        equilibration PLUMED input. Note, the keys in this dict must match an
+        appropriate key in change_keys for this to work currently.
+        In this module, d_equil_repls is an example of a dict for this argument.
     :return: None
     """
+    if equil and equil_changes is None:
+        raise InputError('None', 'equil_changes must be defined when equil is '
+                                 'True')
     with open(n_plu_in, 'r') as from_file, \
             open(n_plu_out, 'w') as to_file:
         for line in from_file:
