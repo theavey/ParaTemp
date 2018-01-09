@@ -1348,8 +1348,8 @@ def get_taddol_pi_dists(universe, sel_dict=False):
     return array(output)
 
 
-def plot_dist_array(array, index_offset=1, num_data_rows=False,
-                    n_rows=False, n_cols=False):
+def plot_dist_array(array, index_offset=1, num_data_rows=None,
+                    n_rows=None, n_cols=None):
     """
     Puts each row of array in a different axes of a figure. Return figure.
 
@@ -1363,7 +1363,7 @@ def plot_dist_array(array, index_offset=1, num_data_rows=False,
     if not num_data_rows:
         num_data_rows = array.shape[1] - index_offset
     from math import sqrt, ceil
-    if n_rows == n_cols == False:
+    if n_rows is None and n_cols is None:
         n_rows = int(ceil(sqrt(float(num_data_rows))))
         n_cols = n_rows
     from matplotlib.pyplot import subplots
