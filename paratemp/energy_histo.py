@@ -251,8 +251,8 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
     return deconvolved_energies
 
 
-def plot_array(array, index_offset=0, num_replicas=False, n_rows=False,
-               n_cols=False):
+def plot_array(array, index_offset=0, num_replicas=None, n_rows=None,
+               n_cols=None):
     """plot_array(array, index_offset=0, num_replicas=16, n_rows=False,
     n_cols=False)
     will put each column of array in a different axes of a figure and then
@@ -260,7 +260,7 @@ def plot_array(array, index_offset=0, num_replicas=False, n_rows=False,
     if not num_replicas:
         num_replicas = array.shape[0] - index_offset
     from math import sqrt, ceil
-    if n_rows == n_cols == False:
+    if n_rows is None and n_cols is None:
         n_rows = int(ceil(sqrt(float(num_replicas))))
         n_cols = n_rows
     fig, axes = plt.subplots(n_rows, n_cols, sharex=True, sharey=True)
