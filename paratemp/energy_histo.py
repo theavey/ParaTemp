@@ -159,15 +159,27 @@ def combine_energy_files(basename='energy', files=False):
 
 def deconvolve_energies(energyfile='energy_comb.xvg',
                         indexfile='replica_temp.xvg'):
-    """deconvolve_energies(energyfile='energy_comb.xvg',
-    indexfile='replica_temp.xvg') is a function that takes an xvg file that
+    """
+    Take an xvg file and return an array of the energies of the walkers.
+
+    deconvolve_energies is a function that takes an xvg file that
     has n columns of energies likely from a replica exchange simulation where
     each replica remains at a constant temperature (as GROMACS does) and
     using the n data columns of an index xvg file returns an array of the
     energies where each row is now from one 'walker' (continuous coordinates
     taken by sampling various temperatures or other replica conditions).
     Each input file is expected to have an index column showing the time step,
-    but this index is not included in the output."""
+    but this index is not included in the output.
+
+    :param str energyfile: Default: 'energy_comb.xvg'. XVG file with energies of
+        of the replicas as a function of time, such as one written by
+        combine_energy_files.
+    :param str indexfile: Default: 'replica_temp.xvg'. XVG file with the
+        index of each walker as a function of time. This is used to tell
+        which walker is in each replica at each point in time.
+    :return: An array with the energies of the walkers as separate rows
+    :rtype: numpy.ndarray
+    """
     energies_indexed = gromacs.formats.XVG(filename=energyfile).array
     indices_indexed = gromacs.formats.XVG(filename=indexfile).array.astype(int)
     # todo check for relative start/end points automatically
@@ -253,10 +265,20 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
 
 def plot_array(array, index_offset=0, num_replicas=None, n_rows=None,
                n_cols=None):
-    """plot_array(array, index_offset=0, num_replicas=16, n_rows=False,
-    n_cols=False)
-    will put each column of array in a different axes of a figure and then
-    return the figure."""
+    """
+    Plot each row of array in a different axes of a figure; return figure.
+
+    :param numpy.ndarray array: Data to be plotted. Each row will be
+        plotted in its own axes.
+    :param int index_offset: Default: 0. The number of index rows
+    :param int num_replicas: If None (default), this will be found from the
+        shape of the array passed in.
+    :param int n_rows: If None (default), a square large enough to fit all
+        the replicas will be made.
+    :param int n_cols: If None (default), a square large enough to fit all
+        the replicas will be made.
+    :return: Figure with plots in separate axes.
+    :rtype: matplotlib.figure.Figure"""
     if not num_replicas:
         num_replicas = array.shape[0] - index_offset
     from math import sqrt, ceil
@@ -272,10 +294,22 @@ def plot_array(array, index_offset=0, num_replicas=None, n_rows=None,
 
 def hist_array(array, index_offset=0, num_replicas=None, n_rows=None,
                n_cols=None, n_bins=10):
-    """hist_array(array, index_offset=0, num_replicas=16, n_rows=False,
-    n_cols=False, n_bins=10) will put each column of array in a different
-    axes of a figure and
-    then return the figure."""
+    """
+    Histogram each row of array in a different axes of a figure; return figure.
+
+    :param numpy.ndarray array: Data to be plotted. Each row will be
+        histogrammed in its own axes.
+    :param int index_offset: Default: 0. The number of index rows
+    :param int num_replicas: If None (default), this will be found from the
+        shape of the array passed in.
+    :param int n_rows: If None (default), a square large enough to fit all
+        the replicas will be made.
+    :param int n_cols: If None (default), a square large enough to fit all
+        the replicas will be made.
+    :param int n_bins: Default: 10. The number of bins for the histograms
+    :return: Figure with histograms in separate axes.
+    :rtype: matplotlib.figure.Figure
+    """
     if not num_replicas:
         num_replicas = array.shape[0] - index_offset
     from math import sqrt, ceil
@@ -290,12 +324,23 @@ def hist_array(array, index_offset=0, num_replicas=None, n_rows=None,
 
 
 def hist_multi(array, index_offset=1, n_bins=10):
-    """hist_multi(array, *kwargs) takes an array and returns a pyplot figure.
+    """
+    Histogram rows of an array in a single axes
+
+    Takes an array and returns a pyplot figure.
     This figure is a histogram of each column of the array in a single pyplot
     axis.
     This is likely most useful for using combined energies from some sort of
     replica exchange method and ensure that the energy histograms have
-    sufficient overlap for frequent exchanges"""
+    sufficient overlap for frequent exchanges
+
+    :param numpy.ndarray array: Data to be plotted. Each row will be
+        histogrammed in its own color.
+    :param int index_offset: Default: 0. The number of index rows
+    :param int n_bins: Default: 10. The number of bins for the histograms
+    :return: Figure with histograms in a single axes.
+    :rtype: matplotlib.figure.Figure
+    """
     fig, axes = plt.subplots(1, 1)
     axes.hist(array[index_offset:], n_bins, histtype='stepfilled')
     return fig
