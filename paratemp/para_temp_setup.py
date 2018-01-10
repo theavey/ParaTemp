@@ -174,9 +174,8 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
         will cause issues when adding the infix if the file name doesn't fit
         the pattern of '{base_name}{number}.tpr'.
     :param time: Amount of time in picoseconds by which to extend the job. This
-        will be cast to a string, so an int or string should be fine (not sure
-        if floats are okay).
-    :type time: str or int
+        will be cast to a string, so an int, string, or float should be fine.
+    :type time: str or int or float
     :param str working_dir: Default: None. If given, this directory will be
         changed into and work will continue there.
         If working_dir is None, the working dir will be taken to be the
@@ -234,7 +233,7 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
                                 tpr_groups.group(2))
                 _extend_tpr(tpr_name, new_tpr_name, _time, _log)
             if verbose:
-                print(' '*4+'Done extending tpr files.')
+                print(' '*4 + 'Done extending tpr files.')
         if sub_script is not None:
             _sub_script = os.path.relpath(_sub_script)
             if verbose:
@@ -242,7 +241,7 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
                       '{} for new tpr names with {}'.format(_sub_script,
                                                             extend_infix))
             _replace_string_in_file(_rel_base_name + ' ', _rel_base_name +
-                                    extend_infix +' ', _sub_script, _log)
+                                    extend_infix + ' ', _sub_script, _log)
             if first_extension:
                 _cpt_base = _find_cpt_base(cpt_base)
                 _add_cpt_to_sub_script(_sub_script, _cpt_base, _log)
