@@ -17,4 +17,5 @@ be a particular constraint for using this software.
 
 This package depends on MDAnalysis, NumPy, pandas, panedr, and
 gromacswrapper.
+The dependencies are listed in [requirements.txt](./requirements.txt).
 Most if not all should be installable with conda.
