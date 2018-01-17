@@ -427,45 +427,45 @@ class Universe(MDa.Universe):
         plot FES in 2D along defined values
 
         :param x: Value along x axis to plot. If a string is given, the data
-        will be taken from self.data[x].
+            will be taken from self.data[x].
         :type x: Iterable or str
         :param y: Value along y axis to plot. If a string is given, the data
-        will be taken from self.data[y].
+            will be taken from self.data[y].
         :type y: Iterable or str
         :param float temp: Default: None. Temperature for Boltzmann weighting
-        calculation.
-        If None is provided, the temperature will be taken from
-        self._temperature
+            calculation.
+            If None is provided, the temperature will be taken from
+            self._temperature
         :param matplotlib.axes.Axes ax: Default: None. Axes on which to make
-        the FES. If None, a new axes and figure will be created.
+            the FES. If None, a new axes and figure will be created.
         :param Iterable bins: Default: None. The bins to be used for the z
-        ranges. If this is not None, zrange and zfinal are ignored.
+            ranges. If this is not None, zrange and zfinal are ignored.
         :param zrange: Default: (0, 20, 11). Input to np.linspace for
-        determining contour levels. If a float-like is given, it will be set as
-        the max with 11+1 bins. If a len=2 list-like is given, it will be used
-        as the min and max with 11+1 bins. Otherwise, the input will be used
-        as-is for input to np.linspace.
+            determining contour levels. If a float-like is given, it will be set
+            as the max with 11+1 bins. If a len=2 list-like is given, it will be
+            used as the min and max with 11+1 bins. Otherwise, the input will
+            be used as-is for input to np.linspace.
         :type zrange: Iterable or Float
         :param zfinal: Default: 40. Energy at which to stop coloring the FES.
-        Anything above this energy will appear as white.
+            Anything above this energy will appear as white.
         :param int n_bins: Default: 32. Number of bins in x and y for
-        histogramming.
+            histogramming.
         :param bool transpose: Default: False. Whether to transpose the data
-        and axes such that the input x will be along the y axis and the
-        inverse. Note, this also makes the xlabel on the y-axis and the
-        inverse.
+            and axes such that the input x will be along the y axis and the
+            inverse. Note, this also makes the xlabel on the y-axis and the
+            inverse.
         :param str xlabel: Default: 'x'. Label for x-axis (or y-axis if
-        transpose=True).
+            transpose=True).
         :param str ylabel: Default: 'y'. Label for y-axis (or x-axis if
-        transpose=True).
+            transpose=True).
         :param bool scale: Default: True. Include a colorbar scale in the
-        figure of the axes.
+            figure of the axes.
         :param kwargs: Keyword arguments to pass to the plotting function.
         :return: The delta G values, the bin centers, the contours, the figure,
-         and the axes
+            and the axes
         :rtype: Tuple(np.ndarray, Tuple(np.ndarray, np.ndarray),
-        matplotlib.contour.QuadContourSet, matplotlib.figure.Figure,
-        matplotlib.axes.Axes)
+            matplotlib.contour.QuadContourSet, matplotlib.figure.Figure,
+            matplotlib.axes.Axes)
         """
         if temp is None:
             _temp = self._temperature
@@ -601,12 +601,12 @@ class Taddol(Universe):
         """
 
         :param verbosity: Setting whether to print details. If in the
-        future more levels of verbosity are desired, this may be
-        changed to an int.
-        Default: 1
+            future more levels of verbosity are desired, this may be
+            changed to an int.
+            Default: 1
         :type verbosity: int or bool
         :param oc_cutoffs: Cutoffs of O-O distance for determining
-        open/closed TADDOL configurations. Default: ((1.0, 3.25),
+            open/closed TADDOL configurations. Default: ((1.0, 3.25),
                                                      (3.75, 10.0))
         :type oc_cutoffs: Iterable(Iterable(float, float),
                                    Iterable(float, float))
@@ -876,33 +876,33 @@ class Taddol(Universe):
         plot FES in 2D along defined CVs
 
         :param Iterable x: Default: self.cv1_dists. Length component to plot
-        along x axis.
+            along x axis.
         :param Iterable y: Default: self.cv2_dists. Length component to plot
-        along y axis.
+            along y axis.
         :param float temp: Default: 205. Temperature for Boltzmann weighting
-        calculation.
+            calculation.
         :param atplotlib.axes.Axes ax: Default: None. Axes on which to make the
-        FES. If None, a new axes and figure will be created.
+            FES. If None, a new axes and figure will be created.
         :param Iterable bins: Default: None. The bins to be used for the z
-        ranges. If this is not None, zrange and zfinal are ignored.
+            ranges. If this is not None, zrange and zfinal are ignored.
         :param zrange: Default: (0, 20, 11). Input to np.linspace for
-        determining contour levels. If a float-like is given, it will be set as
-        the max with 11+1 bins. If a len=2 list-like is given, it will be used
-        as the min and max with 11+1 bins. Otherwise, the input will be used
-        as-is for input to np.linspace.
+            determining contour levels. If a float-like is given, it will be
+            set as the max with 11+1 bins. If a len=2 list-like is given,
+            it will be used as the min and max with 11+1 bins. Otherwise,
+            the input will be used as-is for input to np.linspace.
         :type zrange: Iterable or Float
         :param zfinal: Default: 40. Energy at which to stop coloring the FES.
-        Anything above this energy will appear as white.
+            Anything above this energy will appear as white.
         :param int n_bins: Default: 32. Number of bins in x and y for
-        histogramming.
+            histogramming.
         :param bool transpose: Default: False. Whether to transpose the data
-        and axes such that the input x will be along the y axis and the
-        inverse. Note, this also makes the xlabel on the y-axis and the
-        inverse.
+            and axes such that the input x will be along the y axis and the
+            inverse. Note, this also makes the xlabel on the y-axis and the
+            inverse.
         :param str xlabel: Default: 'CV 1'. Label for x-axis (or y-axis if
-        transpose=True).
+            transpose=True).
         :param str ylabel: Default: 'CV 2'. Label for y-axis (or x-axis if
-        transpose=True).
+            transpose=True).
         :param kwargs: Keyword arguments to pass to the plotting function.
         :return: The figure of the FES.
         :rtype: matplotlib.figure.Figure
@@ -974,14 +974,14 @@ class Taddol(Universe):
 
         :param bool save: Default: False. Save the figure to disk.
         :param str save_format: Default: 'png'. Format in which to save the
-        figure.
+            figure.
         :param str save_base_name: Default: 'ox-dists'. Name for the saved
-        figure file.
+            figure file.
         :param bool display: Default: True. Return the figure, otherwise
-        return None.
+            return None.
         :param matplotlib.axes.Axes ax: Default: None. The axes object on
-        which to make the plots. If None is supplied, a new axes object will
-        be created.
+            which to make the plots. If None is supplied, a new axes object will
+            be created.
         :param dict kwargs: Keywords to pass to the plotting function.
         :return: The figure of oxygen distances or None.
         """
@@ -1016,14 +1016,14 @@ class Taddol(Universe):
         :param int n_bins: Default: 10. Number of bins for histograms.
         :param bool save: Default: False. Save the figure to disk.
         :param str save_format: Default: 'pdf'. Format in which to save the
-        figure.
+            figure.
         :param str save_base_name: Default: 'ox-dists-hist'. Name for the saved
-        figure.
+            figure.
         :param bool display: Default: True. Return the figure from the function
-        otherwise return None.
+            otherwise return None.
         :param axes: Default: None. The axes objects on
-        which to make the plots. If None is supplied, new axes objects will
-        be created.
+            which to make the plots. If None is supplied, new axes objects will
+            be created.
         :param dict kwargs: Keyword arguments to pass to the plotting function.
         :return: The figure of histograms of oxygen distances.
         """
