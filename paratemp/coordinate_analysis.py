@@ -1117,14 +1117,10 @@ class Taddol(Universe):
         # TODO find a more elegant way to do this
         colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
         for i, key in enumerate(('O-O', 'O(l)-Cy', 'O(r)-Cy')):
-            n, bins = np.histogram(data[key])
-            # TODO find better way to account for zeros here rather than
-            # just adding a small amount to each.
-            prob = n.astype(float) / n.max() + 1e-20
-            delta_g = -r * temp * np.log(prob)
+            bin_mids, delta_g = _calc_fes_1d(data[key], temp)
             delta_gs.append(delta_g)
             ax = axes.flat[i]
-            line, = ax.plot(bins[:-1], delta_g, colors[i], **kwargs)
+            line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
             handles.append(line)
             ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
             ax.set_xlabel(r'distance / $\mathrm{\AA}$')
