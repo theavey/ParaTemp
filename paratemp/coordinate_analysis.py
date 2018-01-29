@@ -866,9 +866,6 @@ class Taddol(Universe):
             fig = ax.figure
         counts, xedges, yedges = ax.hist2d(x, y,
                                            32, **kwargs)[:3]
-        self._cv_hist_data['counts'] = counts
-        self._cv_hist_data['xedges'] = xedges
-        self._cv_hist_data['yedges'] = yedges
         ax.axis((1.5, 10, 1.5, 10))
         ax.set_xlabel('CV 2')
         ax.set_ylabel('CV 1')
@@ -876,6 +873,8 @@ class Taddol(Universe):
         fig.tight_layout()
         if return_fig:
             return fig
+        else:
+            return counts, xedges, yedges, fig, ax
 
     def fes_2d_cvs(self, x=None, y=None, temp=205., ax=None, bins=None,
                    zrange=(0, 20, 11), zfinal=40, n_bins=32, transpose=False,
