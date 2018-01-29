@@ -43,12 +43,12 @@ from .exceptions import InputError
 # TODO move all import statements to the beginning (out of functions)
 
 
-def _calc_fes_2d(x, y, n_bins, _temp):
+def _calc_fes_2d(x, y, n_bins, temp):
     counts, xedges, yedges = np.histogram2d(x, y, n_bins)
     probs = np.array([[i / counts.max() for i in j] for j in counts]) \
             + 1e-40
     r = 0.0019872  # kcal_th/(K mol)
-    delta_g = np.array([[-r * _temp * np.log(p) for p in j] for j in probs])
+    delta_g = np.array([[-r * temp * np.log(p) for p in j] for j in probs])
     xmids, ymids = _running_mean(xedges), _running_mean(yedges)
     return delta_g, xmids, ymids
 
@@ -626,7 +626,6 @@ class Taddol(Universe):
         self._oc_cutoffs = kwargs.pop('oc_cutoffs',
                                       ((1.0, 3.25), (3.75, 10.0)))
         super(Taddol, self).__init__(*args, **kwargs)
-        self._cv_hist_data = {}
         # TODO add temp argument and pass to FES functions
         # dict of distance definitions
         # TODO Find a way to make this atom-ordering independent
@@ -919,24 +918,10 @@ class Taddol(Universe):
         """
         # TODO make the constants here arguments
         # TODO make this optionally save figure
-        if x is None and y is None:
+        if x is None:
             x = self.cv1_dists
+        if y is None:
             y = self.cv2_dists
-            try:
-                counts = self._cv_hist_data['counts']
-                xedges = self._cv_hist_data['xedges']
-                yedges = self._cv_hist_data['yedges']
-            except KeyError:
-                counts, xedges, yedges = np.histogram2d(x, y, n_bins)
-                self._cv_hist_data['counts'] = counts
-                self._cv_hist_data['xedges'] = xedges
-                self._cv_hist_data['yedges'] = yedges
-        else:
-            if x is None:
-                x = self.cv1_dists
-            if y is None:
-                y = self.cv2_dists
-            counts, xedges, yedges = np.histogram2d(x, y, n_bins)
         if bins is None:
             try:
                 float(zrange)
@@ -950,15 +935,11 @@ class Taddol(Universe):
         else:
             _bins = bins
             vmax = bins[-1]
-        probs = np.array([[i / counts.max() for i in j] for j in counts]) \
-            + 1e-40
-        r = 0.0019872  # kcal_th/(K mol)
-        delta_g = np.array([[-r * temp * np.log(p) for p in j] for j in probs])
         if ax is None:
             fig, ax = plt.subplots()
         else:
             fig = ax.figure
-        xmids, ymids = _running_mean(xedges), _running_mean(yedges)
+        delta_g, xmids, ymids = _calc_fes_2d(x, y, n_bins, temp)
         if not transpose:
             # This is because np.histogram2d returns the counts oddly
             delta_g = delta_g.transpose()
