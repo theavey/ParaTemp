@@ -28,7 +28,6 @@ import pytest
 import numpy as np
 import matplotlib
 
-from paratemp.coordinate_analysis import _running_mean
 
 matplotlib.use('agg')
 
@@ -40,7 +39,7 @@ def test_matplotlib_testing_backend():
 
 
 def test_running_mean():
-    from ..paratemp import coordinate_analysis as ca
+    from paratemp.coordinate_analysis import _running_mean
     tl = [0, 2, 4]
     assert (_running_mean(tl) == [1, 3]).all()
 
