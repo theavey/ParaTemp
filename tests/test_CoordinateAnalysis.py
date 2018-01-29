@@ -27,6 +27,9 @@ from __future__ import absolute_import
 import pytest
 import numpy as np
 import matplotlib
+
+from paratemp.coordinate_analysis import _running_mean
+
 matplotlib.use('agg')
 
 
@@ -39,7 +42,7 @@ def test_matplotlib_testing_backend():
 def test_running_mean():
     from ..paratemp import coordinate_analysis as ca
     tl = [0, 2, 4]
-    assert (ca.Taddol._running_mean(tl) == [1, 3]).all()
+    assert (_running_mean(tl) == [1, 3]).all()
 
 
 class TestXTCUniverse(object):
