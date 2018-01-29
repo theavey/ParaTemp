@@ -491,7 +491,6 @@ class Universe(MDa.Universe):
                                     'key for the data in this object')
         else:
             _y = y
-        counts, xedges, yedges = np.histogram2d(_x, _y, n_bins)
         if bins is None:
             try:
                 float(zrange)
@@ -505,15 +504,11 @@ class Universe(MDa.Universe):
         else:
             _bins = bins
             vmax = list(bins)[-1]
-        probs = np.array([[i / counts.max() for i in j] for j in counts]) \
-            + 1e-40
-        r = 0.0019872  # kcal_th/(K mol)
-        delta_g = np.array([[-r * _temp * np.log(p) for p in j] for j in probs])
+        delta_g, xmids, ymids = self._calc_fes_2d(_x, _y, n_bins, _temp)
         if ax is None:
             fig, ax = plt.subplots()
         else:
             fig = ax.figure
-        xmids, ymids = self._running_mean(xedges), self._running_mean(yedges)
         if not transpose:
             # This is because np.histogram2d returns the counts oddly
             delta_g = delta_g.transpose()
@@ -530,6 +525,15 @@ class Universe(MDa.Universe):
             fig.colorbar(contours, label='kcal / mol')
             fig.tight_layout()
         return delta_g, (xmids, ymids), contours, fig, ax
+
+    def _calc_fes_2d(self, x, y, n_bins, _temp):
+        counts, xedges, yedges = np.histogram2d(x, y, n_bins)
+        probs = np.array([[i / counts.max() for i in j] for j in counts]) \
+                + 1e-40
+        r = 0.0019872  # kcal_th/(K mol)
+        delta_g = np.array([[-r * _temp * np.log(p) for p in j] for j in probs])
+        xmids, ymids = self._running_mean(xedges), self._running_mean(yedges)
+        return delta_g, xmids, ymids
 
     def fes_1d(self, data, temp=None, xlabel=r'distance / $\mathrm{\AA}$',
                ax=None, **kwargs):
@@ -580,18 +584,22 @@ class Universe(MDa.Universe):
         else:
             _ax = ax
             _fig = ax.figure
-        r = 0.0019872  # kcal_th/(K mol)
-        n, bins = np.histogram(_data)
-        n = [float(j) for j in n]
-        # TODO find better way to account for zeros here rather than
-        # just adding a small amount to each.
-        prob = np.array([j / max(n) for j in n]) + 1e-40
-        delta_g = np.array([-r * _temp * np.log(p) for p in prob])
-        bin_mids = self._running_mean(bins, 2)
+        bin_mids, delta_g = self._calc_fes_1d(_data, _temp)
         lines = _ax.plot(bin_mids, delta_g, **kwargs)
         _ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
         _ax.set_xlabel(xlabel)
         return delta_g, bin_mids, lines, _fig, _ax
+
+    def _calc_fes_1d(self, data, temp):
+        r = 0.0019872  # kcal_th/(K mol)
+        n, bins = np.histogram(data)
+        n = [float(j) for j in n]
+        # TODO find better way to account for zeros here rather than
+        # just adding a small amount to each.
+        prob = np.array([j / max(n) for j in n]) + 1e-40
+        delta_g = np.array([-r * temp * np.log(p) for p in prob])
+        bin_mids = self._running_mean(bins, 2)
+        return bin_mids, delta_g
 
 
 class Taddol(Universe):
