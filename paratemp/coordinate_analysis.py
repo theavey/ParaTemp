@@ -1186,6 +1186,8 @@ def get_dist(a, b, box=None):
 
     If a box is provided, this will use the builtin MDAnalysis function to
     account for periodic boundary conditions."""
+    warn('get_dist will soon be deprecated. Use '
+         'Universe.calculate_distances', DeprecationWarning)
     if box is not None:
         coordinates = (np.array([atom.centroid()]) for atom in (a, b))
         return MDa.lib.distances.calc_bonds(*coordinates,
@@ -1197,11 +1199,15 @@ def get_dist(a, b, box=None):
 
 def get_dist_dict(dictionary, a, b, box=None):
     """Calculate distance using dict of AtomSelections"""
+    warn('get_dist_dict will soon be deprecated. Use '
+         'Universe.calculate_distances', DeprecationWarning)
     return get_dist(dictionary[a], dictionary[b], box=box)
 
 
 def get_angle(a, b, c, units='rad'):
     """Calculate the angle between ba and bc for AtomGroups a, b, c"""
+    warn('get_angle will soon be deprecated. Implement '
+         'Universe.calculate_angles', DeprecationWarning)
     # TODO look at using the MDAnalysis builtin function
     from numpy import arccos, rad2deg, dot
     from numpy.linalg import norm
@@ -1221,6 +1227,8 @@ def get_angle(a, b, c, units='rad'):
 
 def get_angle_dict(dictionary, a, b, c, units='rad'):
     """Calculate angle using dict of AtomSelections"""
+    warn('get_angle_dict will soon be deprecated. Implement '
+         'Universe.calculate_angles', DeprecationWarning)
     return get_angle(dictionary[a], dictionary[b], dictionary[c],
                      units=units)
 
@@ -1230,6 +1238,8 @@ def get_dihedral(a, b, c, d, units='rad'):
 
     Based on formula given in
     https://en.wikipedia.org/wiki/Dihedral_angle"""
+    warn('get_dihedral will soon be deprecated. Use '
+         'Universe.calculate_dihedrals', DeprecationWarning)
     # TODO look at using the MDAnalysis builtin function
     from numpy import cross, arctan2, dot, rad2deg
     from numpy.linalg import norm
@@ -1250,6 +1260,8 @@ def get_dihedral(a, b, c, d, units='rad'):
 
 def get_dihedral_dict(dictionary, a, b, c, d, units='rad'):
     """Calculate dihedral using dict of AtomSelections"""
+    warn('get_dihedral_dict will soon be deprecated. Use '
+         'Universe.calculate_dihedrals', DeprecationWarning)
     return get_dihedral(dictionary[a], dictionary[b],
                         dictionary[c], dictionary[d],
                         units=units)
@@ -1257,6 +1269,8 @@ def get_dihedral_dict(dictionary, a, b, c, d, units='rad'):
 
 def get_taddol_ox_dists(universe, sel_dict=False):
     """Get array of oxygen distances in TADDOL trajectory"""
+    warn('get_taddol_ox_dists will soon be deprecated. Use Taddol.ox_dists',
+         DeprecationWarning)
     from numpy import array
     if not sel_dict:
         sel_dict = get_taddol_selections(universe)
@@ -1274,6 +1288,9 @@ def make_plot_taddol_ox_dists(data, save=False, save_format='pdf',
                               save_base_name='ox_dists',
                               display=True):
     """Make plot of alcoholic O distances in TADDOL trajectory"""
+    warn('make_plot_taddol_ox_dists will soon be deprecated. Use '
+         'Taddol.plot_ox_dists',
+         DeprecationWarning)
     from matplotlib.pyplot import subplots
     fig, axes = subplots()
     axes.plot(data[:, 0], data[:, 1], label='O-O')
@@ -1294,6 +1311,9 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
                               save_base_name='ox_dists_hist',
                               display=True, separate=False):
     """Make histogram of alcoholic O distances in TADDOL trajectory"""
+    warn('make_hist_taddol_ox_dists will soon be deprecated. Use '
+         'Taddol.hist_ox_dists',
+         DeprecationWarning)
     from matplotlib.pyplot import subplots
     legend_entries = ['O-O', 'O(l)-Cy', 'O(r)-Cy']
     if separate:
@@ -1328,6 +1348,9 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
 
 def get_taddol_pi_dists(universe, sel_dict=False):
     """Get array of phenanthryl distances in TADDOL trajectory"""
+    warn('get_taddol_pi_dists will soon be deprecated. Use '
+         'Taddol.pi_dists',
+         DeprecationWarning)
     from numpy import array
     if not sel_dict:
         sel_dict = get_taddol_selections(universe)
@@ -1404,6 +1427,9 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
                             save_base_name='ox_dists_fes',
                             display=True, **kwargs):
     """Plot the relative free energy surface of O distances in TADDOL"""
+    warn('make_fes_taddol_ox_dist will soon be deprecated. Use '
+         'Taddol.fes_ox_dists',
+         DeprecationWarning)
     from matplotlib.pyplot import subplots
     from numpy import log, array, histogram
     r = 0.0019872  # kcal_th/(K mol)
@@ -1446,6 +1472,9 @@ def select_open_closed_dists(dists, cutoffs=((1.0, 3.25),
     :param cutoffs:
     :return:
     """
+    warn('make_fes_taddol_ox_dist will soon be deprecated. Use '
+         'Taddol.calc_open_closed',
+         DeprecationWarning)
     cut_closed = cutoffs[0]
     cut_open = cutoffs[1]
     set_open = []
