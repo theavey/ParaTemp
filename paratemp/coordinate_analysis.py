@@ -43,18 +43,19 @@ from .exceptions import InputError
 # TODO move all import statements to the beginning (out of functions)
 
 
+r = 0.0019872  # kcal_th/(K mol)
+
+
 def _calc_fes_2d(x, y, n_bins, temp):
     counts, xedges, yedges = np.histogram2d(x, y, n_bins)
     probs = np.array([[i / counts.max() for i in j] for j in counts]) \
-            + 1e-40
-    r = 0.0019872  # kcal_th/(K mol)
+        + 1e-40
     delta_g = np.array([[-r * temp * np.log(p) for p in j] for j in probs])
     xmids, ymids = _running_mean(xedges), _running_mean(yedges)
     return delta_g, xmids, ymids
 
 
 def _calc_fes_1d(data, temp):
-    r = 0.0019872  # kcal_th/(K mol)
     n, bins = np.histogram(data)
     n = [float(j) for j in n]
     # TODO find better way to account for zeros here rather than
@@ -1110,7 +1111,6 @@ class Taddol(Universe):
                 except IndexError:
                     raise InputError('axes={}'.format(axes), 'Input axes must '
                                      'be able to plot at least four things')
-        r = 0.0019872  # kcal_th/(K mol)
         delta_gs = []
         handles = []
         # Use whatever the default colors for the system are
