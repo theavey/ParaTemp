@@ -25,6 +25,7 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import range
 
+import math
 import os.path
 from warnings import warn
 
@@ -38,9 +39,6 @@ from typing import Iterable, Tuple
 
 from . import exceptions
 from .exceptions import InputError
-
-
-# TODO move all import statements to the beginning (out of functions)
 
 
 r = 0.0019872  # kcal_th/(K mol)
@@ -1171,8 +1169,7 @@ def get_dist(a, b, box=None):
         return MDa.lib.distances.calc_bonds(*coordinates,
                                             box=box)
     else:
-        from numpy.linalg import norm
-        return norm(a.centroid() - b.centroid())
+        return np.linalg.norm(a.centroid() - b.centroid())
 
 
 def get_dist_dict(dictionary, a, b, box=None):
@@ -1187,16 +1184,15 @@ def get_angle(a, b, c, units='rad'):
     warn('get_angle will soon be deprecated. Implement '
          'Universe.calculate_angles', DeprecationWarning)
     # TODO look at using the MDAnalysis builtin function
-    from numpy import arccos, rad2deg, dot
-    from numpy.linalg import norm
     b_center = b.centroid()
     ba = a.centroid() - b_center
     bc = c.centroid() - b_center
-    angle = arccos(dot(ba, bc)/(norm(ba)*norm(bc)))
+    angle = np.arccos(np.dot(ba, bc) /
+                      (np.linalg.norm(ba) * np.linalg.norm(bc)))
     if units == 'rad':
         return angle
     elif units == 'deg':
-        return rad2deg(angle)
+        return np.rad2deg(angle)
     else:
         raise InputError(units,
                          'Unrecognized units: '
@@ -1219,17 +1215,17 @@ def get_dihedral(a, b, c, d, units='rad'):
     warn('get_dihedral will soon be deprecated. Use '
          'Universe.calculate_dihedrals', DeprecationWarning)
     # TODO look at using the MDAnalysis builtin function
-    from numpy import cross, arctan2, dot, rad2deg
-    from numpy.linalg import norm
     ba = a.centroid() - b.centroid()
     bc = b.centroid() - c.centroid()
     dc = d.centroid() - c.centroid()
-    angle = arctan2(dot(cross(cross(ba, bc), cross(bc, dc)), bc) /
-                    norm(bc), dot(cross(ba, bc), cross(bc, dc)))
+    angle = np.arctan2(
+        np.dot(np.cross(np.cross(ba, bc), np.cross(bc, dc)), bc) /
+            np.linalg.norm(bc),
+        np.dot(np.cross(ba, bc), np.cross(bc, dc)))
     if units == 'rad':
         return angle
     elif units == 'deg':
-        return rad2deg(angle)
+        return np.rad2deg(angle)
     else:
         raise InputError(units,
                          'Unrecognized units: '
@@ -1249,7 +1245,6 @@ def get_taddol_ox_dists(universe, sel_dict=False):
     """Get array of oxygen distances in TADDOL trajectory"""
     warn('get_taddol_ox_dists will soon be deprecated. Use Taddol.ox_dists',
          DeprecationWarning)
-    from numpy import array
     if not sel_dict:
         sel_dict = get_taddol_selections(universe)
     output = []
@@ -1259,7 +1254,7 @@ def get_taddol_ox_dists(universe, sel_dict=False):
                        get_dist_dict(sel_dict, 'aoxl', 'aoxr', box=box),
                        get_dist_dict(sel_dict, 'aoxl', 'cyclon', box=box),
                        get_dist_dict(sel_dict, 'aoxr', 'cyclon', box=box)))
-    return array(output)
+    return np.array(output)
 
 
 def make_plot_taddol_ox_dists(data, save=False, save_format='pdf',
@@ -1269,8 +1264,7 @@ def make_plot_taddol_ox_dists(data, save=False, save_format='pdf',
     warn('make_plot_taddol_ox_dists will soon be deprecated. Use '
          'Taddol.plot_ox_dists',
          DeprecationWarning)
-    from matplotlib.pyplot import subplots
-    fig, axes = subplots()
+    fig, axes = plt.subplots()
     axes.plot(data[:, 0], data[:, 1], label='O-O')
     axes.plot(data[:, 0], data[:, 2], label='O(l)-Cy')
     axes.plot(data[:, 0], data[:, 3], label='O(r)-Cy')
@@ -1292,10 +1286,9 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
     warn('make_hist_taddol_ox_dists will soon be deprecated. Use '
          'Taddol.hist_ox_dists',
          DeprecationWarning)
-    from matplotlib.pyplot import subplots
     legend_entries = ['O-O', 'O(l)-Cy', 'O(r)-Cy']
     if separate:
-        fig, axes = subplots(nrows=2, ncols=2, sharex=True, sharey=True)
+        fig, axes = plt.subplots(nrows=2, ncols=2, sharex=True, sharey=True)
         handles = []
         # Use whatever the default colors for the system are
         # TODO find a more elegant way to do this
@@ -1311,7 +1304,7 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
         axes.flat[3].axis('off')
         axes.flat[3].legend(handles, legend_entries, loc='center')
     else:
-        fig, ax = subplots()
+        fig, ax = plt.subplots()
         ax.hist(data[:, 1:], n_bins, histtype='stepfilled')
         ax.set_xlabel(r'distance / $\mathrm{\AA}$')
         ax.set_ylabel('frequency')
@@ -1329,7 +1322,6 @@ def get_taddol_pi_dists(universe, sel_dict=False):
     warn('get_taddol_pi_dists will soon be deprecated. Use '
          'Taddol.pi_dists',
          DeprecationWarning)
-    from numpy import array
     if not sel_dict:
         sel_dict = get_taddol_selections(universe)
     output = []
@@ -1354,7 +1346,7 @@ def get_taddol_pi_dists(universe, sel_dict=False):
                        gdd(sd, 'phenrbb', 'phenltb'),
                        gdd(sd, 'phenrbb', 'phenlbt'),
                        gdd(sd, 'phenrbb', 'phenlbb')))
-    return array(output)
+    return np.array(output)
 
 
 def plot_dist_array(array, index_offset=1, num_data_rows=None,
@@ -1371,12 +1363,10 @@ def plot_dist_array(array, index_offset=1, num_data_rows=None,
     """
     if not num_data_rows:
         num_data_rows = array.shape[1] - index_offset
-    from math import sqrt, ceil
     if n_rows is None and n_cols is None:
-        n_rows = int(ceil(sqrt(float(num_data_rows))))
+        n_rows = int(math.ceil(math.sqrt(float(num_data_rows))))
         n_cols = n_rows
-    from matplotlib.pyplot import subplots
-    fig, axes = subplots(n_rows, n_cols, sharex=True, sharey=True)
+    fig, axes = plt.subplots(n_rows, n_cols, sharex=True, sharey=True)
     for i in range(num_data_rows):
         ax = axes.flat[i]
         ax.plot(array[:, 0], array[:, i+index_offset])
@@ -1408,25 +1398,17 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
     warn('make_fes_taddol_ox_dist will soon be deprecated. Use '
          'Taddol.fes_ox_dists',
          DeprecationWarning)
-    from matplotlib.pyplot import subplots
-    from numpy import log, array, histogram
-    r = 0.0019872  # kcal_th/(K mol)
     delta_gs = []
-    fig, axes = subplots(nrows=2, ncols=2, sharey=True, sharex=True)
+    fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True, sharex=True)
     handles = []
     # Use whatever the default colors for the system are
     # TODO find a more elegant way to do this
     colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
     for i in range(3):
-        n, bins = histogram(dists[:, 1+i])
-        n = [float(j) for j in n]
-        # TODO find better way to account for zeros here rather than
-        # just adding a small amount to each.
-        prob = array([j / max(n) for j in n]) + 1e-10
-        delta_g = array([-r * temp * log(p) for p in prob])
+        bin_mids, delta_g = _calc_fes_1d(dists[:, 1+i], temp)
         delta_gs.append(delta_g)
         ax = axes.flat[i]
-        line, = ax.plot(bins[:-1], delta_g, colors[i], **kwargs)
+        line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
         handles.append(line)
         ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
         ax.set_xlabel(r'distance / $\mathrm{\AA}$')
@@ -1462,7 +1444,6 @@ def select_open_closed_dists(dists, cutoffs=((1.0, 3.25),
             set_open.append(ts)
         if cut_closed[0] <= ts[1] <= cut_closed[1]:
             set_closed.append(ts)
-    from pandas import DataFrame
     columns = ['Time', 'O-O', 'Ol-Cy', 'Or-Cy']
-    return DataFrame(set_open, columns=columns), \
-        DataFrame(set_closed, columns=columns)
+    return pd.DataFrame(set_open, columns=columns), \
+        pd.DataFrame(set_closed, columns=columns)
