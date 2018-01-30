@@ -2,10 +2,10 @@
 
 ########################################################################
 #                                                                      #
-# This script was written by Thomas Heavey in 2017.                    #
+# This script was written by Thomas Heavey in 2018.                    #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
-# Copyright 2017 Thomas J. Heavey IV                                   #
+# Copyright 2017-18 Thomas J. Heavey IV                                #
 #                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");      #
 # you may not use this file except in compliance with the License.     #
@@ -34,5 +34,5 @@ def ref_temps():
 
 
 def test_get_temps(ref_temps):
-    from ..paratemp import get_temperatures
+    from paratemp import get_temperatures
     assert (get_temperatures('tests/test-data/temperatures.dat') == ref_temps).all()

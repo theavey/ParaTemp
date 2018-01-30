@@ -2,10 +2,10 @@
 
 ########################################################################
 #                                                                      #
-# This script was written by Thomas Heavey in 2017.                    #
+# This script was written by Thomas Heavey in 2018.                    #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
-# Copyright 2017 Thomas J. Heavey IV                                   #
+# Copyright 2017-18 Thomas J. Heavey IV                                #
 #                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");      #
 # you may not use this file except in compliance with the License.     #
@@ -39,7 +39,7 @@ def test_matplotlib_testing_backend():
 
 
 def test_running_mean():
-    from ..paratemp.coordinate_analysis import _running_mean
+    from paratemp.coordinate_analysis import _running_mean
     tl = [0, 2, 4]
     assert (_running_mean(tl) == [1, 3]).all()
 
@@ -48,7 +48,7 @@ class TestXTCUniverse(object):
 
     @pytest.fixture
     def univ(self):
-        from ..paratemp import coordinate_analysis as ca
+        from paratemp import coordinate_analysis as ca
         _univ = ca.Universe('tests/test-data/spc2.gro',
                             'tests/test-data/t-spc2-traj.xtc',
                             temp=205.)
@@ -61,7 +61,7 @@ class TestXTCUniverse(object):
 
     @pytest.fixture
     def univ_pbc(self):
-        from ..paratemp import coordinate_analysis as ca
+        from paratemp import coordinate_analysis as ca
         _univ = ca.Universe('tests/test-data/spc2.gro',
                             'tests/test-data/spc2-traj-pbc.xtc',
                             temp=205.)
@@ -117,7 +117,7 @@ class TestXTCUniverse(object):
 
     def test_calculate_distances_yes_recalc(self, univ_w_a):
         """
-        :type univ_w_a: ParaTemp.CoordinateAnalysis.Universe
+        :type univ_w_a: paratemp.coordinate_analysis.Universe
         """
         univ_w_a.calculate_distances(a='5 5', recalculate=True)
         assert (np.array([0., 0.]) == univ_w_a.data['a']).all()
@@ -129,13 +129,13 @@ class TestXTCUniverse(object):
     def test_calc_fes_1d(self, univ_w_a, ref_delta_g, ref_bins, ref_delta_g_20,
                          ref_bins_20):
         """
-        :type univ_w_a: ParaTemp.CoordinateAnalysis.Universe
+        :type univ_w_a: paratemp.coordinate_analysis.Universe
         :type ref_delta_g: np.ndarray
         :type ref_bins: np.ndarray
         :type ref_delta_g_20: np.ndarray
         :type ref_bins_20: np.ndarray
         """
-        from ..paratemp.coordinate_analysis import _calc_fes_1d
+        from paratemp.coordinate_analysis import _calc_fes_1d
         delta_g_data, bins_data = _calc_fes_1d(univ_w_a.data['a'], temp=205.,
                                                bins=None)
         assert (delta_g_data == ref_delta_g).all()
@@ -147,7 +147,7 @@ class TestXTCUniverse(object):
 
     def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
         """
-        :type univ_w_a: ParaTemp.CoordinateAnalysis.Universe
+        :type univ_w_a: paratemp.coordinate_analysiss.Universe
         :type ref_delta_g: np.ndarray
         :type ref_bins: np.ndarray
         """
@@ -158,7 +158,7 @@ class TestXTCUniverse(object):
 
     def test_fes_1d_data_data(self, univ_w_a, ref_delta_g, ref_bins):
         """
-        :type univ_w_a: ParaTemp.CoordinateAnalysis.Universe
+        :type univ_w_a: paratemp.coordinate_analysis.Universe
         :type ref_delta_g: np.ndarray
         :type ref_bins: np.ndarray
         """
