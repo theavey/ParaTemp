@@ -1236,8 +1236,8 @@ def get_dihedral(a, b, c, d, units='rad'):
     bc = b.centroid() - c.centroid()
     dc = d.centroid() - c.centroid()
     angle = np.arctan2(
-        np.dot(np.cross(np.cross(ba, bc), np.cross(bc, dc)), bc) /
-            np.linalg.norm(bc),
+        np.dot(np.cross(np.cross(ba, bc), np.cross(bc, dc)), bc
+               ) / np.linalg.norm(bc),
         np.dot(np.cross(ba, bc), np.cross(bc, dc)))
     if units == 'rad':
         return angle
