@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 # import mdtraj as md  # Think I'm going with MDAnalysis instead
 import numpy as np
 import pandas as pd
-from typing import Iterable, Tuple, Sequence
+from typing import Iterable, Sequence
 
 from . import exceptions
 from .exceptions import InputError
@@ -514,9 +514,9 @@ class Universe(MDa.Universe):
         :param kwargs: Keyword arguments to pass to the plotting function.
         :return: The delta G values, the bin centers, the contours, the figure,
             and the axes
-        :rtype: Tuple(np.ndarray, Tuple(np.ndarray, np.ndarray),
+        :rtype: tuple[np.ndarray, tuple[np.ndarray, np.ndarray],
             matplotlib.contour.QuadContourSet, matplotlib.figure.Figure,
-            matplotlib.axes.Axes)
+            matplotlib.axes.Axes]
         """
         _temp = self._parse_temp_input(temp)
         _x = self._parse_data_input(x)
@@ -575,7 +575,7 @@ class Universe(MDa.Universe):
             If None is provided, the temperature will be taken from
             self._temperature
 
-        :type bins: int or Sequence or str
+        :type bins: int or Sequence[int or float] or str
         :param bins: Default: None. The bins argument to be passed to
             np.histogram
 
@@ -1078,7 +1078,7 @@ class Taddol(Universe):
         :type data: pd.DataFrame
         :param float temp: Default: 791 K. Temperature of the trajectory used
             to calculate the free energy.
-        :type bins: int or Sequence or str
+        :type bins: int or Sequence[int or float] or str
         :param bins: Default: None. The bins argument to be passed to
             np.histogram
         :param bool save: Default: False. Whether to save the FESs to disk.
