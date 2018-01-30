@@ -44,8 +44,15 @@ from .exceptions import InputError
 r = 0.0019872  # kcal_th/(K mol)
 
 
+def _parse_bin_input(bins):
+    if bins is None:
+        return dict()
+    return dict(bins=bins)
+
+
 def _calc_fes_2d(x, y, bins, temp):
-    counts, xedges, yedges = np.histogram2d(x, y, bins)
+    d_bins = _parse_bin_input(bins)
+    counts, xedges, yedges = np.histogram2d(x, y, **d_bins)
     probs = np.array([[i / counts.max() for i in j] for j in counts]) \
         + 1e-40
     delta_g = np.array([[-r * temp * np.log(p) for p in j] for j in probs])
@@ -54,13 +61,14 @@ def _calc_fes_2d(x, y, bins, temp):
 
 
 def _calc_fes_1d(data, bins, temp):
-    n, bins = np.histogram(data, bins=bins)
+    d_bins = _parse_bin_input(bins)
+    n, _bins = np.histogram(data, **d_bins)
     n = [float(j) for j in n]
     # TODO find better way to account for zeros here rather than
     # just adding a small amount to each.
     prob = np.array([j / max(n) for j in n]) + 1e-40
     delta_g = np.array([-r * temp * np.log(p) for p in prob])
-    bin_mids = _running_mean(bins, 2)
+    bin_mids = _running_mean(_bins, 2)
     return bin_mids, delta_g
 
 
