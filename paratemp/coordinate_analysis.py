@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 # import mdtraj as md  # Think I'm going with MDAnalysis instead
 import numpy as np
 import pandas as pd
-from typing import Iterable, Tuple
+from typing import Iterable, Tuple, Sequence
 
 from . import exceptions
 from .exceptions import InputError
@@ -44,8 +44,8 @@ from .exceptions import InputError
 r = 0.0019872  # kcal_th/(K mol)
 
 
-def _calc_fes_2d(x, y, n_bins, temp):
-    counts, xedges, yedges = np.histogram2d(x, y, n_bins)
+def _calc_fes_2d(x, y, bins, temp):
+    counts, xedges, yedges = np.histogram2d(x, y, bins)
     probs = np.array([[i / counts.max() for i in j] for j in counts]) \
         + 1e-40
     delta_g = np.array([[-r * temp * np.log(p) for p in j] for j in probs])
@@ -53,8 +53,8 @@ def _calc_fes_2d(x, y, n_bins, temp):
     return delta_g, xmids, ymids
 
 
-def _calc_fes_1d(data, temp):
-    n, bins = np.histogram(data)
+def _calc_fes_1d(data, bins, temp):
+    n, bins = np.histogram(data, bins=bins)
     n = [float(j) for j in n]
     # TODO find better way to account for zeros here rather than
     # just adding a small amount to each.
@@ -472,12 +472,12 @@ class Universe(MDa.Universe):
         """
         plot FES in 2D along defined values
 
+        :type x: Iterable or str
         :param x: Value along x axis to plot. If a string is given, the data
             will be taken from self.data[x].
-        :type x: Iterable or str
+        :type y: Iterable or str
         :param y: Value along y axis to plot. If a string is given, the data
             will be taken from self.data[y].
-        :type y: Iterable or str
         :param float temp: Default: None. Temperature for Boltzmann weighting
             calculation.
             If None is provided, the temperature will be taken from
@@ -486,16 +486,21 @@ class Universe(MDa.Universe):
             the FES. If None, a new axes and figure will be created.
         :param Iterable bins: Default: None. The bins to be used for the z
             ranges. If this is not None, zrange and zfinal are ignored.
+        :type zrange: Iterable or float
         :param zrange: Default: (0, 20, 11). Input to np.linspace for
             determining contour levels. If a float-like is given, it will be set
             as the max with 11+1 bins. If a len=2 list-like is given, it will be
             used as the min and max with 11+1 bins. Otherwise, the input will
             be used as-is for input to np.linspace.
-        :type zrange: Iterable or float
         :param zfinal: Default: 40. Energy at which to stop coloring the FES.
             Anything above this energy will appear as white.
-        :param int n_bins: Default: 32. Number of bins in x and y for
-            histogramming.
+        :type n_bins: int or (int, int) or (int, np.ndarray) or (np.ndarray,
+            int) or (np.ndarray, np.ndarray)
+        :param n_bins: Default: 32. Number of bins in x and y for
+            histogramming. This uses np.histogram2d which is fairly flexible
+            in how the bins can be specified. See `their documentation
+            <https://docs.scipy.org/doc/numpy/reference/generated/numpy
+            .histogram2d.html>`.
         :param bool transpose: Default: False. Whether to transpose the data
             and axes such that the input x will be along the y axis and the
             inverse. Note, this also makes the xlabel on the y-axis and the
@@ -556,8 +561,8 @@ class Universe(MDa.Universe):
         else:
             return x
 
-    def fes_1d(self, data, temp=None, xlabel=r'distance / $\mathrm{\AA}$',
-               ax=None, **kwargs):
+    def fes_1d(self, data, bins=None, temp=None,
+               xlabel=r'distance / $\mathrm{\AA}$', ax=None, **kwargs):
         """
         Make FES of some time series data
 
@@ -569,6 +574,10 @@ class Universe(MDa.Universe):
             calculation.
             If None is provided, the temperature will be taken from
             self._temperature
+
+        :type bins: int or Sequence or str
+        :param bins: Default: None. The bins argument to be passed to
+            np.histogram
 
         :param str xlabel: Default: 'distance / $\mathrm{\AA}$'. The label for
             the x axis.
@@ -588,7 +597,7 @@ class Universe(MDa.Universe):
         _temp = self._parse_temp_input(temp)
         _data = self._parse_data_input(data)
         _fig, _ax = _parse_ax_input(ax)
-        bin_mids, delta_g = _calc_fes_1d(_data, _temp)
+        bin_mids, delta_g = _calc_fes_1d(_data, bins=bins, temp=_temp)
         lines = _ax.plot(bin_mids, delta_g, **kwargs)
         _ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
         _ax.set_xlabel(xlabel)
@@ -892,8 +901,13 @@ class Taddol(Universe):
         :type zrange: Iterable or Float
         :param zfinal: Default: 40. Energy at which to stop coloring the FES.
             Anything above this energy will appear as white.
-        :param int n_bins: Default: 32. Number of bins in x and y for
-            histogramming.
+        :type n_bins: int or (int, int) or (int, np.ndarray) or (np.ndarray,
+            int) or (np.ndarray, np.ndarray)
+        :param n_bins: Default: 32. Number of bins in x and y for
+            histogramming. This uses np.histogram2d which is fairly flexible
+            in how the bins can be specified. See `their documentation
+            <https://docs.scipy.org/doc/numpy/reference/generated/numpy
+            .histogram2d.html>`.
         :param bool transpose: Default: False. Whether to transpose the data
             and axes such that the input x will be along the y axis and the
             inverse. Note, this also makes the xlabel on the y-axis and the
@@ -1053,7 +1067,7 @@ class Taddol(Universe):
         else:
             return None
 
-    def fes_ox_dists(self, data=None, temp=791., save=False,
+    def fes_ox_dists(self, data=None, temp=791., bins=None, save=False,
                      save_format='pdf',
                      save_base_name='ox-dists-fes',
                      display=True, axes=None, **kwargs):
@@ -1064,6 +1078,9 @@ class Taddol(Universe):
         :type data: pd.DataFrame
         :param float temp: Default: 791 K. Temperature of the trajectory used
             to calculate the free energy.
+        :type bins: int or Sequence or str
+        :param bins: Default: None. The bins argument to be passed to
+            np.histogram
         :param bool save: Default: False. Whether to save the FESs to disk.
         :param str save_format: Default: 'pdf'. Format in which to save the
             figure.
@@ -1107,7 +1124,7 @@ class Taddol(Universe):
         # TODO find a more elegant way to do this
         colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
         for i, key in enumerate(('O-O', 'O(l)-Cy', 'O(r)-Cy')):
-            bin_mids, delta_g = _calc_fes_1d(data[key], temp)
+            bin_mids, delta_g = _calc_fes_1d(data[key], bins=bins, temp=temp)
             delta_gs.append(delta_g)
             ax = axes.flat[i]
             line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
@@ -1382,7 +1399,7 @@ def make_taddol_pi_dist_array(dists, save=False, save_format='pdf',
         return None
 
 
-def make_fes_taddol_ox_dist(dists, temp=791., save=False,
+def make_fes_taddol_ox_dist(dists, temp=791., bins=None, save=False,
                             save_format='pdf',
                             save_base_name='ox_dists_fes',
                             display=True, **kwargs):
@@ -1397,7 +1414,7 @@ def make_fes_taddol_ox_dist(dists, temp=791., save=False,
     # TODO find a more elegant way to do this
     colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
     for i in range(3):
-        bin_mids, delta_g = _calc_fes_1d(dists[:, 1+i], temp)
+        bin_mids, delta_g = _calc_fes_1d(dists[:, 1+i], bins=bins, temp=temp)
         delta_gs.append(delta_g)
         ax = axes.flat[i]
         line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
