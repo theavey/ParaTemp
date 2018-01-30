@@ -78,6 +78,31 @@ def _running_mean(x, n=2):
     return np.convolve(x, np.ones((n,)) / n, mode='valid')
 
 
+def _parse_ax_input(ax):
+    if ax is None:
+        fig, ax = plt.subplots()
+    else:
+        fig = ax.figure
+    return fig, ax
+
+
+def _parse_z_bin_input(bins, zfinal, zrange):
+    if bins is None:
+        try:
+            float(zrange)
+            _zrange = [0, zrange, 11]
+        except TypeError:
+            dict_zrange = {1: [0, zrange[0], 11],
+                           2: list(zrange) + [11]}
+            _zrange = dict_zrange.get(len(zrange), zrange)
+        _bins = np.append(np.linspace(*_zrange), [zfinal])
+        vmax = _zrange[1]
+    else:
+        _bins = bins
+        vmax = list(bins)[-1]
+    return _bins, vmax
+
+
 class Universe(MDa.Universe):
 
     def __init__(self, *args, **kwargs):
@@ -466,7 +491,7 @@ class Universe(MDa.Universe):
             as the max with 11+1 bins. If a len=2 list-like is given, it will be
             used as the min and max with 11+1 bins. Otherwise, the input will
             be used as-is for input to np.linspace.
-        :type zrange: Iterable or Float
+        :type zrange: Iterable or float
         :param zfinal: Default: 40. Energy at which to stop coloring the FES.
             Anything above this energy will appear as white.
         :param int n_bins: Default: 32. Number of bins in x and y for
@@ -488,48 +513,12 @@ class Universe(MDa.Universe):
             matplotlib.contour.QuadContourSet, matplotlib.figure.Figure,
             matplotlib.axes.Axes)
         """
-        if temp is None:
-            _temp = self._temperature
-        else:
-            _temp = temp
-        if _temp is None:
-            raise ValueError('The temperature must be defined to calculate an'
-                             ' FES')
-        # TODO make the constants here arguments
-        if type(x) is str:
-            try:
-                _x = self.data[x]
-            except KeyError:
-                raise InputError(x, 'input as a str must be an existing'
-                                    'key for the data in this object')
-        else:
-            _x = x
-        if type(y) is str:
-            try:
-                _y = self.data[y]
-            except KeyError:
-                raise InputError(y, 'input as a str must be an existing'
-                                    'key for the data in this object')
-        else:
-            _y = y
-        if bins is None:
-            try:
-                float(zrange)
-                _zrange = [0, zrange, 11]
-            except TypeError:
-                dict_zrange = {1: [0, zrange[0], 11],
-                               2: list(zrange) + [11]}
-                _zrange = dict_zrange.get(len(zrange), zrange)
-            _bins = np.append(np.linspace(*_zrange), [zfinal])
-            vmax = _zrange[1]
-        else:
-            _bins = bins
-            vmax = list(bins)[-1]
+        _temp = self._parse_temp_input(temp)
+        _x = self._parse_data_input(x)
+        _y = self._parse_data_input(y)
+        _bins, vmax = _parse_z_bin_input(bins, zfinal, zrange)
         delta_g, xmids, ymids = _calc_fes_2d(_x, _y, n_bins, _temp)
-        if ax is None:
-            fig, ax = plt.subplots()
-        else:
-            fig = ax.figure
+        fig, ax = _parse_ax_input(ax)
         if not transpose:
             # This is because np.histogram2d returns the counts oddly
             delta_g = delta_g.transpose()
@@ -546,6 +535,26 @@ class Universe(MDa.Universe):
             fig.colorbar(contours, label='kcal / mol')
             fig.tight_layout()
         return delta_g, (xmids, ymids), contours, fig, ax
+
+    def _parse_temp_input(self, temp):
+        if temp is None:
+            _temp = self._temperature
+        else:
+            _temp = temp
+        if _temp is None:
+            raise ValueError('The temperature must be defined to calculate an'
+                             ' FES')
+        return _temp
+
+    def _parse_data_input(self, x):
+        if type(x) is str:
+            try:
+                return self.data[x]
+            except KeyError:
+                raise InputError(x, 'input as a str must be an existing '
+                                    'key for the data in this object')
+        else:
+            return x
 
     def fes_1d(self, data, temp=None, xlabel=r'distance / $\mathrm{\AA}$',
                ax=None, **kwargs):
@@ -576,26 +585,9 @@ class Universe(MDa.Universe):
         :return: The delta G values, the bin centers, the lines object, the
             figure and the axes
         """
-        if temp is None:
-            _temp = self._temperature
-        else:
-            _temp = temp
-        if _temp is None:
-            raise ValueError('The temperature must be defined to calculate an'
-                             ' FES')
-        if type(data) is str:
-            try:
-                _data = self.data[data]
-            except KeyError:
-                raise InputError(data, 'input as a str must be an existing'
-                                       'key for the data in this object')
-        else:
-            _data = data
-        if ax is None:
-            _fig, _ax = plt.subplots()
-        else:
-            _ax = ax
-            _fig = ax.figure
+        _temp = self._parse_temp_input(temp)
+        _data = self._parse_data_input(data)
+        _fig, _ax = _parse_ax_input(ax)
         bin_mids, delta_g = _calc_fes_1d(_data, _temp)
         lines = _ax.plot(bin_mids, delta_g, **kwargs)
         _ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
