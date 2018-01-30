@@ -89,6 +89,9 @@ class TestXTCUniverse(object):
 
     @pytest.fixture
     def ref_delta_g_20(self):
+        """Created using _calc_fes_1d with temp=205. and bins=20.
+        Saved with np.save('spc2-fes1d-delta-gs-20.npy', dg20,
+        allow_pickle=False)."""
         return np.load('tests/ref-data/spc2-fes1d-delta-gs-20.npy')
 
     @pytest.fixture
