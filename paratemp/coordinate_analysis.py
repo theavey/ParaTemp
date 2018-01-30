@@ -69,7 +69,7 @@ def _calc_fes_1d(data, bins, temp):
     prob = np.array([j / max(n) for j in n]) + 1e-40
     delta_g = np.array([-r * temp * np.log(p) for p in prob])
     bin_mids = _running_mean(_bins, 2)
-    return bin_mids, delta_g
+    return delta_g, bin_mids
 
 
 def _running_mean(x, n=2):
@@ -605,7 +605,7 @@ class Universe(MDa.Universe):
         _temp = self._parse_temp_input(temp)
         _data = self._parse_data_input(data)
         _fig, _ax = _parse_ax_input(ax)
-        bin_mids, delta_g = _calc_fes_1d(_data, bins=bins, temp=_temp)
+        delta_g, bin_mids = _calc_fes_1d(_data, bins=bins, temp=_temp)
         lines = _ax.plot(bin_mids, delta_g, **kwargs)
         _ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
         _ax.set_xlabel(xlabel)
@@ -1132,7 +1132,7 @@ class Taddol(Universe):
         # TODO find a more elegant way to do this
         colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
         for i, key in enumerate(('O-O', 'O(l)-Cy', 'O(r)-Cy')):
-            bin_mids, delta_g = _calc_fes_1d(data[key], bins=bins, temp=temp)
+            delta_g, bin_mids = _calc_fes_1d(data[key], bins=bins, temp=temp)
             delta_gs.append(delta_g)
             ax = axes.flat[i]
             line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
@@ -1422,7 +1422,7 @@ def make_fes_taddol_ox_dist(dists, temp=791., bins=None, save=False,
     # TODO find a more elegant way to do this
     colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
     for i in range(3):
-        bin_mids, delta_g = _calc_fes_1d(dists[:, 1+i], bins=bins, temp=temp)
+        delta_g, bin_mids = _calc_fes_1d(dists[:, 1+i], bins=bins, temp=temp)
         delta_gs.append(delta_g)
         ax = axes.flat[i]
         line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
