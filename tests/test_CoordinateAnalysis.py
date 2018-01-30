@@ -87,6 +87,14 @@ class TestXTCUniverse(object):
     def ref_bins(self):
         return np.load('tests/ref-data/spc2-fes1d-bins.npy')
 
+    @pytest.fixture
+    def ref_delta_g_20(self):
+        return np.load('tests/ref-data/spc2-fes1d-delta-gs-20.npy')
+
+    @pytest.fixture
+    def ref_bins_20(self):
+        return np.load('tests/ref-data/spc2-fes1d-bins-20.npy')
+
     def test_distance_str(self, univ, ref_a_dists):
         univ.calculate_distances(a='4 5')
         assert np.isclose(ref_a_dists, univ.data['a']).all()
@@ -115,17 +123,24 @@ class TestXTCUniverse(object):
         univ_pbc.calculate_distances(a='4 5')
         assert np.isclose(ref_a_pbc_dists['a'], univ_pbc.data['a']).all()
 
-    def test_calc_fes_1d(self, univ_w_a, ref_delta_g, ref_bins):
+    def test_calc_fes_1d(self, univ_w_a, ref_delta_g, ref_bins, ref_delta_g_20,
+                         ref_bins_20):
         """
         :type univ_w_a: ParaTemp.CoordinateAnalysis.Universe
         :type ref_delta_g: np.ndarray
         :type ref_bins: np.ndarray
+        :type ref_delta_g_20: np.ndarray
+        :type ref_bins_20: np.ndarray
         """
         from ..paratemp.coordinate_analysis import _calc_fes_1d
         delta_g_data, bins_data = _calc_fes_1d(univ_w_a.data['a'], temp=205.,
                                                bins=None)
         assert (delta_g_data == ref_delta_g).all()
         assert (bins_data == ref_bins).all()
+        delta_g_20, bins_20 = _calc_fes_1d(univ_w_a.data['a'], temp=205.,
+                                           bins=20)
+        assert (delta_g_20 == ref_delta_g_20).all()
+        assert (bins_20 == ref_bins_20).all()
 
     def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
         """
