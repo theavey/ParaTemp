@@ -50,7 +50,7 @@ def _parse_bin_input(bins):
     return dict(bins=bins)
 
 
-def _calc_fes_2d(x, y, bins, temp):
+def _calc_fes_2d(x, y, temp, bins=None):
     d_bins = _parse_bin_input(bins)
     counts, xedges, yedges = np.histogram2d(x, y, **d_bins)
     probs = np.array([[i / counts.max() for i in j] for j in counts]) \
@@ -60,7 +60,7 @@ def _calc_fes_2d(x, y, bins, temp):
     return delta_g, xmids, ymids
 
 
-def _calc_fes_1d(data, bins, temp):
+def _calc_fes_1d(data, temp, bins=None):
     d_bins = _parse_bin_input(bins)
     n, _bins = np.histogram(data, **d_bins)
     n = [float(j) for j in n]
@@ -530,7 +530,7 @@ class Universe(MDa.Universe):
         _x = self._parse_data_input(x)
         _y = self._parse_data_input(y)
         _bins, vmax = _parse_z_bin_input(bins, zfinal, zrange)
-        delta_g, xmids, ymids = _calc_fes_2d(_x, _y, n_bins, _temp)
+        delta_g, xmids, ymids = _calc_fes_2d(_x, _y, temp=_temp, bins=n_bins)
         fig, ax = _parse_ax_input(ax)
         if not transpose:
             # This is because np.histogram2d returns the counts oddly
@@ -605,7 +605,7 @@ class Universe(MDa.Universe):
         _temp = self._parse_temp_input(temp)
         _data = self._parse_data_input(data)
         _fig, _ax = _parse_ax_input(ax)
-        delta_g, bin_mids = _calc_fes_1d(_data, bins=bins, temp=_temp)
+        delta_g, bin_mids = _calc_fes_1d(_data, temp=_temp, bins=bins)
         lines = _ax.plot(bin_mids, delta_g, **kwargs)
         _ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
         _ax.set_xlabel(xlabel)
@@ -951,7 +951,7 @@ class Taddol(Universe):
             fig, ax = plt.subplots()
         else:
             fig = ax.figure
-        delta_g, xmids, ymids = _calc_fes_2d(x, y, n_bins, temp)
+        delta_g, xmids, ymids = _calc_fes_2d(x, y, temp=temp, bins=n_bins)
         if not transpose:
             # This is because np.histogram2d returns the counts oddly
             delta_g = delta_g.transpose()
@@ -1132,7 +1132,7 @@ class Taddol(Universe):
         # TODO find a more elegant way to do this
         colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
         for i, key in enumerate(('O-O', 'O(l)-Cy', 'O(r)-Cy')):
-            delta_g, bin_mids = _calc_fes_1d(data[key], bins=bins, temp=temp)
+            delta_g, bin_mids = _calc_fes_1d(data[key], temp=temp, bins=bins)
             delta_gs.append(delta_g)
             ax = axes.flat[i]
             line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
@@ -1422,7 +1422,7 @@ def make_fes_taddol_ox_dist(dists, temp=791., bins=None, save=False,
     # TODO find a more elegant way to do this
     colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
     for i in range(3):
-        delta_g, bin_mids = _calc_fes_1d(dists[:, 1+i], bins=bins, temp=temp)
+        delta_g, bin_mids = _calc_fes_1d(dists[:, 1 + i], temp=temp, bins=bins)
         delta_gs.append(delta_g)
         ax = axes.flat[i]
         line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
