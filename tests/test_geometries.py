@@ -2,10 +2,10 @@
 
 ########################################################################
 #                                                                      #
-# This script was written by Thomas Heavey in 2017.                    #
+# This script was written by Thomas Heavey in 2018.                    #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
-# Copyright 2017 Thomas J. Heavey IV                                   #
+# Copyright 2017-18 Thomas J. Heavey IV                                #
 #                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");      #
 # you may not use this file except in compliance with the License.     #
@@ -32,7 +32,7 @@ class TestXYZ(object):
 
     @pytest.fixture
     def xyz(self):
-        from ..paratemp.geometries import XYZ
+        from paratemp.geometries import XYZ
         return XYZ('tests/test-data/stil-3htmf.xyz')
 
     def test_n_atoms(self, xyz):
@@ -51,27 +51,27 @@ class TestVector(object):
 
     @pytest.fixture
     def x_axis_int_list(self):
-        from ..paratemp.geometries import Vector
+        from paratemp.geometries import Vector
         return Vector([1, 0, 0])
 
     @pytest.fixture
     def x_axis_float_list(self):
-        from ..paratemp.geometries import Vector
+        from paratemp.geometries import Vector
         return Vector([1., 0., 0.])
 
     @pytest.fixture
     def x_axis_int(self):
-        from ..paratemp.geometries import Vector
+        from paratemp.geometries import Vector
         return Vector(1, 0, 0)
 
     @pytest.fixture
     def y_axis(self):
-        from ..paratemp.geometries import Vector
+        from paratemp.geometries import Vector
         return Vector(0, 1, 0)
 
     @pytest.fixture
     def z_axis(self):
-        from ..paratemp.geometries import Vector
+        from paratemp.geometries import Vector
         return Vector(0, 0, 1)
 
     def test_input_int_float(self, x_axis_int_list, x_axis_float_list):

@@ -2,10 +2,10 @@
 
 ########################################################################
 #                                                                      #
-# This script was written by Thomas Heavey in 2017.                    #
+# This script was written by Thomas Heavey in 2018.                    #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
-# Copyright 2017 Thomas J. Heavey IV                                   #
+# Copyright 2017-18 Thomas J. Heavey IV                                #
 #                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");      #
 # you may not use this file except in compliance with the License.     #
@@ -30,7 +30,7 @@ import re
 
 
 def test_job_info_from_qsub():
-    from ..paratemp.sim_setup import _job_info_from_qsub
+    from paratemp.sim_setup import _job_info_from_qsub
     job_info = _job_info_from_qsub('Your job 2306551 ("PT-NTD-CG") '
                                    'has been submitted')
     assert job_info == ('2306551', 'PT-NTD-CG', '2306551 ("PT-NTD-CG")')
@@ -62,14 +62,14 @@ class TestUpdateNum(object):
         return {10: 30}
 
     def test_update_num(self, match_10, rd1030):
-        from ..paratemp.sim_setup import _update_num
+        from paratemp.sim_setup import _update_num
         assert '=30' == _update_num(match_10, shift=10, cat_repl_dict=rd1030)
         assert '=1' == _update_num(match_10, shift=9, cat_repl_dict=dict())
         assert '=1' == _update_num(match_10, shift=9, cat_repl_dict=rd1030)
 
     def test_update_num_raises(self, match_10, match_text, match_float,
                                match_bad_few, match_bad_many):
-        from ..paratemp.sim_setup import _update_num
+        from paratemp.sim_setup import _update_num
         with pytest.raises(KeyError):
             _update_num(match_10, shift=10, cat_repl_dict=dict())
         with pytest.raises(ValueError,
@@ -102,7 +102,7 @@ def folder_dc(n_top_dc):
 class TestGetSolvCountTop(object):
 
     def test_get_solv_count_top(self, n_top_dc, folder_dc):
-        from ..paratemp.sim_setup import get_solv_count_top
+        from paratemp.sim_setup import get_solv_count_top
         assert get_solv_count_top(n_top_dc) == 361
         assert get_solv_count_top(folder=folder_dc) == 361
 
@@ -110,11 +110,11 @@ class TestGetSolvCountTop(object):
 class TestSetSolvCountTop(object):
 
     def test_set_solv_count_top_n(self, n_top_dc):
-        from ..paratemp.sim_setup import set_solv_count_top, get_solv_count_top
+        from paratemp.sim_setup import set_solv_count_top, get_solv_count_top
         set_solv_count_top(n_top_dc, s_count=100)
         assert get_solv_count_top(n_top_dc) == 100
 
     def test_set_solv_count_top_folder(self, folder_dc, n_top_dc):
-        from ..paratemp.sim_setup import set_solv_count_top, get_solv_count_top
+        from paratemp.sim_setup import set_solv_count_top, get_solv_count_top
         set_solv_count_top(folder=folder_dc, s_count=50)
         assert get_solv_count_top(n_top_dc) == 50
