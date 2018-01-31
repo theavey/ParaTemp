@@ -19,3 +19,11 @@ This package depends on MDAnalysis, NumPy, pandas, panedr, and
 gromacswrapper.
 The dependencies are listed in [requirements.txt](./requirements.txt).
 Most if not all should be installable with conda.
+
+To install, run:
+```
+git clone https://github.com/theavey/ParaTemp.git
+cd ParaTemp
+pip install -r requirements.txt
+python setup.py install
+```
