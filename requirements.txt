@@ -5,7 +5,8 @@ numpy
 matplotlib
 panedr
 gromacswrapper
-pytest
-pytest-cov
 typing
 six
+pytest
+pytest-cov
+python-coveralls

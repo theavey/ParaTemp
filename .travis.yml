@@ -11,3 +11,5 @@ install:
 # command to run tests
 script:
   - py.test --cov=paratemp
+after_success:
+  - coveralls
