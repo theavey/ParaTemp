@@ -6,5 +6,6 @@ matplotlib
 panedr
 gromacswrapper
 pytest
+pytest-cov
 typing
 six
