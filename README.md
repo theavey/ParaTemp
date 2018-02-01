@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/theavey/ParaTemp.svg?branch=master)](https://travis-ci.org/theavey/ParaTemp)
+[![Coverage Status](https://coveralls.io/repos/github/theavey/ParaTemp/badge.svg?branch=master)](https://coveralls.io/github/theavey/ParaTemp?branch=master)
 [![Code Health](https://landscape.io/github/theavey/ParaTemp/master/landscape.svg?style=flat)](https://landscape.io/github/theavey/ParaTemp/master)
 [![DOI](https://zenodo.org/badge/64339257.svg)](https://zenodo.org/badge/latestdoi/64339257)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat)](https://github.com/theavey/ParaTemp/blob/master/LICENSE)
