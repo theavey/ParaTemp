@@ -111,6 +111,77 @@ def _parse_z_bin_input(bins, zfinal, zrange):
     return _bins, vmax
 
 
+def fes_array_3_legend(data, temp, labels=None, axes=None, bins=None, **kwargs):
+    """
+
+    :param pd.DataFrame data: A dataframe with the data to be transformed
+        into the FES. It needs to have at least three columns. If `labels` is
+        given, these must correspond to columns in `data`. If `labels` is
+        None, the first three columns of `data` will be used with their column
+        names as the labels.
+    :param float temp: Temperature at which to calculate the free energy
+        surface. This should be the temperature at which the simulation was run.
+    :param Iterable[str] labels: An iterable of at least length three or None.
+        If this is not None, the first three elements of it will be used as
+        column names to pick with data to plot from `data`.
+        If it is None, the first three column names from `data` will be used.
+        These values will also be used as labels for the legend.
+    :param matplotlib.axes.Axes axes: A set of axes on which to make the
+        FESes and the legend. If this is given, it must support up to
+        axes.flat[3].
+        If None, a new figure with 2x2 axes will be created.
+    :type bins: int or Sequence[int or float] or str
+    :param bins: Default: None. The bins argument to be passed to
+        np.histogram
+    :param kwargs: keyword arguments to pass to the plot function
+    :rtype: Tuple(List(np.ndarray), List(np.ndarray),
+        List(matplotlib.lines.Line2D), matplotlib.figure.Figure,
+        matplotlib.axes.Axes)
+    :return: The delta G values, the bin centers, the lines objects, the
+        figure and the axes
+    """
+    if axes is None:
+        fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True,
+                                 sharex=True)
+    else:
+        try:
+            fig = axes.flat[3].figure
+        except (IndexError, TypeError):
+            raise InputError('axes={}'.format(axes), 'Input axes must be '
+                             'able to plot at least four things')
+        except AttributeError:
+            try:
+                fig = axes[3].figure
+            except IndexError:
+                raise InputError('axes={}'.format(axes), 'Input axes must '
+                                 'be able to plot at least four things')
+    if labels is None:
+        _labels = data.columns[:3]
+    elif len(labels) > 3:
+        _labels = labels[:3]
+    else:
+        raise InputError(labels, 'len(labels) must be >= 3 if not None')
+    delta_gs = []
+    bin_data = []
+    handles = []
+    # Use whatever the default colors for the system are
+    # TODO find a more elegant way to do this
+    colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
+    for i, key in enumerate(_labels):
+        delta_g, bin_mids = _calc_fes_1d(data[key], temp=temp, bins=bins)
+        delta_gs.append(delta_g)
+        bin_data.append(bin_mids)
+        ax = axes.flat[i]
+        line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
+        handles.append(line)
+        ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
+        ax.set_xlabel(r'distance / $\mathrm{\AA}$')
+    axes.flat[3].axis('off')
+    axes.flat[3].legend(handles, _labels,
+                        loc='center')
+    return delta_gs, bin_data, handles, fig, axes
+
+
 class Universe(MDa.Universe):
 
     def __init__(self, *args, **kwargs):
@@ -1107,42 +1178,14 @@ class Taddol(Universe):
             data['O-O']
         except KeyError:
             raise InputError(data, 'data must be a pd.DataFrame like object '
-                                   'with item O-O, O(l)-Cy, and O(r)-Cy.')
+                                   'with items O-O, O(l)-Cy, and O(r)-Cy.')
         except TypeError:
             if self._verbosity:
                 print('Using default data: self.ox_dists.')
             data = self.ox_dists
-        if axes is None:
-            fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True,
-                                     sharex=True)
-        else:
-            try:
-                fig = axes.flat[3].figure
-            except (IndexError, TypeError):
-                raise InputError('axes={}'.format(axes), 'Input axes must be '
-                                 'able to plot at least four things')
-            except AttributeError:
-                try:
-                    fig = axes[3].figure
-                except IndexError:
-                    raise InputError('axes={}'.format(axes), 'Input axes must '
-                                     'be able to plot at least four things')
-        delta_gs = []
-        handles = []
-        # Use whatever the default colors for the system are
-        # TODO find a more elegant way to do this
-        colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
-        for i, key in enumerate(('O-O', 'O(l)-Cy', 'O(r)-Cy')):
-            delta_g, bin_mids = _calc_fes_1d(data[key], temp=temp, bins=bins)
-            delta_gs.append(delta_g)
-            ax = axes.flat[i]
-            line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
-            handles.append(line)
-            ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
-            ax.set_xlabel(r'distance / $\mathrm{\AA}$')
-        axes.flat[3].axis('off')
-        axes.flat[3].legend(handles, ['O-O', 'O(l)-Cy', 'O(r)-Cy'],
-                            loc='center')
+        fig = fes_array_3_legend(data, temp=temp, labels=('O-O', 'O(l)-Cy',
+                                                          'O(r)-Cy'),
+                                 axes=axes, bins=bins, **kwargs)[3]
         if save:
             fig.savefig(save_base_name + save_format)
         if display:
