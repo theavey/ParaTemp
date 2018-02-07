@@ -201,7 +201,7 @@ class Universe(MDa.Universe):
         # just automatically inherits everything
         # Maybe use the super() command? need to learn more about this
         self._verbosity = kwargs.pop('verbosity', 1)
-        self._temperature = kwargs.pop('temp', None)
+        self.temperature = kwargs.pop('temp', None)
         super(Universe, self).__init__(*args, **kwargs)
         self._num_frames = self.trajectory.n_frames
         self._last_time = self.trajectory.totaltime
@@ -561,7 +561,7 @@ class Universe(MDa.Universe):
         :param float temp: Default: None. Temperature for Boltzmann weighting
             calculation.
             If None is provided, the temperature will be taken from
-            self._temperature
+            self.temperature
         :param matplotlib.axes.Axes ax: Default: None. Axes on which to make
             the FES. If None, a new axes and figure will be created.
         :param Iterable bins: Default: None. The bins to be used for the z
@@ -623,7 +623,7 @@ class Universe(MDa.Universe):
 
     def _parse_temp_input(self, temp):
         if temp is None:
-            _temp = self._temperature
+            _temp = self.temperature
         else:
             _temp = temp
         if _temp is None:
@@ -653,7 +653,7 @@ class Universe(MDa.Universe):
         :param float temp: Default: None. Temperature for Boltzmann weighting
             calculation.
             If None is provided, the temperature will be taken from
-            self._temperature
+            self.temperature
 
         :type bins: int or Sequence[int or float] or str
         :param bins: Default: None. The bins argument to be passed to
