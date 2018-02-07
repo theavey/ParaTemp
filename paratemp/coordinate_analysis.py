@@ -306,6 +306,7 @@ class Universe(MDa.Universe):
         else:
             if self._verbosity:
                 print('Nothing (new) to calculate here.')
+            return
         n1 = first_group.n_atoms
         n2 = second_group.n_atoms
         nc = len(column_names)
