@@ -157,7 +157,7 @@ def fes_array_3_legend(data, temp, labels=None, axes=None, bins=None, **kwargs):
                                  'be able to plot at least four things')
     if labels is None:
         _labels = data.columns[:3]
-    elif len(labels) > 3:
+    elif len(labels) >= 3:
         _labels = labels[:3]
     else:
         raise InputError(labels, 'len(labels) must be >= 3 if not None')
