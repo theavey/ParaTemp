@@ -2,10 +2,10 @@
 
 ########################################################################
 #                                                                      #
-# This script was written by Thomas Heavey in 2017.                    #
+# This package was written by Thomas Heavey in 2018.                   #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
-# Copyright 2017 Thomas J. Heavey IV                                   #
+# Copyright 2017-18 Thomas J. Heavey IV                                #
 #                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");      #
 # you may not use this file except in compliance with the License.     #
@@ -28,10 +28,11 @@ import sys
 
 from . import para_temp_setup
 from .tools import copy_no_overwrite, cd, get_temperatures
+from . import coordinate_analysis
+from . import re_universe
 
 if sys.version_info.major == 2:
-    # These (at this point) require python 2 because of gromacs and MDAnalysis
-    from . import coordinate_analysis
+    # These (at this point) require python 2 because of gromacs (gromacswrapper)
     from . import energy_histo
     from . import energy_bin_analysis
 
@@ -40,3 +41,5 @@ if sys.version_info.major == 2:
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
+
+__author__ = 'Thomas Heavey'
