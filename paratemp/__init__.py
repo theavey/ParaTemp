@@ -30,6 +30,7 @@ from . import para_temp_setup
 from .tools import copy_no_overwrite, cd, get_temperatures
 from . import coordinate_analysis
 from . import re_universe
+from ._version import get_versions
 
 if sys.version_info.major == 2:
     # These (at this point) require python 2 because of gromacs (gromacswrapper)
@@ -37,8 +38,6 @@ if sys.version_info.major == 2:
     from . import energy_bin_analysis
 
 
-
-from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
