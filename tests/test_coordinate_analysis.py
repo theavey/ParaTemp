@@ -1,4 +1,4 @@
-"""This contains a set of tests for ParaTemp.CoordinateAnalysis"""
+"""This contains a set of tests for paratemp.coordinate_analysis"""
 
 ########################################################################
 #                                                                      #
