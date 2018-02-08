@@ -1,8 +1,8 @@
-"""This contains a set of tests for ParaTemp.tools"""
+"""This contains a set of tests for paratemp.re_universe"""
 
 ########################################################################
 #                                                                      #
-# This script was written by Thomas Heavey in 2018.                    #
+# This test was written by Thomas Heavey in 2018.                      #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
 # Copyright 2017-18 Thomas J. Heavey IV                                #
@@ -25,21 +25,4 @@
 from __future__ import absolute_import
 
 import pytest
-import numpy as np
 
-
-@pytest.fixture
-def ref_temps():
-    return np.load('tests/ref-data/temperatures.npy')
-
-
-def test_get_temps(ref_temps):
-    from paratemp import get_temperatures
-    assert (get_temperatures('tests/test-data/temperatures.dat') == ref_temps).all()
-
-
-def test_find_nearest_idx(ref_temps):
-    from paratemp.tools import find_nearest_idx
-    assert find_nearest_idx(ref_temps, 0) == 0
-    assert find_nearest_idx(ref_temps, 500.) == 15
-    assert find_nearest_idx(ref_temps, 221.) == 1
