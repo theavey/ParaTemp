@@ -30,21 +30,22 @@ and access to the individual replica Universes.
 #                                                                      #
 ########################################################################
 
+
+from __future__ import absolute_import, print_function
+
 import collections
 import errno
 import glob
 import numpy as np
 import os
 import six
+
+from .tools import find_nearest_idx
 from .coordinate_analysis import Universe
 from . import get_temperatures, exceptions
 
 
-def find_nearest_idx(array, value):
-    return (np.abs(array - value)).argmin()
-
-
-class PTUniverse(collections.Sequence):
+class REUniverse(collections.Sequence):
 
     def __init__(self, topology, base_folder,
                  trajs=None, traj_glob='*.xtc',
