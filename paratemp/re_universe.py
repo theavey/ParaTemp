@@ -46,11 +46,32 @@ from . import get_temperatures, exceptions
 
 
 class REUniverse(collections.Sequence):
+        # TODO document this
 
     def __init__(self, topology, base_folder,
                  trajs=None, traj_glob='*.xtc',
                  temps='TOPO/temperatures.dat'):
-        # TODO document this
+        """
+        Instatiate a replica exchange universe for a set of replica trajectories
+
+        :param str topology: Name of the topology file (such as a .gro or
+            .pdb file).
+        :param str base_folder: Name of the folder in which to look for the
+            trajectories, topology, temperature file, and others.
+        :param Iterable[list] trajs: List of the trajectory files. If this
+            is None, traj_glob will be used instead.
+            The files can be listed either relative to the current directory
+            (checked first) or relative to `base_folder`.
+        :param str traj_glob: If `trajs` is None, this string will be glob
+            expanded to find the trajectories.
+        :type temps: str or Iterable
+        :param temps: Temperatures or path to file with temperatures of the
+            replicas in the simulations.
+            If a string is provided, it is assumed to be a path relative to
+            the current directory or `base_folder`.
+            Otherwise, it is assumed to be an iterable of values that can be
+            cast to floats.
+        """
         self.base_folder = os.path.abspath(base_folder)
         self._top = self._fn(topology)
         self._trajs = self._get_trajs(trajs, traj_glob)
@@ -67,7 +88,21 @@ class REUniverse(collections.Sequence):
              for i, t in enumerate(self._trajs)])
 
     def _fn(self, path):
-        # TODO document this
+        """
+        Return absolute path to file relative to either here or base_folder
+
+        :param str path: (Relative path and) file to look for in current
+            directory or relative to `base_folder`. Current directory is
+            checked first and the absolute path to that is returned if it is
+            found there. Otherwise, the file is searched for relative to
+            `base_folder`. If it's not found there either, FileNotFoundError
+            is raised
+        :return: Absolute path to path
+        :rtype: str
+
+        :raises: OSError if the file is not found relative to current
+            directory or `base_folder`.
+        """
         if os.path.isfile(path):
             return os.path.abspath(path)
         elif os.path.isfile(os.path.join(self.base_folder, path)):
@@ -81,7 +116,7 @@ class REUniverse(collections.Sequence):
         if isinstance(temps, six.string_types):
             return get_temperatures(self._fn(temps))
         else:
-            return np.array(temps)
+            return np.array([float(t) for t in temps])
 
     def _get_trajs(self, trajs, traj_glob):
         # TODO document this
