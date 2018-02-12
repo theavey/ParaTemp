@@ -10,7 +10,7 @@ and access to the individual replica Universes.
 
 ########################################################################
 #                                                                      #
-# This  was written by Thomas Heavey in 2018.                          #
+# This module was written by Thomas Heavey in 2018.                    #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
 # Copyright 2018 Thomas J. Heavey IV                                   #
@@ -47,7 +47,43 @@ from . import get_temperatures, exceptions
 
 
 class REUniverse(collections.Sequence):
-        # TODO document this
+    """
+    A class for working with MDAnalysis Universes from replica exchange sims.
+
+    This class creates Universe objects for different simulations that all
+    have the same topology (atoms, bonds, etc.), but different temperatures
+    (not strictly required, though a 'temperature' needs to be specified for
+    each).
+    This class itself does not add much on top of
+    :class:`paratemp.coordinate_analysis.Universe` other than iteration over
+    the replicas and creating them starting all from the same topology with
+    different trajectories.
+
+    An instance of this class can be indexed (with `[]`s) with either ints
+    (to get the Universe with that index) or with strings that can be
+    converted to floats to get the replica with the temperature nearest to
+    that value.
+
+    >>> reu = REUniverse('test.gro', 'simulation_folder', trajs=['cold.xtc', \
+    'warm.xtc'], temps=[100, 200])
+    <paratemp.re_universe.REUniverse at 0x7f1e50adca90>
+
+    >>> reu[0].temperature
+    100.0
+
+    >>> reu['75'].temperature
+    100.0
+
+    >>> print([u.temperature for u in reu])
+    [100.0, 200.0]
+
+    >>> len(reu)
+    2
+
+    >>> reu.keys()
+    ('100.0', '200.0')
+
+    """
 
     def __init__(self, topology, base_folder,
                  trajs=None, traj_glob='*.xtc',
@@ -63,6 +99,13 @@ class REUniverse(collections.Sequence):
             is None, traj_glob will be used instead.
             The files can be listed either relative to the current directory
             (checked first) or relative to `base_folder`.
+
+            **Be aware**: the order of these does not matter because they will
+            be sorted alphanumerically and then by length. This should be
+            fine if all the trajectory names only differ by the value of
+            some index, but in other cases, this could cause issues with
+            unexpected ordering or incorrect matching of temperatures to
+            trajectories.
         :param str traj_glob: If `trajs` is None, this string will be glob
             expanded to find the trajectories.
         :type temps: str or Iterable
@@ -126,7 +169,8 @@ class REUniverse(collections.Sequence):
 
             If the input is not string-like, it will be converted to a
             :func:`np.ndarray` of floats.
-        :rtype: numpy.ndarray
+
+        :rtype: np.ndarray
         :return: The temperatures as floats
         """
         if isinstance(temps, six.string_types):
@@ -178,7 +222,21 @@ class REUniverse(collections.Sequence):
                                         'to find trajectory files')
 
     def __getitem__(self, i):
-        # TODO document this
+        """
+        Get one of the replica universes by index or temperature
+
+        If `i` is an int, then this will return the Universe with `i` as its
+        index.
+        If `i` is a string, it is assumed to be a float, and the replica
+        Universe with the temperature absolutely nearest to `i` will be
+        returned.
+
+        :type i: int or str
+        :param i: The index of the universe to be returned or a string of the
+            temperature closest to the temp or the Universe to be returned.
+        :rtype: Universe
+        :return: The Universe indicated by `i`.
+        """
         if isinstance(i, int):
             if i > len(self) - 1:
                 raise IndexError(
@@ -189,19 +247,43 @@ class REUniverse(collections.Sequence):
             return self.universes[find_nearest_idx(self._temps, float(i))]
 
     def __len__(self):
-        # TODO document this
+        """
+        Return the number of replicas in the object.
+
+        :rtype: int
+        :return: The number of replicas
+        """
         return len(self.universes)
 
     def keys(self):
-        # TODO document this
+        """
+        Return the temperatures of the replicas (as can be used for indexing)
+
+        As currently implemented, these are rounded to the nearest tenths
+        place, but this may change in the future.
+
+        :rtype: tuple[str]
+        :return: The temperatures of the replicas
+        """
         # TODO possibly change precision based on spread of temperatures
         # (tenths might not always be precise enough for large systems)
         return ('{:.1f}'.format(t) for t in self._temps)
 
     def values(self):
-        # TODO document this
+        """
+        Return the universes.
+
+        :rtype: np.ndarray[Universe]
+        :return: The numpy array of the Universe objects
+        """
         return self.universes
 
     def items(self):
-        # TODO document this
+        """
+        Return a list of key-value pairs
+
+        :rtype: list[tuple[str, Universe]]
+        :return: A list of key-value pair tuples
+
+        """
         return zip(self.keys(), self.values())
