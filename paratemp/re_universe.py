@@ -39,6 +39,7 @@ import glob
 import numpy as np
 import os
 import six
+from typing import Iterable
 
 from .tools import find_nearest_idx
 from .coordinate_analysis import Universe
@@ -58,7 +59,7 @@ class REUniverse(collections.Sequence):
             .pdb file).
         :param str base_folder: Name of the folder in which to look for the
             trajectories, topology, temperature file, and others.
-        :param Iterable[list] trajs: List of the trajectory files. If this
+        :param Iterable[str] trajs: List of the trajectory files. If this
             is None, traj_glob will be used instead.
             The files can be listed either relative to the current directory
             (checked first) or relative to `base_folder`.
@@ -134,7 +135,30 @@ class REUniverse(collections.Sequence):
             return np.array([float(t) for t in temps])
 
     def _get_trajs(self, trajs, traj_glob):
-        # TODO document this
+        """
+        Get paths to trajectory files
+
+        This method will first see if trajs is not None.
+        If it is None, it will try to glob expand in the current path then
+        from base_folder if the first glob returns an empty list.
+
+        If none of these works, FileNotFoundError will be raised.
+
+        For the first one that works, the list of files will be expanded to
+        absolute paths and returned as a list of strings of the paths.
+
+        :param Iterable trajs: If this is not None, this will be taken as a
+            list of paths to the trajectory files. The order here does
+            not matter because they will be sorted in
+            :meth:`~paratemp.re_universe.REUniverse.__init__` (as it is
+            currently implemented).
+        :param str traj_glob: A string which can be glob expanded to give
+            the trajectory files (and only the relevant trajectory files).
+        :rtype: list
+        :return: A list of the absolute paths to the trajectories.
+        :raises: OSError if trajs is None and glob expansion both here and
+            in base_folder give empty lists.
+        """
         if trajs is not None:
             return [self._fn(t) for t in trajs]
         elif isinstance(traj_glob, six.string_types):
