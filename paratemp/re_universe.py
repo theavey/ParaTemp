@@ -112,7 +112,22 @@ class REUniverse(collections.Sequence):
                           '{} not found here or under base_folder'.format(path))
 
     def _get_temps(self, temps):
-        # TODO document this
+        """
+        Get the temperatures for the set of replicas
+
+        :type temps: str or Iterable
+        :param temps: Either the path to the file with the temperatures or a
+            list-like of the temperatures.
+
+            If a string is given, it will be processed as being absolute,
+            relative to current dir., or relative to base_folder. This uses
+            :func:`paratemp.tools.get_temperatures` to read the file.
+
+            If the input is not string-like, it will be converted to a
+            :func:`np.ndarray` of floats.
+        :rtype: numpy.ndarray
+        :return: The temperatures as floats
+        """
         if isinstance(temps, six.string_types):
             return get_temperatures(self._fn(temps))
         else:
