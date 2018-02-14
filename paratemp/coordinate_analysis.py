@@ -475,75 +475,47 @@ class Universe(MDa.Universe):
         for i, column in enumerate(column_names):
             self._data[column] = diheds[:, i]
 
-    def update_num_frames(self, silent=False):
+    def fes_1d(self, data, bins=None, temp=None,
+               xlabel=r'distance / $\mathrm{\AA}$', ax=None, **kwargs):
         """
-        Update number of frames and last time from trajectory file
+        Make FES of some time series data
 
-        :param bool silent: Default: False. If True, nothing will be printed.
-        :return: None
+        :type data: Iterable or str
+        :param data: Data to form the FES from. If a string is given, the data
+            will be taken from self.data[data].
+
+        :param float temp: Default: None. Temperature for Boltzmann weighting
+            calculation.
+            If None is provided, the temperature will be taken from
+            self.temperature
+
+        :type bins: int or Sequence[int or float] or str
+        :param bins: Default: None. The bins argument to be passed to
+            np.histogram
+
+        :param str xlabel: Default: 'distance / $\mathrm{\AA}$'. The label for
+            the x axis.
+
+        :type ax: matplotlib.axes.Axes
+        :param ax: Default: None. The axes objects on which to make the plots.
+            If None is supplied, new axes objects will be created.
+
+        :param kwargs: keyword arguments to pass to the plotter
+
+        :rtype: Tuple(np.ndarray, np.ndarray, matplotlib.lines.Line2D,
+            matplotlib.figure.Figure, matplotlib.axes.Axes)
+
+        :return: The delta G values, the bin centers, the lines object, the
+            figure and the axes
         """
-        num_frames = self.trajectory.n_frames
-        if num_frames != self._num_frames:
-            if self._verbosity and not silent:
-                print('Updating num of frames from {} to {}'.format(
-                    self._num_frames, num_frames) +
-                      '\nand the final time.')
-            self._num_frames = num_frames
-            self._last_time = self.trajectory.totaltime
-
-    def update_data_len(self, update_time=True, silent=False):
-        """
-        Update the times and length of self.data based on trajectory file
-
-        :param update_time: Default: True. If True, self.update_num_frames
-            will be used to find the new length and final time of the
-            trajectory file. If False, these will just be read from the instance
-            variables and not updated based on the trajectory file.
-        :param silent: Default: False. If True, nothing will be printed.
-        :return: None
-        """
-        if update_time:
-            self.update_num_frames(silent=True)
-        if self._data['Time'].iat[-1] != self._last_time:
-            old_len = len(self.data)
-            new_times_df = self._init_dataframe()
-            self._data = self._data.join(new_times_df.set_index('Time'),
-                                         on='Time')
-            if self._verbosity and not silent:
-                print('Updating data from '
-                      '{} frames to {} frames'.format(old_len, len(self._data)))
-        else:
-            if self._verbosity and not silent:
-                print('No need to update self.data')
-
-    @property
-    def data(self):
-        """
-        The pd.DataFrame that is the backend to much of the added functions
-
-        :return: the distances and properties for this trajectory
-        :rtype: pd.DataFrame
-        """
-        # TODO might be able to be clever here and catch key errors and
-        # and then calculate as needed
-        # An easier solution is just to add a calc funtion that parsers things
-        # I need calculated without needing to return them.
-        # I doubt I could do the clever thing without subclassing DataFrame,
-        # and I'm not sure I want to mess with their item access stuff.
-        return self._data
-
-    @property
-    def final_time_str(self):
-        """"""
-        ps, ns, us, ms = (1, 'ps'), (1e3, 'ns'), (1e6, 'us'), (1e9, 'ms')
-        time_dict = {1: ps, 2: ps, 3: ps, 4: ns, 5: ns, 6: ns, 7: us, 8: us,
-                     9: us}
-        f_time = str(int(self._last_time))
-        try:
-            power, exten = time_dict[len(f_time)]
-        except KeyError:
-            power, exten = ms
-        return str(int(self._last_time/power)) + exten
+        _temp = self._parse_temp_input(temp)
+        _data = self._parse_data_input(data)
+        _fig, _ax = _parse_ax_input(ax)
+        delta_g, bin_mids = _calc_fes_1d(_data, temp=_temp, bins=bins)
+        lines = _ax.plot(bin_mids, delta_g, **kwargs)
+        _ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
+        _ax.set_xlabel(xlabel)
+        return delta_g, bin_mids, lines, _fig, _ax
 
     def fes_2d(self, x, y, temp=None, ax=None, bins=None,
                zrange=(0, 20, 11), zfinal=40, n_bins=32, transpose=False,
@@ -621,6 +593,76 @@ class Universe(MDa.Universe):
             fig.tight_layout()
         return delta_g, (xmids, ymids), contours, fig, ax
 
+    def update_num_frames(self, silent=False):
+        """
+        Update number of frames and last time from trajectory file
+
+        :param bool silent: Default: False. If True, nothing will be printed.
+        :return: None
+        """
+        num_frames = self.trajectory.n_frames
+        if num_frames != self._num_frames:
+            if self._verbosity and not silent:
+                print('Updating num of frames from {} to {}'.format(
+                    self._num_frames, num_frames) +
+                      '\nand the final time.')
+            self._num_frames = num_frames
+            self._last_time = self.trajectory.totaltime
+
+    def update_data_len(self, update_time=True, silent=False):
+        """
+        Update the times and length of self.data based on trajectory file
+
+        :param update_time: Default: True. If True, self.update_num_frames
+            will be used to find the new length and final time of the
+            trajectory file. If False, these will just be read from the instance
+            variables and not updated based on the trajectory file.
+        :param silent: Default: False. If True, nothing will be printed.
+        :return: None
+        """
+        if update_time:
+            self.update_num_frames(silent=True)
+        if self._data['Time'].iat[-1] != self._last_time:
+            old_len = len(self.data)
+            new_times_df = self._init_dataframe()
+            self._data = self._data.join(new_times_df.set_index('Time'),
+                                         on='Time')
+            if self._verbosity and not silent:
+                print('Updating data from '
+                      '{} frames to {} frames'.format(old_len, len(self._data)))
+        else:
+            if self._verbosity and not silent:
+                print('No need to update self.data')
+
+    @property
+    def data(self):
+        """
+        The pd.DataFrame that is the backend to much of the added functions
+
+        :return: the distances and properties for this trajectory
+        :rtype: pd.DataFrame
+        """
+        # TODO might be able to be clever here and catch key errors and
+        # and then calculate as needed
+        # An easier solution is just to add a calc funtion that parsers things
+        # I need calculated without needing to return them.
+        # I doubt I could do the clever thing without subclassing DataFrame,
+        # and I'm not sure I want to mess with their item access stuff.
+        return self._data
+
+    @property
+    def final_time_str(self):
+        """"""
+        ps, ns, us, ms = (1, 'ps'), (1e3, 'ns'), (1e6, 'us'), (1e9, 'ms')
+        time_dict = {1: ps, 2: ps, 3: ps, 4: ns, 5: ns, 6: ns, 7: us, 8: us,
+                     9: us}
+        f_time = str(int(self._last_time))
+        try:
+            power, exten = time_dict[len(f_time)]
+        except KeyError:
+            power, exten = ms
+        return str(int(self._last_time/power)) + exten
+
     def _parse_temp_input(self, temp):
         if temp is None:
             _temp = self.temperature
@@ -640,48 +682,6 @@ class Universe(MDa.Universe):
                                     'key for the data in this object')
         else:
             return x
-
-    def fes_1d(self, data, bins=None, temp=None,
-               xlabel=r'distance / $\mathrm{\AA}$', ax=None, **kwargs):
-        """
-        Make FES of some time series data
-
-        :type data: Iterable or str
-        :param data: Data to form the FES from. If a string is given, the data
-            will be taken from self.data[data].
-
-        :param float temp: Default: None. Temperature for Boltzmann weighting
-            calculation.
-            If None is provided, the temperature will be taken from
-            self.temperature
-
-        :type bins: int or Sequence[int or float] or str
-        :param bins: Default: None. The bins argument to be passed to
-            np.histogram
-
-        :param str xlabel: Default: 'distance / $\mathrm{\AA}$'. The label for
-            the x axis.
-
-        :type ax: matplotlib.axes.Axes
-        :param ax: Default: None. The axes objects on which to make the plots.
-            If None is supplied, new axes objects will be created.
-
-        :param kwargs: keyword arguments to pass to the plotter
-
-        :rtype: Tuple(np.ndarray, np.ndarray, matplotlib.lines.Line2D,
-            matplotlib.figure.Figure, matplotlib.axes.Axes)
-
-        :return: The delta G values, the bin centers, the lines object, the
-            figure and the axes
-        """
-        _temp = self._parse_temp_input(temp)
-        _data = self._parse_data_input(data)
-        _fig, _ax = _parse_ax_input(ax)
-        delta_g, bin_mids = _calc_fes_1d(_data, temp=_temp, bins=bins)
-        lines = _ax.plot(bin_mids, delta_g, **kwargs)
-        _ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
-        _ax.set_xlabel(xlabel)
-        return delta_g, bin_mids, lines, _fig, _ax
 
 
 class Taddol(Universe):
