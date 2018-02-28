@@ -4,7 +4,7 @@
 [![DOI](https://zenodo.org/badge/64339257.svg)](https://zenodo.org/badge/latestdoi/64339257)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat)](https://github.com/theavey/ParaTemp/blob/master/LICENSE)
 
-[![ParaTemp Logo](https://raw.githubusercontent.com/theavey/ParaTemp/master/graphics/logo.png)](https://github.com/theavey/ParaTemp)
+[![ParaTemp Logo](https://raw.githubusercontent.com/theavey/ParaTemp/master/graphics/logo2.png)](https://github.com/theavey/ParaTemp)
 
 __*A Python package for setup and analysis of parallel tempering and replica exchange molecular dynamics*__
 
