@@ -8,8 +8,15 @@ python:
 install:
   - pip install -r requirements.txt
   - python setup.py install
+
 # command to run tests
 script:
   - py.test --cov=paratemp
+
 after_success:
   - coveralls
+
+notifications:
+  slack:
+    secure: pgmfRW729dA7JaulBmcVQkEaMdSpVtErckerNPGX78oA8tmL7sMHBqP7XAiX56t8HX95s8EtmxOITdtrlSFZZVQgxckuDk0NCjA7jIfDJyv4VpROAlq546JBQveW1qPqBDGsXUPN3J+vuRG+sWL/yXkLtm6ih9RQveRCwPd7++fsAclI1YmbFiaTsNkHWmXDTHYWV2RZdfK9t1I8FUqTzAcYimrNbSoS/9UPvo8Hiyv5yGylM5ctQebcVCprpjjI2NWfN29RIsKYGEEKqKcRWiZdFjd2bro3mgiE3ctwRthNV6N3iSO0HVOaXOoCK9Nw7o4S0pzrzWOfhHOgtJN0jHw+owW0a5bElNwh1N4ci8JuqcIeBzVJGs/QwzUMS+pHVurVlrKzyTn6k0Z/tJKRtI6HO0pSaRHdR5HePSS2RZuUWom3ZC+LE/XvznDjsL6krZP3sWzcT63A8iVL8sc3+NT7iybna+5JFSChzhK0o6UuSA0sVbF36qFAD5rIxC2CXfSjfF/gMF3WWIfUkLOpza1hgjdbZoY4yQxsJuZv27tMhvaDRxkqlRkpvD9gOw3sVktHZjzSBkrz7Zzu1Uwl2+lC6rS4SIL6uJ9lpXoH76dT5BDnHJ8nntrHJ3WF00Bz/fu3z3pDAIjJsXJ2yre3//bs0utry+6FSEZTJ23FOyA=
+
