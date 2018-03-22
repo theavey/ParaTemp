@@ -99,7 +99,8 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                          stdout=PIPE, bufsize=1,
                          stderr=STDOUT,
                          universal_newlines=True)
-            for line in proc.stdout:
+            stdout = proc.communicate()[0]
+            for line in stdout:
                 if error is True:  # Catch the next line after the error
                     error = line
                 elif error:  # If error is not True but is set to string
