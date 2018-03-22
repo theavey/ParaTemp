@@ -15,3 +15,7 @@ ParaTemp.iml
 /.ipynb_checkpoints/
 
 /.coverage
+
+# ignore egg-info
+ParaTemp.egg-info
+
