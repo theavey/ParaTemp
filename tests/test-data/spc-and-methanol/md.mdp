@@ -5,6 +5,13 @@ nsteps      = 50
 cutoff-scheme = verlet
 coulombtype   = PME
 
+; Temperature coupling (run at constant temperature)
+tcoupl          = v-rescale     ; velocity rescaling with stochastic term
+tc-grps         = System        ; one group, whole system
+tau-t           = 0.1           ; 0.1 ps
+ref-t           = 298           ; in Kelvin
+ld-seed         = 2018          ; set random seed
+
 ; Velocity generation
 gen_vel     = yes       ; assign velocities from Maxwell distribution
 gen_temp    = 298       ; temperature for Maxwell distribution
