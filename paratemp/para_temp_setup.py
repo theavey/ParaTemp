@@ -27,10 +27,12 @@
 
 import errno
 import glob
+from math import exp
 import os
 import re
 import shutil
 import subprocess
+from subprocess import Popen, PIPE, STDOUT
 
 from .sim_setup import _submit_script
 from .tools import _BlankStream, _replace_string_in_file
@@ -64,13 +66,11 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
     :return: None
     """
     # if args.multi_structure:
-    from glob import glob
-    structures = glob(structure+'*.gro')
+    structures = glob.glob(structure+'*.gro')
     structures.sort()
     structures.sort(key=len)
     temps = []
     error = False
-    from math import exp
     for i in range(number):
         mdp_name = base_name + str(i) + '.mdp'
         temp = start_temp * exp(i * scaling_exponent)
@@ -91,7 +91,6 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                         '-o', mdp_name.replace('mdp', 'tpr'),
                         '-maxwarn', str(maxwarn)]
         with open('gromacs_compile_output.log', 'a') as log_file:
-            from subprocess import Popen, PIPE, STDOUT
             proc = Popen(command_line,
                          stdout=PIPE, bufsize=1,
                          stderr=STDOUT,

@@ -42,3 +42,7 @@ def test_pt_dir(pt_dir):
                     'spc-and-methanol.top',
                     'templatemdp.txt'}
     assert must_contain - files_present == set()
+
+class TestCompileTPRs(object):
+
+    def
