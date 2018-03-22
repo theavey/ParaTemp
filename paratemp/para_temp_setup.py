@@ -73,6 +73,8 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
     structures = glob.glob(structure+'*.gro')
     structures.sort()
     structures.sort(key=len)
+    _topology = glob.glob(topology)[0]
+    _structure = glob.glob(structure)[0]
     temps = []
     error = False
     for i in range(number):
@@ -80,7 +82,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
         temp = start_temp * exp(i * scaling_exponent)
         temps += [temp]
         if multi_structure:
-            structure = structures[i]
+            _structure = structures[i]
         with open(template, 'r') as f_template, \
                 open(mdp_name, 'w') as out_file:
             for line in f_template:
@@ -89,8 +91,8 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                 out_file.write(line)
         command_line = [gromacs_exe, 'grompp',
                         '-f', mdp_name,
-                        '-p', topology,
-                        '-c', structure,
+                        '-p', _topology,
+                        '-c', _structure,
                         '-n', index,
                         '-o', mdp_name.replace('mdp', 'tpr'),
                         '-maxwarn', str(maxwarn)]

@@ -55,12 +55,10 @@ class TestCompileTPRs(object):
         :return:
         """
         from paratemp.para_temp_setup import compile_tprs
-        with pt_dir_blank.as_cwd():
+        dir_topo = pt_dir_blank.mkdir('TOPO')
+        with dir_topo.as_cwd():
             compile_tprs(start_temp=298, number=2,
-                         topology=n_top,
-                         template=n_template,
-                         structure=n_gro,
-                         index=n_ndx,
+                         template='../'+n_template,
                          base_name='nvt',
                          gromacs_exe='gmx')
-        assert pt_dir_blank.ensure_dir('TOPO')
+        assert dir_topo.check()
