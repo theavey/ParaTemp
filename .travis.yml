@@ -1,5 +1,10 @@
 language: python
 
+addons:
+  apt:
+    packages:
+    - gromacs
+
 python:
   - "2.7"
   - "3.6"
