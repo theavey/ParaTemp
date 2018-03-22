@@ -5,6 +5,11 @@ nsteps      = 50
 cutoff-scheme = verlet
 coulombtype   = PME
 
+; Output control
+nstxout         = 5             ; write coordinates every 5 steps
+nstcalcenergy   = 5             ; calculate energies every 5 steps
+nstenergy       = 5             ; write energies to energy file every 5 steps
+
 ; Temperature coupling (run at constant temperature)
 tcoupl          = v-rescale     ; velocity rescaling with stochastic term
 tc-grps         = System        ; one group, whole system
