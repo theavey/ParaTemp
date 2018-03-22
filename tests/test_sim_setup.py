@@ -90,6 +90,8 @@ def n_top_dc():
     b_path = os.path.join(os.path.dirname(path),
                           'unequal-'+os.path.basename(path))
     yield os.path.abspath(path)
+    # If a backup of the original was made, copy the backup over the updated
+    # version:
     if os.path.isfile(b_path):
         os.rename(b_path, path)
 
@@ -103,7 +105,9 @@ class TestGetSolvCountTop(object):
 
     def test_get_solv_count_top(self, n_top_dc, folder_dc):
         from paratemp.sim_setup import get_solv_count_top
+        # Test giving the file name as input
         assert get_solv_count_top(n_top_dc) == 361
+        # Test giving only the containing folder as input
         assert get_solv_count_top(folder=folder_dc) == 361
 
 
