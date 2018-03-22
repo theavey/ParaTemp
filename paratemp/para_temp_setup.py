@@ -73,8 +73,14 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
     structures = glob.glob(structure+'*.gro')
     structures.sort()
     structures.sort(key=len)
-    _topology = glob.glob(topology)[0]
-    _structure = glob.glob(structure)[0]
+    try:
+        _topology = glob.glob(topology)[0]
+    except IndexError:
+        raise OSError(errno.ENOENT, 'No topology file found.')
+    try:
+        _structure = glob.glob(structure)[0]
+    except IndexError:
+        raise OSError(errno.ENOENT, 'No structure file found.')
     temps = []
     error = False
     for i in range(number):
@@ -102,7 +108,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                          stderr=STDOUT,
                          universal_newlines=True)
             stdout = proc.communicate()[0]
-            for line in stdout:
+            for line in stdout.splitlines():
                 if error is True:  # Catch the next line after the error
                     error = line
                 elif error:  # If error is not True but is set to string
@@ -111,7 +117,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                         'File input/output error' in line or
                         'Error in user input' in line):
                     error = True  # Deal with this after writing log file
-                log_file.write(line)
+                log_file.write(line+'\n')
         if error or proc.returncode != 0:
             error = error if error else 'Unknown error. Check log file.'
             raise RuntimeError(error, 'returncode: {}'.format(proc.returncode))
