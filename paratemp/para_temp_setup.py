@@ -111,7 +111,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                 log_file.write(line)
         if error or proc.returncode != 0:
             error = error if error else 'Unknown error. Check log file.'
-            raise RuntimeError(error)
+            raise RuntimeError(error, 'returncode: {}'.format(proc.returncode))
     with open(temps_file, 'w') as temps_out:
         temps_out.write(str(temps))
         temps_out.write('\n')
