@@ -45,7 +45,8 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                  scaling_exponent=0.025, base_name='npt',
                  topology='../*top', multi_structure=False,
                  structure='../*gro', index='../index.ndx',
-                 temps_file='temperatures.dat', maxwarn='0'):
+                 temps_file='temperatures.dat', maxwarn='0',
+                 gromacs_exe='gmx_mpi'):
     """
     Compile TPR files for REMD run with GROMACS
 
@@ -63,6 +64,9 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
     :type maxwarn: int or str
     :param maxwarn: maximum number of warnings to ignore. str is applied to
         this argument, so type shouldn't matter significantly.
+    :param str gromacs_exe: The name of the GROMACS executable. This is often
+        just `gmx`, but on some systems the MPI-compiled version may be
+        `gmx_mpi`, as is true on my system.
     :return: None
     """
     # if args.multi_structure:
@@ -83,7 +87,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                 if 'TempGoesHere' in line:
                     line = line.replace('TempGoesHere', str(temp))
                 out_file.write(line)
-        command_line = ['gmx_mpi', 'grompp',
+        command_line = [gromacs_exe, 'grompp',
                         '-f', mdp_name,
                         '-p', topology,
                         '-c', structure,
