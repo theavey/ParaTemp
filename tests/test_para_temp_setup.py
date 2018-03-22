@@ -27,22 +27,40 @@ import py
 import pytest
 
 
-@pytest.fixture
-def pt_dir(tmpdir):
-    dir_from = py.path.local('tests/test-data/spc-and-methanol')
-    files_from = dir_from.listdir()
-    for f in files_from:
-        f.copy(tmpdir)
-    return tmpdir
+n_gro, n_top, n_template, n_ndx = ('spc-and-methanol.gro',
+                                   'spc-and-methanol.top',
+                                   'templatemdp.txt',
+                                   'index.ndx')
 
-
-def test_pt_dir(pt_dir):
-    files_present = {f.basename for f in pt_dir.listdir()}
-    must_contain = {'spc-and-methanol.gro',
-                    'spc-and-methanol.top',
-                    'templatemdp.txt'}
-    assert must_contain - files_present == set()
 
 class TestCompileTPRs(object):
 
-    def
+    @pytest.fixture
+    def pt_dir_blank(self, tmpdir):
+        dir_from = py.path.local('tests/test-data/spc-and-methanol')
+        files_from = dir_from.listdir()
+        for f in files_from:
+            f.copy(tmpdir)
+        return tmpdir
+
+    def test_pt_dir_blank(self, pt_dir_blank):
+        files_present = {f.basename for f in pt_dir_blank.listdir()}
+        must_contain = {n_top, n_gro, n_template, n_ndx}
+        assert must_contain - files_present == set()
+
+    def test_compile_tprs(self, pt_dir_blank):
+        """
+
+        :param py.path.local pt_dir_blank:
+        :return:
+        """
+        from paratemp.para_temp_setup import compile_tprs
+        with pt_dir_blank.as_cwd():
+            compile_tprs(start_temp=298, number=2,
+                         topology=n_top,
+                         template=n_template,
+                         structure=n_gro,
+                         index=n_ndx,
+                         base_name='nvt',
+                         gromacs_exe='gmx')
+        assert pt_dir_blank.ensure_dir('TOPO')
