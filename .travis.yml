@@ -16,7 +16,7 @@ before_install:
   - cd gromacs-2016.5
   - mkdir build
   - cd build
-  - cmake .. -DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON
+  - cmake .. -DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=OFF
   - make
   - make check
   - sudo make install
