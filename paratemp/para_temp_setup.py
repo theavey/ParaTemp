@@ -30,6 +30,7 @@ import glob
 from math import exp
 import os
 import re
+import shlex
 import shutil
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
@@ -46,7 +47,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                  topology='../*top', multi_structure=False,
                  structure='../*gro', index='../index.ndx',
                  temps_file='temperatures.dat', maxwarn='0',
-                 gromacs_exe='gmx_mpi'):
+                 grompp_exe='gmx_mpi grompp'):
     """
     Compile TPR files for REMD run with GROMACS
 
@@ -95,13 +96,13 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                 if 'TempGoesHere' in line:
                     line = line.replace('TempGoesHere', str(temp))
                 out_file.write(line)
-        command_line = [gromacs_exe, 'grompp',
-                        '-f', mdp_name,
-                        '-p', _topology,
-                        '-c', _structure,
-                        '-n', index,
-                        '-o', mdp_name.replace('mdp', 'tpr'),
-                        '-maxwarn', str(maxwarn)]
+        command_line = shlex.split(grompp_exe)
+        command_line += ['-f', mdp_name,
+                         '-p', _topology,
+                         '-c', _structure,
+                         '-n', index,
+                         '-o', mdp_name.replace('mdp', 'tpr'),
+                         '-maxwarn', str(maxwarn)]
         with open('gromacs_compile_output.log', 'a') as log_file:
             proc = Popen(command_line,
                          stdout=PIPE, bufsize=1,

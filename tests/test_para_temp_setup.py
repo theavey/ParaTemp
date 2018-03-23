@@ -22,7 +22,6 @@
 #                                                                      #
 ########################################################################
 
-import os
 import py
 import pytest
 
@@ -31,6 +30,8 @@ n_gro, n_top, n_template, n_ndx = ('spc-and-methanol.gro',
                                    'spc-and-methanol.top',
                                    'templatemdp.txt',
                                    'index.ndx')
+# grompp = 'gmx grompp'
+grompp = 'grompp'
 
 
 class TestCompileTPRs(object):
@@ -60,5 +61,5 @@ class TestCompileTPRs(object):
             compile_tprs(start_temp=298, number=2,
                          template='../'+n_template,
                          base_name='nvt',
-                         gromacs_exe='gmx')
+                         grompp_exe=grompp)
         assert dir_topo.check()
