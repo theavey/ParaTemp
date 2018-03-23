@@ -18,10 +18,11 @@ before_install:
   - cd build
   - cmake .. -DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=OFF
   - make
-  - make check
+#  - make check
   - sudo make install
   - source /usr/local/gromacs/bin/GMXRC
   - gmx --version
+  - cd ../../
 
 # command to install dependencies and package
 install:
