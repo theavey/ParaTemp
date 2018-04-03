@@ -17,3 +17,6 @@ ParaTemp.iml
 # ignore egg-info
 ParaTemp.egg-info
 
+# Ignore mac trash folder
+.DS_Store
+
