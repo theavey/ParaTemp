@@ -1,0 +1,23 @@
+; Run parameters
+integrator  = md        ; leap-frog integrator
+nsteps      = 50
+
+cutoff-scheme = verlet
+coulombtype   = PME
+
+; Output control
+nstxout         = 5             ; write coordinates every 5 steps
+nstcalcenergy   = 5             ; calculate energies every 5 steps
+nstenergy       = 5             ; write energies to energy file every 5 steps
+
+; Temperature coupling (run at constant temperature)
+tcoupl          = v-rescale     ; velocity rescaling with stochastic term
+tc-grps         = System        ; one group, whole system
+tau-t           = 0.1           ; 0.1 ps
+ref-t           = 305.543905916           ; in Kelvin
+ld-seed         = 2018          ; set random seed
+
+; Velocity generation
+gen_vel     = yes       ; assign velocities from Maxwell distribution
+gen_temp    = 305.543905916       ; temperature for Maxwell distribution
+gen_seed    = 2018      ; set random seed
