@@ -40,4 +40,24 @@ class TestREUniverse(object):
         return reu
 
     def test_reu_len(self, reu):
+        """
+
+        :param paratemp.re_universe.REUniverse reu:
+        :return:
+        """
         assert len(reu) == 2
+        assert len(list(reu.keys())) == 2
+        assert len(reu.items()) == 2
+        assert len(reu.values()) == 2
+
+    def test_reu_indexing(self, reu):
+        """
+
+        :param paratemp.re_universe.REUniverse reu:
+        :return:
+        """
+        temps = reu._temps
+        assert reu[0] == reu[temps[0]]
+        assert reu[1] == reu[temps[1]]
+        with pytest.raises(IndexError):
+            reu[2]
