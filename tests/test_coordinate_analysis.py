@@ -1,8 +1,8 @@
-"""This contains a set of tests for ParaTemp.CoordinateAnalysis"""
+"""This contains a set of tests for paratemp.coordinate_analysis"""
 
 ########################################################################
 #                                                                      #
-# This script was written by Thomas Heavey in 2018.                    #
+# This test was written by Thomas Heavey in 2018.                      #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
 # Copyright 2017-18 Thomas J. Heavey IV                                #
