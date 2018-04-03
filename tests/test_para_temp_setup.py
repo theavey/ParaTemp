@@ -22,16 +22,26 @@
 #                                                                      #
 ########################################################################
 
+import errno
 import py
 import pytest
+import distutils.spawn
 
 
 n_gro, n_top, n_template, n_ndx = ('spc-and-methanol.gro',
                                    'spc-and-methanol.top',
                                    'templatemdp.txt',
                                    'index.ndx')
-# grompp = 'gmx grompp'
-grompp = 'grompp'
+
+
+@pytest.fixture
+def grompp():
+    if distutils.spawn.find_executable('gmx'):
+        return 'gmx grompp'
+    elif distutils.spawn.find_executable('grompp'):
+        return 'grompp'
+    else:
+        raise OSError(errno.ENOENT, 'No GROMACS executable found')
 
 
 class TestCompileTPRs(object):
@@ -49,17 +59,23 @@ class TestCompileTPRs(object):
         must_contain = {n_top, n_gro, n_template, n_ndx}
         assert must_contain - files_present == set()
 
-    def test_compile_tprs(self, pt_dir_blank):
+    def test_compile_tprs(self, pt_dir_blank, grompp):
         """
 
         :param py.path.local pt_dir_blank:
         :return:
         """
         from paratemp.para_temp_setup import compile_tprs
+        from paratemp.tools import get_temperatures
         dir_topo = pt_dir_blank.mkdir('TOPO')
+        number = 2
         with dir_topo.as_cwd():
-            compile_tprs(start_temp=298, number=2,
+            compile_tprs(start_temp=298, number=number,
                          template='../'+n_template,
                          base_name='nvt',
                          grompp_exe=grompp)
         assert dir_topo.check()
+        for i in range(number):
+            assert dir_topo.join('nvt{}.tpr'.format(i)).check()
+        assert get_temperatures(
+            str(dir_topo.join('temperatures.dat'))).shape == (2,)

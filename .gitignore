@@ -10,6 +10,7 @@ ParaTemp.iml
 
 # ignore cache folder (pytest?)
 /.cache/
+/.pytest_cache/
 
 # ignore ipython checkpoint folder
 /.ipynb_checkpoints/
