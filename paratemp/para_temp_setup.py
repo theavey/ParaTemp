@@ -333,7 +333,7 @@ def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
     :return: None
     """
     re_mdrun_line = re.compile('mdrun_mpi|gmx_mpi\s+mdrun|gmx\s+mdrun_mpi')
-    log_stream.write('Adding "-cpi {}" to {}\n'.format( cpt_base, sub_script))
+    log_stream.write('Adding "-cpi {}" to {}\n'.format(cpt_base, sub_script))
     log_stream.flush()
     with open(sub_script, 'r') as f_in:
         lines_in = f_in.readlines()
