@@ -5,9 +5,6 @@ ParaTemp.iml
 # ignore compiled python files
 *.pyc
 
-# ignore MDAnalysis xtc-reading files
-/tests/test-data/*.npz
-
 # ignore cache folder (pytest?)
 /.cache/
 /.pytest_cache/

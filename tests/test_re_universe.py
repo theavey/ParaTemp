@@ -24,5 +24,20 @@
 
 from __future__ import absolute_import
 
+import py
 import pytest
 
+
+class TestREUniverse(object):
+
+    @pytest.fixture
+    def reu(self):
+        from paratemp.re_universe import REUniverse
+        dir = py.path.local('tests/test-data/spc-and-methanol-run')
+        with dir.as_cwd():
+            reu = REUniverse('TOPO/nvt0.tpr',
+                             base_folder='.', traj_glob='PT-out*.trr')
+        return reu
+
+    def test_reu_len(self, reu):
+        assert len(reu) == 2
