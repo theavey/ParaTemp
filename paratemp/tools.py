@@ -26,11 +26,11 @@ Common tools for general use, largely file/path management
 ########################################################################
 
 
+from contextlib import contextmanager
 import errno
+import numpy as np
 import os
 import shutil
-from contextlib import contextmanager
-import numpy as np
 
 
 @contextmanager
@@ -131,3 +131,16 @@ def _replace_string_in_file(old_str, new_str, file_name,
         for line in old_f:
             line = line.replace(old_str, new_str)
             new_f.write(line)
+
+
+def find_nearest_idx(array, value):
+    """
+    Find index of value nearest to value in an array
+
+    :param np.ndarray array: Array of values in which to look
+    :param float value: Value for which the index of the closest value in
+        `array` is desired.
+    :rtype: int
+    :return: The index of the item in `array` nearest to `value`
+    """
+    return (np.abs(array - value)).argmin()

@@ -1,0 +1,132 @@
+--------------------------------------------------------------------------
+[[52222,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: scc1
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+GROMACS:    gmx grompp, VERSION 5.0.2
+
+GROMACS is written by:
+Emile Apol         Rossen Apostolov   Herman J.C. Berendsen Par Bjelkmar       
+Aldert van Buuren  Rudi van Drunen    Anton Feenstra     Sebastian Fritsch  
+Gerrit Groenhof    Christoph Junghans Peter Kasson       Carsten Kutzner    
+Per Larsson        Justin A. Lemkul   Magnus Lundborg    Pieter Meulenhoff  
+Erik Marklund      Teemu Murtola      Szilard Pall       Sander Pronk       
+Roland Schulz      Alexey Shvetsov    Michael Shirts     Alfons Sijbers     
+Peter Tieleman     Christian Wennberg Maarten Wolf       
+and the project leaders:
+Mark Abraham, Berk Hess, Erik Lindahl, and David van der Spoel
+
+Copyright (c) 1991-2000, University of Groningen, The Netherlands.
+Copyright (c) 2001-2014, The GROMACS development team at
+Uppsala University, Stockholm University and
+the Royal Institute of Technology, Sweden.
+check out http://www.gromacs.org for more information.
+
+GROMACS is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License
+as published by the Free Software Foundation; either version 2.1
+of the License, or (at your option) any later version.
+
+GROMACS:      gmx grompp, VERSION 5.0.2
+Executable:   /share/pkg/plumed/2.1.0/install/bin/gmx_mpi
+Library dir:  /share/pkg/plumed/2.1.0/install/share/gromacs/top
+Command line:
+  gmx_mpi grompp -f nvt0.mdp -p ../spc-and-methanol.top -c ../spc-and-methanol.gro -n ../index.ndx -o nvt0.tpr -maxwarn 0
+
+Generated 279 of the 1225 non-bonded parameter combinations
+Excluding 2 bonded neighbours molecule type 'Methanol'
+Excluding 2 bonded neighbours molecule type 'SOL'
+Velocities were taken from a Maxwell distribution at 298 K
+Removing all charge groups because cutoff-scheme=Verlet
+Number of degrees of freedom in T-Coupling group System is 12.00
+Estimate for the relative computational load of the PME mesh part: 1.00
+
+NOTE 1 [file nvt0.mdp]:
+  The optimal PME mesh load for parallel simulations is below 0.5
+  and for highly parallel simulations between 0.25 and 0.33,
+  for higher performance, increase the cut-off and the PME grid spacing.
+
+
+
+There was 1 note
+
+gcq#107: "Ease Myself Into the Body Bag" (P.J. Harvey)
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 298 K
+Calculated rlist for 1x1 atom pair-list as 1.000 nm, buffer size 0.000 nm
+Set rlist, assuming 4x4 atom pair-list, to 1.000 nm, buffer size 0.000 nm
+Calculating fourier grid dimensions for X Y Z
+Using a fourier grid of 28x28x28, spacing 0.108 0.108 0.108
+This run will generate roughly 0 Mb of data
+--------------------------------------------------------------------------
+[[52219,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: scc1
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+GROMACS:    gmx grompp, VERSION 5.0.2
+
+GROMACS is written by:
+Emile Apol         Rossen Apostolov   Herman J.C. Berendsen Par Bjelkmar       
+Aldert van Buuren  Rudi van Drunen    Anton Feenstra     Sebastian Fritsch  
+Gerrit Groenhof    Christoph Junghans Peter Kasson       Carsten Kutzner    
+Per Larsson        Justin A. Lemkul   Magnus Lundborg    Pieter Meulenhoff  
+Erik Marklund      Teemu Murtola      Szilard Pall       Sander Pronk       
+Roland Schulz      Alexey Shvetsov    Michael Shirts     Alfons Sijbers     
+Peter Tieleman     Christian Wennberg Maarten Wolf       
+and the project leaders:
+Mark Abraham, Berk Hess, Erik Lindahl, and David van der Spoel
+
+Copyright (c) 1991-2000, University of Groningen, The Netherlands.
+Copyright (c) 2001-2014, The GROMACS development team at
+Uppsala University, Stockholm University and
+the Royal Institute of Technology, Sweden.
+check out http://www.gromacs.org for more information.
+
+GROMACS is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License
+as published by the Free Software Foundation; either version 2.1
+of the License, or (at your option) any later version.
+
+GROMACS:      gmx grompp, VERSION 5.0.2
+Executable:   /share/pkg/plumed/2.1.0/install/bin/gmx_mpi
+Library dir:  /share/pkg/plumed/2.1.0/install/share/gromacs/top
+Command line:
+  gmx_mpi grompp -f nvt1.mdp -p ../spc-and-methanol.top -c ../spc-and-methanol.gro -n ../index.ndx -o nvt1.tpr -maxwarn 0
+
+
+Back Off! I just backed up mdout.mdp to ./#mdout.mdp.1#
+Generated 279 of the 1225 non-bonded parameter combinations
+Excluding 2 bonded neighbours molecule type 'Methanol'
+Excluding 2 bonded neighbours molecule type 'SOL'
+Velocities were taken from a Maxwell distribution at 305.544 K
+Removing all charge groups because cutoff-scheme=Verlet
+Number of degrees of freedom in T-Coupling group System is 12.00
+Estimate for the relative computational load of the PME mesh part: 1.00
+
+NOTE 1 [file nvt1.mdp]:
+  The optimal PME mesh load for parallel simulations is below 0.5
+  and for highly parallel simulations between 0.25 and 0.33,
+  for higher performance, increase the cut-off and the PME grid spacing.
+
+
+
+There was 1 note
+
+gcq#203: "I've Got Two Turntables and a Microphone" (B. Hansen)
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 305.544 K
+Calculated rlist for 1x1 atom pair-list as 1.000 nm, buffer size 0.000 nm
+Set rlist, assuming 4x4 atom pair-list, to 1.000 nm, buffer size 0.000 nm
+Calculating fourier grid dimensions for X Y Z
+Using a fourier grid of 28x28x28, spacing 0.108 0.108 0.108
+This run will generate roughly 0 Mb of data

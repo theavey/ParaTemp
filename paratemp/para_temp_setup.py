@@ -27,10 +27,13 @@
 
 import errno
 import glob
+from math import exp
 import os
 import re
+import shlex
 import shutil
 import subprocess
+from subprocess import Popen, PIPE, STDOUT
 
 from .sim_setup import _submit_script
 from .tools import _BlankStream, _replace_string_in_file
@@ -43,7 +46,8 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                  scaling_exponent=0.025, base_name='npt',
                  topology='../*top', multi_structure=False,
                  structure='../*gro', index='../index.ndx',
-                 temps_file='temperatures.dat', maxwarn='0'):
+                 temps_file='temperatures.dat', maxwarn='0',
+                 grompp_exe='gmx_mpi grompp'):
     """
     Compile TPR files for REMD run with GROMACS
 
@@ -61,52 +65,63 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
     :type maxwarn: int or str
     :param maxwarn: maximum number of warnings to ignore. str is applied to
         this argument, so type shouldn't matter significantly.
+    :param str gromacs_exe: The name of the GROMACS executable. This is often
+        just `gmx`, but on some systems the MPI-compiled version may be
+        `gmx_mpi`, as is true on my system.
     :return: None
     """
     # if args.multi_structure:
-    from glob import glob
-    structures = glob(structure+'*.gro')
+    structures = glob.glob(structure+'*.gro')
     structures.sort()
     structures.sort(key=len)
+    try:
+        _topology = glob.glob(topology)[0]
+    except IndexError:
+        raise OSError(errno.ENOENT, 'No topology file found.')
+    try:
+        _structure = glob.glob(structure)[0]
+    except IndexError:
+        raise OSError(errno.ENOENT, 'No structure file found.')
     temps = []
     error = False
-    from math import exp
     for i in range(number):
         mdp_name = base_name + str(i) + '.mdp'
         temp = start_temp * exp(i * scaling_exponent)
         temps += [temp]
         if multi_structure:
-            structure = structures[i]
+            _structure = structures[i]
         with open(template, 'r') as f_template, \
                 open(mdp_name, 'w') as out_file:
             for line in f_template:
                 if 'TempGoesHere' in line:
                     line = line.replace('TempGoesHere', str(temp))
                 out_file.write(line)
-        command_line = ['gmx_mpi', 'grompp',
-                        '-f', mdp_name,
-                        '-p', topology,
-                        '-c', structure,
-                        '-n', index,
-                        '-o', mdp_name.replace('mdp', 'tpr'),
-                        '-maxwarn', str(maxwarn)]
+        command_line = shlex.split(grompp_exe)
+        command_line += ['-f', mdp_name,
+                         '-p', _topology,
+                         '-c', _structure,
+                         '-n', index,
+                         '-o', mdp_name.replace('mdp', 'tpr'),
+                         '-maxwarn', str(maxwarn)]
         with open('gromacs_compile_output.log', 'a') as log_file:
-            from subprocess import Popen, PIPE, STDOUT
             proc = Popen(command_line,
                          stdout=PIPE, bufsize=1,
                          stderr=STDOUT,
                          universal_newlines=True)
-            for line in proc.stdout:
+            stdout = proc.communicate()[0]
+            for line in stdout.splitlines():
                 if error is True:  # Catch the next line after the error
                     error = line
-                if ('Fatal error' in line or
+                elif error:  # If error is not True but is set to string
+                    pass
+                elif ('Fatal error' in line or
                         'File input/output error' in line or
                         'Error in user input' in line):
                     error = True  # Deal with this after writing log file
-                log_file.write(line)
+                log_file.write(line+'\n')
         if error or proc.returncode != 0:
             error = error if error else 'Unknown error. Check log file.'
-            raise RuntimeError(error)
+            raise RuntimeError(error, 'returncode: {}'.format(proc.returncode))
     with open(temps_file, 'w') as temps_out:
         temps_out.write(str(temps))
         temps_out.write('\n')

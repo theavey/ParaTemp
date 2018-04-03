@@ -1,8 +1,8 @@
-
+"""This contains a set of tests for paratemp.re_universe"""
 
 ########################################################################
 #                                                                      #
-# This package was written by Thomas Heavey in 2018.                   #
+# This test was written by Thomas Heavey in 2018.                      #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
 # Copyright 2017-18 Thomas J. Heavey IV                                #
@@ -24,21 +24,40 @@
 
 from __future__ import absolute_import
 
-import sys
-
-from . import para_temp_setup
-from .tools import copy_no_overwrite, cd, get_temperatures
-from . import coordinate_analysis
-from . import re_universe
-from ._version import get_versions
-
-if sys.version_info.major == 2:
-    # These (at this point) require python 2 because of gromacs (gromacswrapper)
-    from . import energy_histo
-    from . import energy_bin_analysis
+import py
+import pytest
 
 
-__version__ = get_versions()['version']
-del get_versions
+class TestREUniverse(object):
 
-__author__ = 'Thomas Heavey'
+    @pytest.fixture
+    def reu(self):
+        from paratemp.re_universe import REUniverse
+        dir = py.path.local('tests/test-data/spc-and-methanol-run')
+        with dir.as_cwd():
+            reu = REUniverse('TOPO/nvt0.tpr',
+                             base_folder='.', traj_glob='PT-out*.trr')
+        return reu
+
+    def test_reu_len(self, reu):
+        """
+
+        :param paratemp.re_universe.REUniverse reu:
+        :return:
+        """
+        assert len(reu) == 2
+        assert len(list(reu.keys())) == 2
+        assert len(list(reu.items())) == 2
+        assert len(reu.values()) == 2
+
+    def test_reu_indexing(self, reu):
+        """
+
+        :param paratemp.re_universe.REUniverse reu:
+        :return:
+        """
+        temps = reu._temps
+        assert reu[0] == reu[temps[0]]
+        assert reu[1] == reu[temps[1]]
+        with pytest.raises(IndexError):
+            reu[2]

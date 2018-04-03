@@ -10,3 +10,4 @@ six
 pytest
 pytest-cov
 python-coveralls
+py
