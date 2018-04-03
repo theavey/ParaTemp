@@ -47,7 +47,7 @@ class TestREUniverse(object):
         """
         assert len(reu) == 2
         assert len(list(reu.keys())) == 2
-        assert len(reu.items()) == 2
+        assert len(list(reu.items())) == 2
         assert len(reu.values()) == 2
 
     def test_reu_indexing(self, reu):
