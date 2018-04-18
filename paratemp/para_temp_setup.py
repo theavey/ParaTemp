@@ -209,7 +209,8 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
         run continuation.
     :param str cpt_base: Default: 'npt'. The first part of the name of the
         checkpoint files that will end in '{number}.cpt'. The full checkpoint
-        base_name will be found using _find_cpt_base.
+        base_name will be found using
+        :func:`~paratemp.para_temp_setup._find_cpt_base`.
     :param bool verbose: Default: True. If True, a lot more status information
         will be printed.
     :param str log: Default: 'extend-tprs.log'. Name of file to which to log
