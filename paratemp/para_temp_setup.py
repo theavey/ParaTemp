@@ -343,7 +343,8 @@ def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
     with open(sub_script, 'w') as f_out:
         changed = False
         for line in lines_in:
-            line, comm = line.split('#', 1)
+            line_list = line.split('#', 1)
+            line = line_list[0]
             if not changed:
                 match = re_mdrun_line.search(line)
                 if match:
@@ -351,8 +352,8 @@ def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
                         line = line.replace('\n', ' ') + '-cpi {}\n'.format(
                             cpt_base)
                     changed = True
-            if comm:
-                line = '#'.join((line, comm))
+            if len(line_list) > 1:
+                line = '#'.join(line_list)
             f_out.write(line)
     os.remove(temp_bak_name)
     if not changed:
