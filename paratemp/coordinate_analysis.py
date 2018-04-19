@@ -587,7 +587,7 @@ class Universe(MDa.Universe):
                                _bins, vmax=vmax, **kwargs)
         ax.set_xlabel(_xlabel)
         ax.set_ylabel(_ylabel)
-        ax.set_aspect('equal', 'box-forced')
+        ax.set_aspect('equal', 'box')
         if scale:
             fig.colorbar(contours, label='kcal / mol')
             fig.tight_layout()
@@ -949,7 +949,7 @@ class Taddol(Universe):
         ax.axis((1.5, 10, 1.5, 10))
         ax.set_xlabel('CV 2')
         ax.set_ylabel('CV 1')
-        ax.set_aspect('equal', 'box-forced')
+        ax.set_aspect('equal', 'box')
         fig.tight_layout()
         if return_fig:
             return fig
@@ -1036,7 +1036,7 @@ class Taddol(Universe):
         ax.axis((1.5, 10, 1.5, 10))
         ax.set_xlabel(_xlabel)
         ax.set_ylabel(_ylabel)
-        ax.set_aspect('equal', 'box-forced')
+        ax.set_aspect('equal', 'box')
         fig.colorbar(contours, label='kcal / mol')
         fig.tight_layout()
         return fig
