@@ -22,11 +22,12 @@
 #                                                                      #
 ########################################################################
 
+import distutils.spawn
 import errno
 import os
 import py
 import pytest
-import distutils.spawn
+import shutil
 
 
 n_gro, n_top, n_template, n_ndx = ('spc-and-methanol.gro',
@@ -89,22 +90,32 @@ class TestAddCptToSubScript(object):
         path = 'tests/test-data/gromacs-start-job.sub'
         b_path = os.path.join(os.path.dirname(path),
                               'temp-submission-script.bak')
+        b2_path = os.path.join(os.path.dirname(path),
+                               'backup.bak')
+        shutil.copy(path, b2_path)
         yield os.path.abspath(path)
         # If a backup of the original was made, copy the backup over the updated
         # version:
         if os.path.isfile(b_path):
             os.rename(b_path, path)
+        else:
+            os.rename(b2_path, path)
 
     @pytest.fixture
     def sub_script_path_cpt(self):
         path = 'tests/test-data/gromacs-start-job-cpt.sub'
         b_path = os.path.join(os.path.dirname(path),
                               'temp-submission-script.bak')
+        b2_path = os.path.join(os.path.dirname(path),
+                               'backup.bak')
+        shutil.copy(path, b2_path)
         yield os.path.abspath(path)
         # If a backup of the original was made, copy the backup over the updated
         # version:
         if os.path.isfile(b_path):
             os.rename(b_path, path)
+        else:
+            os.rename(b2_path, path)
 
     def test_adding_to_script(self, sub_script_path):
         orig_lines = open(sub_script_path, 'r').readlines()
@@ -120,11 +131,11 @@ class TestAddCptToSubScript(object):
         assert 'checkpoint_test' in md_line
         assert len(set(new_lines) - set(orig_lines)) == 1
 
-    def test_no_change(self, sub_script_path):
-        orig_lines = open(sub_script_path, 'r').readlines()
+    def test_no_change(self, sub_script_path_cpt):
+        orig_lines = open(sub_script_path_cpt, 'r').readlines()
         from paratemp.para_temp_setup import _add_cpt_to_sub_script as acpt
-        acpt(sub_script_path, 'checkpoint_test')
-        new_lines = open(sub_script_path, 'r').readlines()
+        acpt(sub_script_path_cpt, 'checkpoint_test')
+        new_lines = open(sub_script_path_cpt, 'r').readlines()
         for line in new_lines:
             if 'mpirun' in line:
                 md_line = line
@@ -133,3 +144,22 @@ class TestAddCptToSubScript(object):
             raise ValueError('Could not find "mpirun" line')
         assert 'checkpoint_test' not in md_line
         assert not len(set(new_lines) - set(orig_lines))
+
+    def test_comment_line(self, sub_script_path):
+        orig_lines = open(sub_script_path, 'r').readlines()
+        from paratemp.para_temp_setup import _add_cpt_to_sub_script as acpt
+        acpt(sub_script_path, 'checkpoint_test')
+        new_lines = open(sub_script_path, 'r').readlines()
+        for line in new_lines:
+            if 'comment' in line:
+                new_comm_line = line
+                break
+        else:
+            raise ValueError('Could not find "comment" line')
+        for line in orig_lines:
+            if 'comment' in line:
+                orig_comm_line = line
+                break
+        else:
+            raise ValueError('Could not find "comment" line')
+        assert orig_comm_line == new_comm_line

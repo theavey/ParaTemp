@@ -6,14 +6,12 @@
 #$ -m ea
 #$ -j y
 #$ -o error.log
-#$ -pe mpi_16_tasks_per_node 128
-
-export MPI_COMPILER='pgi'
+#$ -pe omp 16
 
 export OMP_NUM_THREADS=$(($NSLOTS/16))
-# This should work fine even if the number of cores/nodes changes
-# as long as I'm still doing 16 replicas
 
-mpirun -n 16 -loadbalance -x OMP_NUM_THREADS mdrun_mpi -s TOPO/npt-extend -deffnm PT-MaEn-out -plumed plumed-MaEn.dat -multi 16 -replex 1000 -cpi PT-MaEn-out
+echo not comment # comment
+
+mpirun -n 16 mdrun_mpi -s TOPO/npt-e -deffnm PT-out -multi 16 -replex 1 -cpi PT-out
 
 
