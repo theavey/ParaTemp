@@ -6,7 +6,7 @@ setup(
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     packages=['paratemp'],
-    scripts=['check-convergence.py'],
+    scripts=['scripts/check-convergence.py'],
     url='https://github.com/theavey/ParaTemp',
     license='Apache License 2.0',
     author='Thomas Heavey',
