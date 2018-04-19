@@ -355,7 +355,8 @@ def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
             if len(line_list) > 1:
                 line = '#'.join(line_list)
             f_out.write(line)
-    os.remove(temp_bak_name)
+        else:
+            os.remove(temp_bak_name)
     if not changed:
         raise ValueError('Could not find GROMACS mdrun line in submission '
                          'script, so the checkpoint file ("-cpi ...") was not '
