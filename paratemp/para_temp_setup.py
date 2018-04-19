@@ -352,7 +352,7 @@ def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
                             cpt_base)
                     changed = True
             if comm:
-                line = '#'.join(line, comm)
+                line = '#'.join((line, comm))
             f_out.write(line)
     os.remove(temp_bak_name)
     if not changed:
