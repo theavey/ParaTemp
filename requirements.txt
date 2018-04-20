@@ -1,0 +1,9 @@
+#
+MDAnalysis>=0.17.0
+pandas
+numpy
+matplotlib
+panedr
+gromacswrapper
+typing
+six
