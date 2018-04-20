@@ -125,7 +125,7 @@ def combine_energy_files(basename='energy', files=False):
     """combine_energy_files(basename='energy', files=False) is a function that
     combines a set of .xvg files writes a combined .xvg file.
     'basename' is the first part of the name for the xvg files to be combined
-    and should differentiate these from any other *.xvg files in the folder.
+    and should differentiate these from any other \*.xvg files in the folder.
     Alternatively, the list of files (in the desired order) can be passed in
     with the keyword 'files'.
     Returns None"""

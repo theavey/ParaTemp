@@ -320,7 +320,9 @@ class Universe(MDa.Universe):
         :param args:
         :param kwargs:
         :return: None
-        :raises: exceptions.FileChangedError, SyntaxError, NotImplementedError
+        :raises: exceptions.FileChangedError
+        :raises: SyntaxError
+        :raises: NotImplementedError
         """
         # TODO document this function
         # TODO find a way to take keyword type args with non-valid python

@@ -185,7 +185,7 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
     Extend a set of tpr files
 
     :param str base_name: Base of the tpr files. This should return the file
-        names when globbed with '*.tpr' appended to this base name. Also, this
+        names when globbed with '\*.tpr' appended to this base name. Also, this
         will cause issues when adding the infix if the file name doesn't fit
         the pattern of '{base_name}{number}.tpr'.
     :param time: Amount of time in picoseconds by which to extend the job. This

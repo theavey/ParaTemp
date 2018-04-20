@@ -10,7 +10,7 @@ Welcome to ParaTemp's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   ./doc_pages/paratemp
 
 Indices and tables
 ==================
@@ -19,8 +19,3 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. automodule:: ~paratemp.para_temp_setup
-   :members:
-
-.. automodule:: ~paratemp.coordinate_analysis
-   :members:

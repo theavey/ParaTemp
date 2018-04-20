@@ -55,11 +55,11 @@ class REUniverse(collections.Sequence):
     (not strictly required, though a 'temperature' needs to be specified for
     each).
     This class itself does not add much on top of
-    :class:`paratemp.coordinate_analysis.Universe` other than iteration over
+    :class:`~paratemp.coordinate_analysis.Universe` other than iteration over
     the replicas and creating them starting all from the same topology with
     different trajectories.
 
-    An instance of this class can be indexed (with `[]`s) with either ints
+    An instance of this class can be indexed (with '[]'s) with either ints
     (to get the Universe with that index) or with strings that can be
     converted to floats to get the replica with the temperature nearest to
     that value.
@@ -67,19 +67,14 @@ class REUniverse(collections.Sequence):
     >>> reu = REUniverse('test.gro', 'simulation_folder', trajs=['cold.xtc', \
     'warm.xtc'], temps=[100, 200])
     <paratemp.re_universe.REUniverse at 0x7f1e50adca90>
-
     >>> reu[0].temperature
     100.0
-
     >>> reu['75'].temperature
     100.0
-
     >>> print([u.temperature for u in reu])
     [100.0, 200.0]
-
     >>> len(reu)
     2
-
     >>> reu.keys()
     ('100.0', '200.0')
 
