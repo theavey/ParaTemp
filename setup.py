@@ -12,5 +12,40 @@ setup(
     author='Thomas Heavey',
     author_email='thomasjheavey@gmail.com',
     description='Scripts for molecular dynamics analysis and parallel '
-                'tempering in GROMACS'
+                'tempering in GROMACS',
+    install_requires=[
+        'MDAnalysis>=0.17.0',
+        'pandas',
+        'numpy',
+        'matplotlib',
+        'panedr',
+        'gromacswrapper',
+        'typing',
+        'six',
+        'py',
+    ],
+    extras_require={
+            'docs': [
+                'sphinx',
+            ],
+            'tests': [
+                'pytest',
+                'pytest-cov',
+                'python-coveralls',
+                'py',
+            ],
+    },
+    tests_require=[
+        'pytest',
+        'pytest-cov',
+        'python-coveralls',
+        'py',
+    ],
+    classifiers=[
+            'Development Status :: 4 - Beta',
+            'Intended Audience :: Science/Research',
+            'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3',
+    ],
+    zip_safe=True,
 )

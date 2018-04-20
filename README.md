@@ -23,8 +23,7 @@ To install, run:
 ```
 git clone https://github.com/theavey/ParaTemp.git
 cd ParaTemp
-pip install -r requirements.txt
-python setup.py install
+pip install -e .
 ```
 or this should work using conda (based on [this gist](
 https://gist.github.com/luiscape/19d2d73a8c7b59411a2fb73a697f5ed4)):
@@ -40,14 +39,15 @@ python setup.py install
 
 All simulations have so far been from GROMACS, but with the powerful
 generality of [MDAnalysis](https://www.mdanalysis.org/), that should not
-be a particular constraint for using the analysis components of this package.
+be a particular constraint for using many of the analysis components of this package.
 
 This package depends on MDAnalysis, NumPy, pandas, panedr, and
 gromacswrapper.
 The dependencies are listed in [requirements.txt](./requirements.txt).
-Most if not all should be installable with conda.
+They all should be installable with conda or pip.
 
 With recent updates to MDAnalysis, this should now be compatible with Python
 2.7 and Python 3.4+.
+This is currently tested on Python 2.7 and 3.6.
 
 

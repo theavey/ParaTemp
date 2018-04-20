@@ -1,5 +1,4 @@
 language: python
-#sudo: required
 
 addons:
   apt:
@@ -9,25 +8,11 @@ addons:
 python:
   - "2.7"
   - "3.6"
-
-#before_install:
-#  - wget ftp://ftp.gromacs.org/pub/gromacs/gromacs-2016.5.tar.gz
-#  - tar xfz gromacs-2016.5.tar.gz
-#  - cd gromacs-2016.5
-#  - mkdir build
-#  - cd build
-#  - cmake .. -DGMX_FFT_LIBRARY=fftpack -DREGRESSIONTEST_DOWNLOAD=OFF
-#  - make
-##  - make check
-#  - sudo make install
-#  - source /usr/local/gromacs/bin/GMXRC
-#  - gmx --version
-#  - cd ../../
+#  - "3.7-dev"
 
 # command to install dependencies and package
 install:
-  - pip install -r requirements.txt
-  - python setup.py install
+  - pip install -e .[tests]
 
 # command to run tests
 script:

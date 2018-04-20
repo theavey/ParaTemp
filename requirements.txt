@@ -7,7 +7,3 @@ panedr
 gromacswrapper
 typing
 six
-pytest
-pytest-cov
-python-coveralls
-py
