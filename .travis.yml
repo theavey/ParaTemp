@@ -9,11 +9,11 @@ addons:
 python:
   - "2.7"
   - "3.6"
-  - "3.7-dev"
+#  - "3.7-dev"
 
 # command to install dependencies and package
 install:
-  - pip install -e .
+  - pip install -e .[tests]
 #  - pip install -r requirements.txt
 #  - python setup.py install
 
