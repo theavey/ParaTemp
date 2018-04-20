@@ -66,7 +66,7 @@ class REUniverse(collections.Sequence):
 
     >>> reu = REUniverse('test.gro', 'simulation_folder', trajs=['cold.xtc', \
     'warm.xtc'], temps=[100, 200])
-    <paratemp.re_universe.REUniverse at 0x7f1e50adca90>
+    <REUniverse with 2 replicas>
     >>> reu[0].temperature
     100.0
     >>> reu['75'].temperature
@@ -249,6 +249,9 @@ class REUniverse(collections.Sequence):
         :return: The number of replicas
         """
         return len(self.universes)
+
+    def __repr__(self):
+        return '<REUniverse with {} replicas>'.format(len(self))
 
     def keys(self):
         """
