@@ -87,6 +87,10 @@ class Vector(np.ndarray):
     def z(self):
         return self[2]
 
+    @property
+    def mag(self):
+        return norm(self)
+
 
 class XYZ(object):
     def __init__(self, f_name):
