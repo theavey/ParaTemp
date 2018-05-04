@@ -68,7 +68,7 @@ def get_n_solvent(folder, solvent='DCM'):
     Find the number of solvent molecules of given type in topology file.
 
     Note, this function is being deprecated in favor of the more general
-    function get_solv_count_top, which takes the strengths of this function
+    :func:`get_solv_count_top`, which takes the strengths of this function
     while also allowing for specification of an exact top file.
 
     :param str folder: The folder in which to look for a file ending in '.top'.

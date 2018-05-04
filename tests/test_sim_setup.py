@@ -102,6 +102,34 @@ def folder_dc(n_top_dc):
     return os.path.dirname(n_top_dc)
 
 
+@pytest.fixture
+def empty_file(tmpdir):
+    lp = tmpdir.join('empty.txt')
+    lp.ensure()
+    yield str(lp)
+    if lp.check():
+        lp.remove()
+
+
+class TestGetNSolvent(object):
+
+    def test_get_n_solvent_warning(self, folder_dc):
+        from paratemp.sim_setup import get_n_solvent
+        with pytest.warns(DeprecationWarning):
+            get_n_solvent(folder=folder_dc, solvent='dcm')
+
+    def test_get_solv_count_top(self, folder_dc):
+        from paratemp.sim_setup import get_n_solvent
+        assert get_n_solvent(folder=folder_dc, solvent='dcm') == 361
+
+    def test_get_solv_count_top_no_result(self, tmpdir, folder_dc):
+        from paratemp.sim_setup import get_n_solvent
+        with pytest.raises(ValueError):
+            get_n_solvent(str(tmpdir))
+        with pytest.raises(ValueError):
+            get_n_solvent(folder=folder_dc, solvent='Not here')
+
+
 class TestGetSolvCountTop(object):
 
     def test_get_solv_count_top(self, n_top_dc, folder_dc):
@@ -110,6 +138,13 @@ class TestGetSolvCountTop(object):
         assert get_solv_count_top(n_top_dc) == 361
         # Test giving only the containing folder as input
         assert get_solv_count_top(folder=folder_dc) == 361
+
+    def test_get_solv_count_top_no_result(self, empty_file, n_top_dc):
+        from paratemp.sim_setup import get_solv_count_top
+        with pytest.raises(RuntimeError):
+            get_solv_count_top(empty_file)
+        with pytest.raises(RuntimeError):
+            get_solv_count_top(n_top_dc, res_name='Not here')
 
 
 class TestSetSolvCountTop(object):
@@ -123,6 +158,30 @@ class TestSetSolvCountTop(object):
         from paratemp.sim_setup import set_solv_count_top, get_solv_count_top
         set_solv_count_top(folder=folder_dc, s_count=50)
         assert get_solv_count_top(n_top_dc) == 50
+
+    def test_set_solv_count_top_no_change(self, folder_dc, n_top_dc, capsys):
+        from paratemp.sim_setup import set_solv_count_top, \
+            get_solv_count_top
+        set_solv_count_top(folder=folder_dc, s_count=361)
+        captured = capsys.readouterr()
+        assert captured.out == ('Solvent count in '
+                                '{} already set at 361'.format(
+                                    os.path.relpath(n_top_dc)) +
+                                '\nNot copying or changing file.\n')
+        assert get_solv_count_top(n_top_dc) == 361
+
+    def test_set_solv_count_fail(self, empty_file):
+        from paratemp.sim_setup import set_solv_count_top
+        with pytest.raises(RuntimeError):
+            set_solv_count_top(empty_file)
+
+    def test_get_n_top(self, tmpdir):
+        from paratemp.sim_setup import _get_n_top
+        from paratemp.exceptions import InputError
+        with pytest.raises(InputError):
+            _get_n_top(None, None)
+        with pytest.raises(ValueError):
+            _get_n_top(None, str(tmpdir))
 
 
 class TestMakeGROMACSSubScript(object):
