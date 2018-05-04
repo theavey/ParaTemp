@@ -1,0 +1,16 @@
+#!/bin/bash -l
+
+#$ -l h_rt=12:00:00
+#$ -N job_name
+#$ -o error.log
+#$ -pe mpi_16_tasks_per_node 32
+
+export MPI_COMPILER='pgi'
+
+export NSIMS=4
+
+export OMP_NUM_THREADS=$(($NSLOTS/$NSIMS))
+
+mpirun -n $NSIMS -loadbalance -x OMP_NUM_THREADS mdrun_mpi -s TOPO/npt -deffnm PT-out -plumed plumed.dat -multi 4 -replex 1000 -cpi PT-out 
+
+
