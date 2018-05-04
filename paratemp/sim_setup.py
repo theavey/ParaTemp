@@ -410,13 +410,33 @@ def update_plumed_input(n_plu_in, n_plu_out,
 def make_gromacs_sub_script(filename, name=None,
                             time='24:00:00',
                             tpn=16, cores=16, nsims=1,
-                            tpr_base=None, deffnm=None,
+                            tpr=None, deffnm=None,
                             plumed=None,
                             multi=None, replex=None,
                             checkpoint=None,
                             other_mdrun=None,
                             log='error.log',
                             overwrite=False):
+    """
+    Write SGE submission script for a GROMACS mdrun job
+
+    :param str filename:
+    :param str name:
+    :param str time:
+    :param int tpn:
+    :param int cores:
+    :param int nsims:
+    :param str tpr:
+    :param str deffnm:
+    :param str plumed:
+    :param str multi:
+    :param str replex:
+    :param str checkpoint:
+    :param str other_mdrun:
+    :param str log:
+    :param bool overwrite:
+    :return:
+    """
     if not (overwrite or not os.path.exists(filename)):
         raise OSError(errno.EEXIST, '{} already exists'.format(filename))
     lines = list()  # line separators will be added later
@@ -434,8 +454,8 @@ def make_gromacs_sub_script(filename, name=None,
     lines.append('export NSIMS={}\n'.format(nsims))
     lines.append('export OMP_NUM_THREADS=$(($NSLOTS/$NSIMS))\n')
     line = 'mpirun -n $NSIMS -loadbalance -x OMP_NUM_THREADS mdrun_mpi '
-    if tpr_base is not None:
-        line += '-s {} '.format(tpr_base)
+    if tpr is not None:
+        line += '-s {} '.format(tpr)
     if deffnm is not None:
         line += '-deffnm {} '.format(deffnm)
     if plumed is not None:
