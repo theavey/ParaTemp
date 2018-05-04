@@ -35,6 +35,8 @@ def test_job_info_from_qsub():
     job_info = _job_info_from_qsub('Your job 2306551 ("PT-NTD-CG") '
                                    'has been submitted')
     assert job_info == ('2306551', 'PT-NTD-CG', '2306551 ("PT-NTD-CG")')
+    with pytest.raises(ValueError):
+        _job_info_from_qsub('')
 
 
 class TestUpdateNum(object):
@@ -71,6 +73,7 @@ class TestUpdateNum(object):
     def test_update_num_raises(self, match_10, match_text, match_float,
                                match_bad_few, match_bad_many):
         from paratemp.sim_setup import _update_num
+        from paratemp.exceptions import InputError
         with pytest.raises(KeyError):
             _update_num(match_10, shift=10, cat_repl_dict=dict())
         with pytest.raises(ValueError,
@@ -83,6 +86,8 @@ class TestUpdateNum(object):
             _update_num(match_bad_few, cat_repl_dict=dict())
         with pytest.raises(ValueError, match='too many.*unpack'):
             _update_num(match_bad_many, cat_repl_dict=dict())
+        with pytest.raises(InputError):
+            _update_num(match_10, cat_repl_dict=None)
 
 
 @pytest.fixture
@@ -175,7 +180,7 @@ class TestSetSolvCountTop(object):
         with pytest.raises(RuntimeError):
             set_solv_count_top(empty_file)
 
-    def test_get_n_top(self, tmpdir):
+    def test_get_n_top_fail(self, tmpdir):
         from paratemp.sim_setup import _get_n_top
         from paratemp.exceptions import InputError
         with pytest.raises(InputError):
