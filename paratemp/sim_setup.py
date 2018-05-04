@@ -25,6 +25,7 @@ A set of functions for setuping up GROMACS simulations
 ########################################################################
 
 
+import errno
 import glob
 import os
 import re
@@ -404,3 +405,56 @@ def update_plumed_input(n_plu_in, n_plu_out,
                 # walls for the production simulation
                 line = line.replace('AT=12.0,12.0', 'AT=10.5,10.5')
             to_file.write(line)
+
+
+def make_gromacs_sub_script(filename, name=None,
+                            time='24:00:00',
+                            tpn=16, cores=16, nsims=1,
+                            tpr_base=None, deffnm=None,
+                            plumed=None,
+                            multi=None, replex=None,
+                            checkpoint=None,
+                            other_mdrun=None,
+                            log='error.log',
+                            overwrite=False):
+    if not (overwrite or not os.path.exists(filename)):
+        raise OSError(errno.EEXIST, '{} already exists'.format(filename))
+    lines = list()  # line separators will be added later
+    lines.append('#!/bin/bash -l\n')  # want an extra line break
+    if time is not None:
+        lines.append(_make_sge_line('l', 'h_rt={}'.format(time)))
+    if name is not None:
+        lines.append(_make_sge_line('N', name))
+    if log is not None:
+        lines.append(_make_sge_line('o', log))
+    if tpn is not None and cores is not None:
+        lines.append(_make_sge_line('pe',
+                     'mpi_{}_tasks_per_node {}'.format(tpn, cores)))
+    lines.append("\nexport MPI_COMPILER='pgi'\n")
+    lines.append('export NSIMS={}\n'.format(nsims))
+    lines.append('export OMP_NUM_THREADS=$(($NSLOTS/$NSIMS))\n')
+    line = 'mpirun -n $NSIMS -loadbalance -x OMP_NUM_THREADS mdrun_mpi '
+    if tpr_base is not None:
+        line += '-s {} '.format(tpr_base)
+    if deffnm is not None:
+        line += '-deffnm {} '.format(deffnm)
+    if plumed is not None:
+        line += '-plumed {} '.format(plumed)
+    if multi is not None:
+        line += '-multi {} '.format(multi)
+    if replex is not None:
+        line += '-replex {} '.format(replex)
+    if checkpoint is not None:
+        line += '-cpi {} '.format(checkpoint)
+    if other_mdrun is not None:
+        line += other_mdrun
+    lines.append(line)
+    lines.append('\n')
+    with open(filename, 'w') as f_out:
+        for line in lines:
+            f_out.write(line+'\n')
+
+
+def _make_sge_line(key, arg):
+    """Return a line of an option for SGE submission scripts"""
+    return '#$ -{} {}'.format(key, arg)
