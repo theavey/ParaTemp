@@ -1,4 +1,4 @@
-"""This contains a set of tests for ParaTemp.sim_setup"""
+"""This contains a set of tests for paratemp.sim_setup"""
 
 ########################################################################
 #                                                                      #
@@ -175,10 +175,12 @@ class TestSetSolvCountTop(object):
                                 '\nNot copying or changing file.\n')
         assert get_solv_count_top(n_top_dc) == 361
 
-    def test_set_solv_count_fail(self, empty_file):
+    def test_set_solv_count_fail(self, empty_file, n_top_dc):
         from paratemp.sim_setup import set_solv_count_top
         with pytest.raises(RuntimeError):
             set_solv_count_top(empty_file)
+        with pytest.raises(RuntimeError):
+            set_solv_count_top(n_top_dc, res_name='Not here')
 
     def test_get_n_top_fail(self, tmpdir):
         from paratemp.sim_setup import _get_n_top
