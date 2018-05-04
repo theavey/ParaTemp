@@ -468,7 +468,8 @@ def make_gromacs_sub_script(filename, name=None,
         ``True``.
     :raises: ValueError if ``cores`` is not a multiple of ``tpn``.
     """
-    if not (overwrite or not os.path.exists(filename)):
+    ppl_file = py.path.local(filename)  # should work even if it's already one
+    if not (overwrite or not ppl_file.check()):
         raise OSError(errno.EEXIST, '{} already exists'.format(filename))
     if cores % tpn != 0:
         raise ValueError('cores must be a multiple of tpn')
@@ -507,7 +508,6 @@ def make_gromacs_sub_script(filename, name=None,
     lines.append(line)
     lines.append('\n')
     lines = [l+'\n' for l in lines]
-    ppl_file = py.path.local(filename)  # should work even if it's already one
     with ppl_file.open('w') as f_out:
         f_out.writelines(lines)
     return ppl_file
