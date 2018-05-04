@@ -471,22 +471,23 @@ def make_gromacs_sub_script(filename, name=None,
     ppl_file = py.path.local(filename)  # should work even if it's already one
     if not (overwrite or not ppl_file.check()):
         raise OSError(errno.EEXIST, '{} already exists'.format(filename))
-    if cores % tpn != 0:
-        raise ValueError('cores must be a multiple of tpn')
-    lines = list()  # line separators will be added later
-    lines.append('#!/bin/bash -l\n')  # want an extra line break here
-    if time is not None:
-        lines.append(_make_sge_line('l', 'h_rt={}'.format(time)))
-    if name is not None:
-        lines.append(_make_sge_line('N', name))
-    if log is not None:
-        lines.append(_make_sge_line('o', log))
-    if tpn is not None and cores is not None:
-        lines.append(_make_sge_line('pe',
-                     'mpi_{}_tasks_per_node {}'.format(tpn, cores)))
+    # line separators will be added later
+    lines = _get_sge_basic_lines(cores, log, name, time, tpn)
     lines.append("\nexport MPI_COMPILER='pgi'\n")
     lines.append('export NSIMS={}\n'.format(nsims))
     lines.append('export OMP_NUM_THREADS=$(($NSLOTS/$NSIMS))\n')
+    line = _get_mdrun_line(checkpoint, deffnm, multi, nsims, other_mdrun,
+                           plumed, replex, tpr)
+    lines.append(line)
+    lines.append('\n')
+    lines = [l+'\n' for l in lines]
+    with ppl_file.open('w') as f_out:
+        f_out.writelines(lines)
+    return ppl_file
+
+
+def _get_mdrun_line(checkpoint, deffnm, multi, nsims, other_mdrun, plumed,
+                    replex, tpr):
     line = 'mpirun -n $NSIMS -loadbalance -x OMP_NUM_THREADS mdrun_mpi '
     if tpr is not None:
         line += '-s {} '.format(tpr)
@@ -505,12 +506,25 @@ def make_gromacs_sub_script(filename, name=None,
         line += '-cpi {} '.format(checkpoint)
     if other_mdrun is not None:
         line += other_mdrun
-    lines.append(line)
-    lines.append('\n')
-    lines = [l+'\n' for l in lines]
-    with ppl_file.open('w') as f_out:
-        f_out.writelines(lines)
-    return ppl_file
+    return line
+
+
+def _get_sge_basic_lines(cores, log, name, time, tpn):
+    lines = list()  # line separators will be added later
+    lines.append('#!/bin/bash -l\n')  # want an extra line break here
+    if time is not None:
+        lines.append(_make_sge_line('l', 'h_rt={}'.format(time)))
+    if name is not None:
+        lines.append(_make_sge_line('N', name))
+    if log is not None:
+        lines.append(_make_sge_line('o', log))
+    if tpn is not None and cores is not None:
+        if int(cores) % int(tpn) != 0:
+            raise ValueError('cores must be a multiple of tpn')
+        lines.append(_make_sge_line(
+            'pe',
+            'mpi_{}_tasks_per_node {}'.format(tpn, cores)))
+    return lines
 
 
 def _make_sge_line(key, arg):
