@@ -4,6 +4,7 @@ pandas
 numpy
 matplotlib
 panedr
+py
 gromacswrapper
 typing
 six

@@ -28,6 +28,7 @@ A set of functions for setuping up GROMACS simulations
 import errno
 import glob
 import os
+import py
 import re
 import subprocess
 from typing import Callable, Iterable, Match
@@ -418,29 +419,61 @@ def make_gromacs_sub_script(filename, name=None,
                             log='error.log',
                             overwrite=False):
     """
-    Write SGE submission script for a GROMACS mdrun job
+    Write SGE submission script for a GROMACS mdrun job.
 
-    :param str filename:
-    :param str name:
-    :param str time:
-    :param int tpn:
-    :param int cores:
-    :param int nsims:
-    :param str tpr:
-    :param str deffnm:
-    :param str plumed:
-    :param str multi:
-    :param str replex:
-    :param str checkpoint:
-    :param str other_mdrun:
-    :param str log:
-    :param bool overwrite:
-    :return:
+    For all the arguments to give to mdrun or SGE, if they are ``None``, that
+    option will not be written (and the progroms will use their defaults).
+
+    All keyword arguments will be cast to strings.
+
+    :type filename: str or py.path.local
+    :param filename: path where the script should be written
+    :param str name: name of the SGE job
+    :param str time: length of job to request in format 'hh:mm:ss'
+    :param int tpn: tasks per node to request (normally 16 or 28 for our
+        cluster)
+    :param int cores: total number of cores to request.
+        Must be a multiple of ``tpn``.
+    :param int nsims: number of simulations.
+        If ``multi`` is ``True``, this will be
+        used as the argument to '-multi' on the mdrun line.
+        This will be used to set the number of MPI and OMP threads. The
+        simulation will use ``nsims`` MPI threads and ``cores``/``nsims`` OMP
+        threads per MPI process.
+    :param str tpr: Path to tpr file(s). If ``multi`` is being used,
+        this should be the base name of the tpr files (e.g., 'TOPO/npt' for
+        'TOPO/npt0.tpr', 'TOPO/npt1.tpr', etc.).
+    :param str deffnm: Argument to '-deffnm' on the mdrun line. This is used to
+        set the name of all the output files.
+    :param str plumed: Path to the plumed input file.
+    :type multi: str or int or bool
+    :param multi: Run multiple simulations in parallel.
+        If this is ``True``, ``nsims`` will be used as the number of
+        simulations.
+        If this is not ``None`` or ``True``, this will be the argument to
+        '-multi' on the mdrun line.
+    :type replex: str or int
+    :param replex: Interval over which to attempt replica exchanges.
+    :param str checkpoint: Path to the checkpoint file(s) to be used to
+        restart the simulation. This will be the argument to '-cpi' on the
+        mdrun line. See ``tpr`` for how to use this for ``multi`` simulations.
+    :param str other_mdrun: Other arguments to be passed to mdrun.
+    :param str log: Path to the log file to be passed to SGE.
+    :param bool overwrite: Overwrite an existing file. If ``True``, an existing
+        file will be overwritten. Otherwise, OSError will be raised if the file
+        already exists.
+    :return: The path object of the written submission script
+    :rtype: py.path.local
+    :raises: OSError if the file already exists and ``overwrite`` is not
+        ``True``.
+    :raises: ValueError if ``cores`` is not a multiple of ``tpn``.
     """
     if not (overwrite or not os.path.exists(filename)):
         raise OSError(errno.EEXIST, '{} already exists'.format(filename))
+    if cores % tpn != 0:
+        raise ValueError('cores must be a multiple of tpn')
     lines = list()  # line separators will be added later
-    lines.append('#!/bin/bash -l\n')  # want an extra line break
+    lines.append('#!/bin/bash -l\n')  # want an extra line break here
     if time is not None:
         lines.append(_make_sge_line('l', 'h_rt={}'.format(time)))
     if name is not None:
@@ -461,7 +494,10 @@ def make_gromacs_sub_script(filename, name=None,
     if plumed is not None:
         line += '-plumed {} '.format(plumed)
     if multi is not None:
-        line += '-multi {} '.format(multi)
+        if multi is True:
+            line += '-multi {} '.format(nsims)
+        else:
+            line += '-multi {} '.format(multi)
     if replex is not None:
         line += '-replex {} '.format(replex)
     if checkpoint is not None:
@@ -470,9 +506,11 @@ def make_gromacs_sub_script(filename, name=None,
         line += other_mdrun
     lines.append(line)
     lines.append('\n')
-    with open(filename, 'w') as f_out:
-        for line in lines:
-            f_out.write(line+'\n')
+    lines = [l+'\n' for l in lines]
+    ppl_file = py.path.local(filename)  # should work even if it's already one
+    with ppl_file.open('w') as f_out:
+        f_out.writelines(lines)
+    return ppl_file
 
 
 def _make_sge_line(key, arg):
