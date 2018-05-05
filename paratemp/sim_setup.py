@@ -224,6 +224,8 @@ def set_solv_count_top(n_top=None, folder=None, s_count=0,
             out_top.write(line)
     if not done:
         # Not the right error, but fine for now
+        # Also, this should not be accessible: if anything, get_solv_count_top
+        # will fail with a RuntimeError first for any issue.
         raise RuntimeError('Did not find a line with the solvent count'
                            ' in {}'.format(n_top))
     elif verbose:

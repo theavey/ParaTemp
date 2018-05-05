@@ -177,7 +177,10 @@ class TestSetSolvCountTop(object):
 
     def test_set_solv_count_fail(self, empty_file, n_top_dc):
         from paratemp.sim_setup import set_solv_count_top
-        with pytest.raises(RuntimeError):
+        # These are coming from get_solv_count_top actually, but still the
+        # same error
+        with pytest.raises(RuntimeError, match='Did not find a line with the '
+                                               'solvent count in '):
             set_solv_count_top(empty_file)
         with pytest.raises(RuntimeError):
             set_solv_count_top(n_top_dc, res_name='Not here')
