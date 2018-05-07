@@ -50,7 +50,17 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                  temps_file='temperatures.dat', maxwarn='0',
                  grompp_exe='gmx_mpi grompp'):
     """
-    Compile TPR files for REMD run with GROMACS
+    Compile TPR files for multi-temperature run with GROMACS
+
+    This works in the current directory.
+
+    With exponential temperature spacing, this is mostly useful for compiling
+    TPR files for replica exchange dynamics.
+
+    Directly, this function will write two files in the current directory:
+    'gromacs_compile_output.log' and ``temps_file`` (by default,
+    'temperatures.dat'). These are the stdout and stderr from grompp and the
+    temperatures of the simulations, respectively.
 
     :param str template: name of template mdp file
     :param float start_temp: starting (lowest) temperature
@@ -67,8 +77,9 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
     :param maxwarn: maximum number of warnings to ignore. str is applied to
         this argument, so type shouldn't matter significantly.
     :param str grompp_exe: The name of the GROMACS executable. This is often
-        just `gmx`, but on some systems the MPI-compiled version may be
-        `gmx_mpi`, as is true on my system.
+        just `gmx grompp`, but on some systems the MPI-compiled version may be
+        `gmx_mpi grompp`, as is true on my system.
+        On older versions of GROMACS, it may be something like `grompp` alone.
     :return: None
     :raises OSError: If structure or topology files not found (or not enough
         found if ``multi_structure=True``).
