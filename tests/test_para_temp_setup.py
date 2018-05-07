@@ -34,12 +34,15 @@ n_gro, n_top, n_template, n_ndx = ('spc-and-methanol.gro',
                                    'spc-and-methanol.top',
                                    'templatemdp.txt',
                                    'index.ndx')
+n_gro_o1, n_gro_o2 = 'PT-out0.gro', 'PT-out1.gro'
 
 
 @pytest.fixture
 def grompp():
     if distutils.spawn.find_executable('gmx'):
         return 'gmx grompp'
+    if distutils.spawn.find_executable('gmx_mpi'):
+        return 'gmx_mpi grompp'
     elif distutils.spawn.find_executable('grompp'):
         return 'grompp'
     else:
@@ -58,7 +61,7 @@ class TestCompileTPRs(object):
 
     def test_pt_dir_blank(self, pt_dir_blank):
         files_present = {f.basename for f in pt_dir_blank.listdir()}
-        must_contain = {n_top, n_gro, n_template, n_ndx}
+        must_contain = {n_top, n_gro, n_template, n_ndx, n_gro_o1, n_gro_o2}
         assert must_contain - files_present == set()
 
     def test_compile_tprs(self, pt_dir_blank, grompp):
@@ -74,6 +77,82 @@ class TestCompileTPRs(object):
         with dir_topo.as_cwd():
             compile_tprs(start_temp=298, number=number,
                          template='../'+n_template,
+                         structure='../'+n_gro,
+                         base_name='nvt',
+                         grompp_exe=grompp)
+        assert dir_topo.check()
+        for i in range(number):
+            assert dir_topo.join('nvt{}.tpr'.format(i)).check()
+        assert get_temperatures(
+            str(dir_topo.join('temperatures.dat'))).shape == (2,)
+
+    def test_compile_tprs_ms(self, pt_dir_blank, grompp):
+        from paratemp.para_temp_setup import compile_tprs
+        from paratemp.tools import get_temperatures
+        dir_topo = pt_dir_blank.mkdir('TOPO')
+        number = 2
+        with dir_topo.as_cwd():
+            compile_tprs(start_temp=298, number=number,
+                         template='../'+n_template,
+                         multi_structure=True,
+                         structure='../PT-out',
+                         base_name='nvt',
+                         grompp_exe=grompp)
+        assert dir_topo.check()
+        for i in range(number):
+            assert dir_topo.join('nvt{}.tpr'.format(i)).check()
+        assert get_temperatures(
+            str(dir_topo.join('temperatures.dat'))).shape == (2,)
+
+    def test_compile_tprs_raises_os_error(self, pt_dir_blank, grompp):
+        from paratemp.para_temp_setup import compile_tprs
+        dir_topo = pt_dir_blank.mkdir('TOPO')
+        number = 2
+        with dir_topo.as_cwd(), pytest.raises(
+                OSError, match='Incorrect number of structure files found'):
+            compile_tprs(start_temp=298, number=number,
+                         template='../'+n_template,
+                         multi_structure=True,
+                         structure='../',
+                         base_name='nvt',
+                         grompp_exe=grompp)
+        with dir_topo.as_cwd(), pytest.raises(
+                OSError, match='No structure file found'):
+            compile_tprs(start_temp=298, number=number,
+                         template='../'+n_template,
+                         structure='../not-here.gro',
+                         base_name='nvt',
+                         grompp_exe=grompp)
+        with dir_topo.as_cwd(), pytest.raises(
+                OSError, match='No topology file found'):
+            compile_tprs(start_temp=298, number=number,
+                         template='../'+n_template,
+                         structure='../'+n_gro,
+                         topology='../not-here.top',
+                         base_name='nvt',
+                         grompp_exe=grompp)
+
+    def test_compile_tprs_raises_runtime_error(self, pt_dir_blank, grompp):
+        from paratemp.para_temp_setup import compile_tprs
+        dir_topo = pt_dir_blank.mkdir('TOPO')
+        number = 2
+        with dir_topo.as_cwd(), pytest.raises(RuntimeError):
+            compile_tprs(start_temp=298, number=number,
+                         template='../'+n_template,
+                         structure='../*top',
+                         base_name='nvt',
+                         grompp_exe=grompp)
+
+    def test_compile_tprs_warns(self, pt_dir_blank, grompp):
+        from paratemp.para_temp_setup import compile_tprs
+        from paratemp.tools import get_temperatures
+        dir_topo = pt_dir_blank.mkdir('TOPO')
+        number = 2
+        with dir_topo.as_cwd(), pytest.warns(
+                UserWarning, match=r'Found \d+ structure files'):
+            compile_tprs(start_temp=298, number=number,
+                         template='../'+n_template,
+                         structure='../*.gro',
                          base_name='nvt',
                          grompp_exe=grompp)
         assert dir_topo.check()
