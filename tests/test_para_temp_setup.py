@@ -64,7 +64,7 @@ class TestCompileTPRs(object):
         must_contain = {n_top, n_gro, n_template, n_ndx, n_gro_o1, n_gro_o2}
         assert must_contain - files_present == set()
 
-    def test_compile_tprs(self, pt_dir_blank, grompp):
+    def test_basic(self, pt_dir_blank, grompp):
         """
 
         :param py.path.local pt_dir_blank:
@@ -86,7 +86,7 @@ class TestCompileTPRs(object):
         assert get_temperatures(
             str(dir_topo.join('temperatures.dat'))).shape == (2,)
 
-    def test_compile_tprs_ms(self, pt_dir_blank, grompp):
+    def test_multi_structure(self, pt_dir_blank, grompp):
         from paratemp.para_temp_setup import compile_tprs
         from paratemp.tools import get_temperatures
         dir_topo = pt_dir_blank.mkdir('TOPO')
@@ -104,7 +104,7 @@ class TestCompileTPRs(object):
         assert get_temperatures(
             str(dir_topo.join('temperatures.dat'))).shape == (2,)
 
-    def test_compile_tprs_raises_os_error(self, pt_dir_blank, grompp):
+    def test_raises_os_error(self, pt_dir_blank, grompp):
         from paratemp.para_temp_setup import compile_tprs
         dir_topo = pt_dir_blank.mkdir('TOPO')
         number = 2
@@ -132,7 +132,7 @@ class TestCompileTPRs(object):
                          base_name='nvt',
                          grompp_exe=grompp)
 
-    def test_compile_tprs_raises_runtime_error(self, pt_dir_blank, grompp):
+    def test_raises_runtime_error(self, pt_dir_blank, grompp):
         from paratemp.para_temp_setup import compile_tprs
         dir_topo = pt_dir_blank.mkdir('TOPO')
         number = 2
@@ -143,7 +143,7 @@ class TestCompileTPRs(object):
                          base_name='nvt',
                          grompp_exe=grompp)
 
-    def test_compile_tprs_warns(self, pt_dir_blank, grompp):
+    def test_warns(self, pt_dir_blank, grompp):
         from paratemp.para_temp_setup import compile_tprs
         from paratemp.tools import get_temperatures
         dir_topo = pt_dir_blank.mkdir('TOPO')
@@ -242,3 +242,30 @@ class TestAddCptToSubScript(object):
         else:
             raise ValueError('Could not find "comment" line')
         assert orig_comm_line == new_comm_line
+
+    def test_raises_value_error(self, tmpdir):
+        from paratemp.para_temp_setup import _add_cpt_to_sub_script as acpt
+        test_sub = tmpdir.join('test.sub').ensure()
+        with pytest.raises(ValueError, match='Could not find GROMACS mdrun'):
+            acpt(str(test_sub), 'checkpoint_test')
+
+
+class TestFindCPTBase(object):
+
+    @pytest.fixture
+    def test_dir(self):
+        lp = py.path.local('tests/test-data/spc-and-methanol-run')
+        if lp.check():
+            return lp
+        else:
+            raise OSError(errno.ENOENT, 'run spc-and-methanol dir not found')
+
+    def test_works(self, test_dir):
+        from paratemp.para_temp_setup import _find_cpt_base
+        cpt_base = _find_cpt_base(str(test_dir)+'/')
+        assert cpt_base == str(test_dir.join('PT-out'))
+
+    def test_raises_value_error(self, tmpdir):
+        from paratemp.para_temp_setup import _find_cpt_base
+        with pytest.raises(ValueError):
+            _find_cpt_base(str(tmpdir))
