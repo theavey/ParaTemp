@@ -158,9 +158,8 @@ def compile_tprs(start_temp, scaling_exponent,
         if error or proc.returncode != 0:
             error = error if error else 'Unknown error. Check log file.'
             raise RuntimeError(error, 'returncode: {}'.format(proc.returncode))
-    with open(temps_file, 'w') as temps_out:
-        temps_out.write(str(temps))
-        temps_out.write('\n')
+    with open(temps_file, 'w') as t_out:
+        [t_out.write(str(t)+'\n') for t in temps]
 
 
 if __name__ == "__main__":
