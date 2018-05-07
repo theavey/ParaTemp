@@ -75,7 +75,8 @@ class TestCompileTPRs(object):
         dir_topo = pt_dir_blank.mkdir('TOPO')
         number = 2
         with dir_topo.as_cwd():
-            compile_tprs(start_temp=298, number=number,
+            compile_tprs(start_temp=298, scaling_exponent=0.025,
+                         number=number,
                          template='../'+n_template,
                          structure='../'+n_gro,
                          base_name='nvt',
@@ -92,7 +93,8 @@ class TestCompileTPRs(object):
         dir_topo = pt_dir_blank.mkdir('TOPO')
         number = 2
         with dir_topo.as_cwd():
-            compile_tprs(start_temp=298, number=number,
+            compile_tprs(start_temp=298,  scaling_exponent=0.025,
+                         number=number,
                          template='../'+n_template,
                          multi_structure=True,
                          structure='../PT-out',
@@ -110,7 +112,8 @@ class TestCompileTPRs(object):
         number = 2
         with dir_topo.as_cwd(), pytest.raises(
                 OSError, match='Incorrect number of structure files found'):
-            compile_tprs(start_temp=298, number=number,
+            compile_tprs(start_temp=298,  scaling_exponent=0.025,
+                         number=number,
                          template='../'+n_template,
                          multi_structure=True,
                          structure='../',
@@ -118,14 +121,16 @@ class TestCompileTPRs(object):
                          grompp_exe=grompp)
         with dir_topo.as_cwd(), pytest.raises(
                 OSError, match='No structure file found'):
-            compile_tprs(start_temp=298, number=number,
+            compile_tprs(start_temp=298,  scaling_exponent=0.025,
+                         number=number,
                          template='../'+n_template,
                          structure='../not-here.gro',
                          base_name='nvt',
                          grompp_exe=grompp)
         with dir_topo.as_cwd(), pytest.raises(
                 OSError, match='No topology file found'):
-            compile_tprs(start_temp=298, number=number,
+            compile_tprs(start_temp=298,  scaling_exponent=0.025,
+                         number=number,
                          template='../'+n_template,
                          structure='../'+n_gro,
                          topology='../not-here.top',
@@ -137,7 +142,8 @@ class TestCompileTPRs(object):
         dir_topo = pt_dir_blank.mkdir('TOPO')
         number = 2
         with dir_topo.as_cwd(), pytest.raises(RuntimeError):
-            compile_tprs(start_temp=298, number=number,
+            compile_tprs(start_temp=298,  scaling_exponent=0.025,
+                         number=number,
                          template='../'+n_template,
                          structure='../*top',
                          base_name='nvt',
@@ -150,7 +156,8 @@ class TestCompileTPRs(object):
         number = 2
         with dir_topo.as_cwd(), pytest.warns(
                 UserWarning, match=r'Found \d+ structure files'):
-            compile_tprs(start_temp=298, number=number,
+            compile_tprs(start_temp=298,  scaling_exponent=0.025,
+                         number=number,
                          template='../'+n_template,
                          structure='../*.gro',
                          base_name='nvt',
