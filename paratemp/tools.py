@@ -69,6 +69,10 @@ def get_temperatures(filename='TOPO/temperatures.dat'):
     :return: list of temperatures
     :rtype: numpy.ndarray
     """
+    try:
+        return np.loadtxt(filename)
+    except ValueError:
+        pass
     with open(filename, 'r') as t_file:
         temps = list(t_file.read()[1:-2].split(', '))
     return np.array([float(temp) for temp in temps])

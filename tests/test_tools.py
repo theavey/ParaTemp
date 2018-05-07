@@ -35,7 +35,10 @@ def ref_temps():
 
 def test_get_temps(ref_temps):
     from paratemp import get_temperatures
-    assert (get_temperatures('tests/test-data/temperatures.dat') == ref_temps).all()
+    assert (get_temperatures('tests/test-data/temperatures.dat')
+            == ref_temps).all()
+    assert (get_temperatures('tests/test-data/temperatures-new.dat')
+            == ref_temps).all()
 
 
 def test_find_nearest_idx(ref_temps):
