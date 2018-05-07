@@ -34,6 +34,7 @@ import shlex
 import shutil
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
+from warnings import warn
 
 from .sim_setup import _submit_script
 from .tools import _BlankStream, _replace_string_in_file
@@ -65,23 +66,37 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
     :type maxwarn: int or str
     :param maxwarn: maximum number of warnings to ignore. str is applied to
         this argument, so type shouldn't matter significantly.
-    :param str gromacs_exe: The name of the GROMACS executable. This is often
+    :param str grompp_exe: The name of the GROMACS executable. This is often
         just `gmx`, but on some systems the MPI-compiled version may be
         `gmx_mpi`, as is true on my system.
     :return: None
+    :raises OSError: If structure or topology files not found (or not enough
+        found if ``multi_structure=True``).
     """
-    # if args.multi_structure:
-    structures = glob.glob(structure+'*.gro')
-    structures.sort()
-    structures.sort(key=len)
+    if multi_structure:
+        structures = glob.glob(structure+'*.gro')
+        structures.sort()
+        structures.sort(key=len)
+        if len(structures) != number:
+            raise OSError(
+                errno.ENOENT, 'Incorrect number of structure files found.\n'
+                              'Found {}, needed {}.'.format(len(structures),
+                                                            number))
+        _structure = structures[number]  # just to prevent IDE warning
+    else:
+        structures = glob.glob(structure)
+        if len(structures) > 1:
+            _structure = structures[0]
+            warn('Found {} structure files, '
+                 'using {}'.format(len(structures), _structure))
+        elif len(structures) == 0:
+            raise OSError(errno.ENOENT, 'No structure file found.')
+        else:
+            _structure = structures[0]
     try:
         _topology = glob.glob(topology)[0]
     except IndexError:
         raise OSError(errno.ENOENT, 'No topology file found.')
-    try:
-        _structure = glob.glob(structure)[0]
-    except IndexError:
-        raise OSError(errno.ENOENT, 'No structure file found.')
     temps = []
     error = False
     for i in range(number):
