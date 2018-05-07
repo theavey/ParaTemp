@@ -43,16 +43,21 @@ from .tools import cd
 from ._version import get_versions
 
 
-def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
-                 scaling_exponent=0.025, base_name='npt',
+def compile_tprs(start_temp, scaling_exponent,
+                 template='templatemdp.txt', number=16,
+                 base_name='npt',
                  topology='../*top', multi_structure=False,
                  structure='../*gro', index='../index.ndx',
                  temps_file='temperatures.dat', maxwarn='0',
-                 grompp_exe='gmx_mpi grompp'):
+                 grompp_exe='gmx grompp'):
     """
     Compile TPR files for multi-temperature run with GROMACS
 
-    This works in the current directory.
+    This works in the current directory. The defaults make the most sense if
+    the current directory is a sub-directory of some main folder that
+    includes the starting geometry and topology information. In many cases,
+    this folder is named 'TOPO' is just used to contain the topology and MDP
+    files and the GROMPP information and logs.
 
     With exponential temperature spacing, this is mostly useful for compiling
     TPR files for replica exchange dynamics.
@@ -62,14 +67,19 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
     'temperatures.dat'). These are the stdout and stderr from grompp and the
     temperatures of the simulations, respectively.
 
-    :param str template: name of template mdp file
-    :param float start_temp: starting (lowest) temperature
+    :param float start_temp: starting (lowest) temperature, in Kelvin
+    :param float scaling_exponent: exponent by which to scale the temperatures.
+        The temperature will be :math:`T_0 e^{j s}` where :math:`T_0` is the
+        ``start_temp``, :math:`s` is the ``scaling_exponent``, and :math:`j`
+        is the index of the replica between 0 and (``number``-1).
+    :param str template: name of template mdp file with 'TempGoesHere' where
+        the temperature of the replica should be placed.
     :param int number: number of replicas/walkers
-    :param float scaling_exponent: exponent by which to scale the temperatures
     :param str base_name: base name for output mdp and tpr files
-    :param str topology: name of topology file
+    :param str topology: name of topology ('.top') file
     :param bool multi_structure: multiple (different) structure files
-        (uses glob expansion on the input structure base name)
+        (uses glob expansion on the input structure base name by adding
+        '*.gro' to the ``structure`` keyword argument)
     :param str structure: (base) name of structure file(s)
     :param str index: name of index file
     :param str temps_file: name of file in which to store temperatures
