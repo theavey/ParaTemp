@@ -93,7 +93,7 @@ def compile_tprs(template='templatemdp.txt', start_temp=205., number=16,
                 errno.ENOENT, 'Incorrect number of structure files found.\n'
                               'Found {}, needed {}.'.format(len(structures),
                                                             number))
-        _structure = structures[number]  # just to prevent IDE warning
+        _structure = structures[0]  # just to prevent IDE warning
     else:
         structures = glob.glob(structure)
         if len(structures) > 1:
