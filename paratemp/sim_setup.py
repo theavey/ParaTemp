@@ -466,9 +466,9 @@ def make_gromacs_sub_script(filename, name=None,
         already exists.
     :return: The path object of the written submission script
     :rtype: py.path.local
-    :raises: OSError if the file already exists and ``overwrite`` is not
+    :raises OSError: If the file already exists and ``overwrite`` is not
         ``True``.
-    :raises: ValueError if ``cores`` is not a multiple of ``tpn``.
+    :raises ValueError: If ``cores`` is not a multiple of ``tpn``.
     """
     ppl_file = py.path.local(filename)  # should work even if it's already one
     if not (overwrite or not ppl_file.check()):
