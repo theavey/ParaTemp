@@ -69,3 +69,12 @@ def test_parse_z_bin_input():
     b, v = pzbi(None, 42, [1, 5])
     assert (b == np.append(np.linspace(1, 5, 11), [42])).all()
     assert v == 5
+
+
+def test_calc_fes_2d():
+    from paratemp.utils import calc_fes_2d as cf2
+    ref_dg = np.array([[0, 54.54240779], [54.54240779, 0]])
+    dg, x, y = cf2([0, 1], [0, 1], 298., 2)
+    assert np.allclose(dg, ref_dg)
+    assert (x == [0.25, 0.75]).all()
+    assert (y == [0.25, 0.75]).all()
