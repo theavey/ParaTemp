@@ -31,7 +31,8 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from matplotlib import pyplot as plt
 
-from paratemp.constants import r
+from .constants import r
+from .tools import running_mean
 
 
 def _parse_bin_input(bins):
@@ -60,20 +61,6 @@ def calc_fes_1d(data, temp, bins=None):
     delta_g = np.array([-r * temp * np.log(p) for p in prob])
     bin_mids = running_mean(_bins, 2)
     return delta_g, bin_mids
-
-
-def running_mean(x, n=2):
-    """
-    Calculate running mean over an iterable
-
-    Taken from https://stackoverflow.com/a/22621523/3961920
-
-    :param Iterable x: List over which to calculate the mean.
-    :param int n: Default: 2. Width for the means.
-    :return: Array of the running mean values.
-    :rtype: np.ndarray
-    """
-    return np.convolve(x, np.ones((n,)) / n, mode='valid')
 
 
 def _parse_ax_input(ax):

@@ -148,3 +148,17 @@ def find_nearest_idx(array, value):
     :return: The index of the item in `array` nearest to `value`
     """
     return (np.abs(array - value)).argmin()
+
+
+def running_mean(x, n=2):
+    """
+    Calculate running mean over an iterable
+
+    Taken from https://stackoverflow.com/a/22621523/3961920
+
+    :param Iterable x: List over which to calculate the mean.
+    :param int n: Default: 2. Width for the means.
+    :return: Array of the running mean values.
+    :rtype: np.ndarray
+    """
+    return np.convolve(x, np.ones((n,)) / n, mode='valid')

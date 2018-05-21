@@ -46,3 +46,9 @@ def test_find_nearest_idx(ref_temps):
     assert find_nearest_idx(ref_temps, 0) == 0
     assert find_nearest_idx(ref_temps, 500.) == 15
     assert find_nearest_idx(ref_temps, 221.) == 1
+
+
+def test_running_mean():
+    from paratemp.tools import running_mean
+    tl = [0, 2, 4]
+    assert (running_mean(tl) == [1, 3]).all()

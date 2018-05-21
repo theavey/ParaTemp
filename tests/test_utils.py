@@ -24,8 +24,48 @@
 
 from __future__ import absolute_import
 
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.axes import Axes
+import numpy as np
 
-def test_running_mean():
-    from paratemp.utils import running_mean
-    tl = [0, 2, 4]
-    assert (running_mean(tl) == [1, 3]).all()
+
+def test_parse_ax_input():
+    from paratemp.utils import _parse_ax_input as pai
+    fig, ax = plt.subplots()
+    f, a = pai(None)
+    assert a != ax
+    assert isinstance(f, Figure)
+    assert isinstance(a, Axes)
+    f, a = pai(ax)
+    assert a == ax
+    assert isinstance(a, Axes)
+    assert isinstance(f, Figure)
+
+
+def test_parse_bin_input():
+    from paratemp.utils import _parse_bin_input as pbi
+    d_ref = dict(bins='test')
+    d = pbi(None)
+    assert isinstance(d, dict)
+    assert not d
+    d = pbi('test')
+    assert isinstance(d, dict)
+    assert d
+    assert d == d_ref
+
+
+def test_parse_z_bin_input():
+    from paratemp.utils import _parse_z_bin_input as pzbi
+    b, v = pzbi(range(5), 'a', 'c')
+    assert b == range(5)
+    assert v == 4
+    b, v = pzbi(None, 42, [5])
+    assert (b == np.append(np.linspace(0, 5, 11), [42])).all()
+    assert v == 5
+    b, v = pzbi(None, 42, 5)
+    assert (b == np.append(np.linspace(0, 5, 11), [42])).all()
+    assert v == 5
+    b, v = pzbi(None, 42, [1, 5])
+    assert (b == np.append(np.linspace(1, 5, 11), [42])).all()
+    assert v == 5
