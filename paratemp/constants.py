@@ -1,11 +1,15 @@
+"""
+Physical constants
 
+
+"""
 
 ########################################################################
 #                                                                      #
-# This package was written by Thomas Heavey in 2018.                   #
+# This script was written by Thomas Heavey in 2018.                    #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
-# Copyright 2017-18 Thomas J. Heavey IV                                #
+# Copyright 2018 Thomas J. Heavey IV                                   #
 #                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");      #
 # you may not use this file except in compliance with the License.     #
@@ -22,29 +26,8 @@
 #                                                                      #
 ########################################################################
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
 
-import sys
+from scipy.constants import gas_constant, calorie
 
-from . import para_temp_setup
-from .tools import copy_no_overwrite, cd, get_temperatures
-from . import coordinate_analysis
-from .coordinate_analysis import Universe
-from . import re_universe
-from .re_universe import REUniverse
-from ._version import get_versions
-from . import plotting
-
-del absolute_import
-
-if sys.version_info.major == 2:
-    # These (at this point) require python 2 because of gromacs (gromacswrapper)
-    from . import energy_histo
-    from . import energy_bin_analysis
-del sys
-
-
-__version__ = get_versions()['version']
-del get_versions
-
-__author__ = 'Thomas Heavey'
+r = gas_constant / calorie / 1000  # kcal_th/(K mol)

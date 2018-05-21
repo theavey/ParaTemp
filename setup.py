@@ -21,6 +21,7 @@ setup(
         'panedr',
         'gromacswrapper',
         'typing',
+        'scipy',
         'six',
         'py',
     ],

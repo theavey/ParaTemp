@@ -7,4 +7,5 @@ panedr
 py
 gromacswrapper
 typing
+scipy
 six

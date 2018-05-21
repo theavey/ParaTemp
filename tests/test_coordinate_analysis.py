@@ -39,9 +39,9 @@ def test_matplotlib_testing_backend():
 
 
 def test_running_mean():
-    from paratemp.coordinate_analysis import _running_mean
+    from paratemp.utils import running_mean
     tl = [0, 2, 4]
-    assert (_running_mean(tl) == [1, 3]).all()
+    assert (running_mean(tl) == [1, 3]).all()
 
 
 class TestXTCUniverse(object):
@@ -89,7 +89,7 @@ class TestXTCUniverse(object):
 
     @pytest.fixture
     def ref_delta_g_20(self):
-        """Created using _calc_fes_1d with temp=205. and bins=20.
+        """Created using calc_fes_1d with temp=205. and bins=20.
         Saved with np.save('spc2-fes1d-delta-gs-20.npy', dg20,
         allow_pickle=False)."""
         return np.load('tests/ref-data/spc2-fes1d-delta-gs-20.npy')
@@ -135,15 +135,15 @@ class TestXTCUniverse(object):
         :type ref_delta_g_20: np.ndarray
         :type ref_bins_20: np.ndarray
         """
-        from paratemp.coordinate_analysis import _calc_fes_1d
-        delta_g_data, bins_data = _calc_fes_1d(univ_w_a.data['a'], temp=205.,
-                                               bins=None)
-        assert (delta_g_data == ref_delta_g).all()
-        assert (bins_data == ref_bins).all()
-        delta_g_20, bins_20 = _calc_fes_1d(univ_w_a.data['a'], temp=205.,
-                                           bins=20)
-        assert (delta_g_20 == ref_delta_g_20).all()
-        assert (bins_20 == ref_bins_20).all()
+        from paratemp.utils import calc_fes_1d
+        delta_g_data, bins_data = calc_fes_1d(univ_w_a.data['a'], temp=205.,
+                                              bins=None)
+        assert np.allclose(delta_g_data, ref_delta_g)
+        assert np.allclose(bins_data, ref_bins)
+        delta_g_20, bins_20 = calc_fes_1d(univ_w_a.data['a'], temp=205.,
+                                          bins=20)
+        assert np.allclose(delta_g_20, ref_delta_g_20)
+        assert np.allclose(bins_20, ref_bins_20)
 
     def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
         """
@@ -153,8 +153,8 @@ class TestXTCUniverse(object):
         """
         delta_g_str, bins_str, lines_str, fig_str, ax_str = \
             univ_w_a.fes_1d('a')
-        assert (delta_g_str == ref_delta_g).all()
-        assert (bins_str == ref_bins).all()
+        assert np.allclose(delta_g_str, ref_delta_g)
+        assert np.allclose(bins_str, ref_bins)
 
     def test_fes_1d_data_data(self, univ_w_a, ref_delta_g, ref_bins):
         """
@@ -164,8 +164,8 @@ class TestXTCUniverse(object):
         """
         delta_g_data, bins_data, lines_data, fig_data, ax_data = \
             univ_w_a.fes_1d(univ_w_a.data['a'])
-        assert (delta_g_data == ref_delta_g).all()
-        assert (bins_data == ref_bins).all()
+        assert np.allclose(delta_g_data, ref_delta_g)
+        assert np.allclose(bins_data, ref_bins)
 
     def test_final_time_str(self, univ):
         assert univ.final_time_str == '2ps'

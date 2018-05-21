@@ -25,7 +25,6 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import range
 
-import math
 import os.path
 from warnings import warn
 
@@ -37,149 +36,10 @@ import numpy as np
 import pandas as pd
 from typing import Iterable, Sequence
 
-from . import exceptions
-from .exceptions import InputError
-
-
-r = 0.0019872  # kcal_th/(K mol)
-
-
-def _parse_bin_input(bins):
-    if bins is None:
-        return dict()
-    return dict(bins=bins)
-
-
-def _calc_fes_2d(x, y, temp, bins=None):
-    d_bins = _parse_bin_input(bins)
-    counts, xedges, yedges = np.histogram2d(x, y, **d_bins)
-    probs = np.array([[i / counts.max() for i in j] for j in counts]) \
-        + 1e-40
-    delta_g = np.array([[-r * temp * np.log(p) for p in j] for j in probs])
-    xmids, ymids = _running_mean(xedges), _running_mean(yedges)
-    return delta_g, xmids, ymids
-
-
-def _calc_fes_1d(data, temp, bins=None):
-    d_bins = _parse_bin_input(bins)
-    n, _bins = np.histogram(data, **d_bins)
-    n = [float(j) for j in n]
-    # TODO find better way to account for zeros here rather than
-    # just adding a small amount to each.
-    prob = np.array([j / max(n) for j in n]) + 1e-40
-    delta_g = np.array([-r * temp * np.log(p) for p in prob])
-    bin_mids = _running_mean(_bins, 2)
-    return delta_g, bin_mids
-
-
-def _running_mean(x, n=2):
-    """
-    Calculate running mean over an iterable
-
-    Taken from https://stackoverflow.com/a/22621523/3961920
-
-    :param Iterable x: List over which to calculate the mean.
-    :param int n: Default: 2. Width for the means.
-    :return: Array of the running mean values.
-    :rtype: np.ndarray
-    """
-    return np.convolve(x, np.ones((n,)) / n, mode='valid')
-
-
-def _parse_ax_input(ax):
-    if ax is None:
-        fig, ax = plt.subplots()
-    else:
-        fig = ax.figure
-    return fig, ax
-
-
-def _parse_z_bin_input(bins, zfinal, zrange):
-    if bins is None:
-        try:
-            float(zrange)
-            _zrange = [0, zrange, 11]
-        except TypeError:
-            dict_zrange = {1: [0, zrange[0], 11],
-                           2: list(zrange) + [11]}
-            _zrange = dict_zrange.get(len(zrange), zrange)
-        _bins = np.append(np.linspace(*_zrange), [zfinal])
-        vmax = _zrange[1]
-    else:
-        _bins = bins
-        vmax = list(bins)[-1]
-    return _bins, vmax
-
-
-def fes_array_3_legend(data, temp, labels=None, axes=None, bins=None, **kwargs):
-    """
-
-    :param pd.DataFrame data: A dataframe with the data to be transformed
-        into the FES. It needs to have at least three columns. If `labels` is
-        given, these must correspond to columns in `data`. If `labels` is
-        None, the first three columns of `data` will be used with their column
-        names as the labels.
-    :param float temp: Temperature at which to calculate the free energy
-        surface. This should be the temperature at which the simulation was run.
-    :param Iterable[str] labels: An iterable of at least length three or None.
-        If this is not None, the first three elements of it will be used as
-        column names to pick with data to plot from `data`.
-        If it is None, the first three column names from `data` will be used.
-        These values will also be used as labels for the legend.
-    :param matplotlib.axes.Axes axes: A set of axes on which to make the
-        FESes and the legend. If this is given, it must support up to
-        axes.flat[3].
-        If None, a new figure with 2x2 axes will be created.
-    :type bins: int or Sequence[int or float] or str
-    :param bins: Default: None. The bins argument to be passed to
-        np.histogram
-    :param kwargs: keyword arguments to pass to the plot function
-    :rtype: Tuple(List(np.ndarray), List(np.ndarray),
-        List(matplotlib.lines.Line2D), matplotlib.figure.Figure,
-        matplotlib.axes.Axes)
-    :return: The delta G values, the bin centers, the lines objects, the
-        figure and the axes
-    """
-    if axes is None:
-        fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True,
-                                 sharex=True)
-    else:
-        try:
-            fig = axes.flat[3].figure
-        except (IndexError, TypeError):
-            raise InputError('axes={}'.format(axes), 'Input axes must be '
-                             'able to plot at least four things')
-        except AttributeError:
-            try:
-                fig = axes[3].figure
-            except IndexError:
-                raise InputError('axes={}'.format(axes), 'Input axes must '
-                                 'be able to plot at least four things')
-    if labels is None:
-        _labels = data.columns[:3]
-    elif len(labels) >= 3:
-        _labels = labels[:3]
-    else:
-        raise InputError(labels, 'len(labels) must be >= 3 if not None')
-    delta_gs = []
-    bin_data = []
-    handles = []
-    # Use whatever the default colors for the system are
-    # TODO find a more elegant way to do this
-    colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
-    for i, key in enumerate(_labels):
-        delta_g, bin_mids = _calc_fes_1d(data[key], temp=temp, bins=bins)
-        delta_gs.append(delta_g)
-        bin_data.append(bin_mids)
-        ax = axes.flat[i]
-        line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
-        handles.append(line)
-        ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
-        ax.set_xlabel(r'distance / $\mathrm{\AA}$')
-    axes.flat[3].axis('off')
-    axes.flat[3].legend(handles, _labels,
-                        loc='center')
-    return delta_gs, bin_data, handles, fig, axes
+from paratemp.plotting import fes_array_3_legend, plot_dist_array
+from paratemp.utils import calc_fes_2d, calc_fes_1d, _parse_ax_input, \
+    _parse_z_bin_input
+from .exceptions import InputError, FileChangedError
 
 
 class Universe(MDa.Universe):
@@ -320,7 +180,7 @@ class Universe(MDa.Universe):
         :param args:
         :param kwargs:
         :return: None
-        :raises: exceptions.FileChangedError
+        :raises: FileChangedError
         :raises: SyntaxError
         :raises: NotImplementedError
         """
@@ -397,7 +257,7 @@ class Universe(MDa.Universe):
                       'but this object was instantiated with ' 
                       '{} frames.'.format(self._num_frames))
             if not ignore_file_change:
-                raise exceptions.FileChangedError()
+                raise FileChangedError()
         dists = np.zeros((self._num_frames, n1))
         for i in range(self._num_frames):
             self.trajectory[i]
@@ -465,7 +325,7 @@ class Universe(MDa.Universe):
                               'respectively).'.format(nc, *n_atoms) +
                               '\nThis should not happen.')
         if self._num_frames != self.trajectory.n_frames:
-            raise exceptions.FileChangedError()
+            raise FileChangedError()
         diheds = np.zeros((self._num_frames, nc))
         for i, frame in enumerate(self.trajectory):
             MDa.lib.distances.calc_dihedrals(groups[0].positions,
@@ -513,7 +373,7 @@ class Universe(MDa.Universe):
         _temp = self._parse_temp_input(temp)
         _data = self._parse_data_input(data)
         _fig, _ax = _parse_ax_input(ax)
-        delta_g, bin_mids = _calc_fes_1d(_data, temp=_temp, bins=bins)
+        delta_g, bin_mids = calc_fes_1d(_data, temp=_temp, bins=bins)
         lines = _ax.plot(bin_mids, delta_g, **kwargs)
         _ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
         _ax.set_xlabel(xlabel)
@@ -576,7 +436,7 @@ class Universe(MDa.Universe):
         _x = self._parse_data_input(x)
         _y = self._parse_data_input(y)
         _bins, vmax = _parse_z_bin_input(bins, zfinal, zrange)
-        delta_g, xmids, ymids = _calc_fes_2d(_x, _y, temp=_temp, bins=n_bins)
+        delta_g, xmids, ymids = calc_fes_2d(_x, _y, temp=_temp, bins=n_bins)
         fig, ax = _parse_ax_input(ax)
         if not transpose:
             # This is because np.histogram2d returns the counts oddly
@@ -789,7 +649,7 @@ class Taddol(Universe):
                                                                        nc) +
                               '\nThis should not happen.')
         if self._num_frames != self.trajectory.n_frames:
-            raise exceptions.FileChangedError()
+            raise FileChangedError()
         dists = np.zeros((self._num_frames, n1))
         for i, frame in enumerate(self.trajectory):
             MDa.lib.distances.calc_bonds(first_group.positions,
@@ -1025,7 +885,7 @@ class Taddol(Universe):
             fig, ax = plt.subplots()
         else:
             fig = ax.figure
-        delta_g, xmids, ymids = _calc_fes_2d(x, y, temp=temp, bins=n_bins)
+        delta_g, xmids, ymids = calc_fes_2d(x, y, temp=temp, bins=n_bins)
         if not transpose:
             # This is because np.histogram2d returns the counts oddly
             delta_g = delta_g.transpose()
@@ -1412,30 +1272,6 @@ def get_taddol_pi_dists(universe, sel_dict=False):
     return np.array(output)
 
 
-def plot_dist_array(array, index_offset=1, num_data_rows=None,
-                    n_rows=None, n_cols=None):
-    """
-    Puts each row of array in a different axes of a figure. Return figure.
-
-    :param array:
-    :param index_offset:
-    :param num_data_rows:
-    :param n_rows:
-    :param n_cols:
-    :return:
-    """
-    if not num_data_rows:
-        num_data_rows = array.shape[1] - index_offset
-    if n_rows is None and n_cols is None:
-        n_rows = int(math.ceil(math.sqrt(float(num_data_rows))))
-        n_cols = n_rows
-    fig, axes = plt.subplots(n_rows, n_cols, sharex=True, sharey=True)
-    for i in range(num_data_rows):
-        ax = axes.flat[i]
-        ax.plot(array[:, 0], array[:, i+index_offset])
-    return fig
-
-
 def make_taddol_pi_dist_array(dists, save=False, save_format='pdf',
                               save_base_name='pi_dists',
                               display=True):
@@ -1468,7 +1304,7 @@ def make_fes_taddol_ox_dist(dists, temp=791., bins=None, save=False,
     # TODO find a more elegant way to do this
     colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
     for i in range(3):
-        delta_g, bin_mids = _calc_fes_1d(dists[:, 1 + i], temp=temp, bins=bins)
+        delta_g, bin_mids = calc_fes_1d(dists[:, 1 + i], temp=temp, bins=bins)
         delta_gs.append(delta_g)
         ax = axes.flat[i]
         line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
