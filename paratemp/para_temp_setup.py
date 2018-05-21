@@ -288,14 +288,16 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
         if sub_script is not None:
             _sub_script = os.path.relpath(_sub_script)
             if verbose:
-                print('Editing '
-                      '{} for new tpr names with {}'.format(_sub_script,
-                                                            extend_infix))
+                print('Editing {} for new tpr names '
+                      'with {}'.format(_sub_script, extend_infix))
             _replace_string_in_file(_rel_base_name + ' ', _rel_base_name +
                                     extend_infix + ' ', _sub_script, _log)
             if first_extension:
                 _cpt_base = _find_cpt_base(cpt_base)
                 _add_cpt_to_sub_script(_sub_script, _cpt_base, _log)
+                if verbose:
+                    print('Editing {} to reference the checkpoint '
+                          'files {}'.format(_sub_script, _cpt_base))
             if submit:
                 if verbose:
                     print('Submitting job...')
