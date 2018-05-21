@@ -38,6 +38,9 @@ from paratemp.utils import calc_fes_1d
 from .exceptions import InputError
 
 
+__all__ = ['fes_array_3_legend', 'plot_dist_array']
+
+
 def fes_array_3_legend(data, temp, labels=None, axes=None, bins=None, **kwargs):
     """
 

@@ -46,6 +46,9 @@ from .coordinate_analysis import Universe
 from . import get_temperatures, exceptions
 
 
+__all__ = ['REUniverse']
+
+
 class REUniverse(collections.Sequence):
     """
     A class for working with MDAnalysis Universes from replica exchange sims.

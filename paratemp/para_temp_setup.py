@@ -43,6 +43,9 @@ from .tools import cd
 from ._version import get_versions
 
 
+__all__ = ['compile_tprs', 'extend_tprs', 'cleanup_bad_gromacs_restart']
+
+
 def compile_tprs(start_temp, scaling_exponent,
                  template='templatemdp.txt', number=16,
                  base_name='npt',

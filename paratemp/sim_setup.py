@@ -39,6 +39,11 @@ from .exceptions import InputError
 from .tools import cd, copy_no_overwrite
 
 
+__all__ = ['get_gro_files', 'get_n_solvent', 'get_solv_count_top',
+           'set_solv_count_top', 'copy_topology', 'update_plumed_input',
+           'make_gromacs_sub_script']
+
+
 def get_gro_files(trr_base='npt_PT_out', tpr_base='TOPO/npt',
                   time=200000):
     """

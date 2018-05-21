@@ -31,6 +31,10 @@ from .exceptions import UnknownEnergyError, InputError
 # TODO add tests for these
 
 
+__all__ = ['rotation_matrix', 'Vector', 'XYZ', 'COM']
+
+
+
 def rotation_matrix(axis, theta):
     """
     Return the rotation matrix associated with counterclockwise rotation about

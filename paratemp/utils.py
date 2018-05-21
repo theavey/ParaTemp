@@ -35,6 +35,9 @@ from .constants import r
 from .tools import running_mean
 
 
+__all__ = ['calc_fes_2d', 'calc_fes_1d']
+
+
 def _parse_bin_input(bins):
     if bins is None:
         return dict()

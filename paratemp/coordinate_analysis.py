@@ -42,6 +42,9 @@ from paratemp.utils import calc_fes_2d, calc_fes_1d, _parse_ax_input, \
 from .exceptions import InputError, FileChangedError
 
 
+__all__ = ['Universe', 'Taddol']
+
+
 class Universe(MDa.Universe):
 
     def __init__(self, *args, **kwargs):
