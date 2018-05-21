@@ -52,3 +52,10 @@ def test_running_mean():
     from paratemp.tools import running_mean
     tl = [0, 2, 4]
     assert (running_mean(tl) == [1, 3]).all()
+
+
+def test_all_elements_same():
+    from paratemp.tools import all_elements_same as aes
+    assert aes([0, 0, 0, 0, 0, 0])
+    assert not aes([0, 0.2])
+    assert not aes(['a', 'b'])
