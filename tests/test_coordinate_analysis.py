@@ -38,12 +38,6 @@ def test_matplotlib_testing_backend():
     assert matplotlib.get_backend() == 'agg'
 
 
-def test_running_mean():
-    from paratemp.utils import running_mean
-    tl = [0, 2, 4]
-    assert (running_mean(tl) == [1, 3]).all()
-
-
 class TestXTCUniverse(object):
 
     @pytest.fixture
@@ -129,6 +123,10 @@ class TestXTCUniverse(object):
     def test_calc_fes_1d(self, univ_w_a, ref_delta_g, ref_bins, ref_delta_g_20,
                          ref_bins_20):
         """
+
+        While not technically a test of Universe, the useful fixtures are
+        all already defined here.
+
         :type univ_w_a: paratemp.coordinate_analysis.Universe
         :type ref_delta_g: np.ndarray
         :type ref_bins: np.ndarray
