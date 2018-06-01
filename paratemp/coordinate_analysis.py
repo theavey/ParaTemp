@@ -1334,7 +1334,7 @@ def select_open_closed_dists(dists, cutoffs=((1.0, 3.25),
     :param cutoffs:
     :return:
     """
-    warn('make_fes_taddol_ox_dist will soon be deprecated. Use '
+    warn('select_open_closed_dists will soon be deprecated. Use '
          'Taddol.calc_open_closed',
          DeprecationWarning)
     cut_closed = cutoffs[0]
