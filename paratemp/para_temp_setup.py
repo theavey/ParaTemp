@@ -289,15 +289,19 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
                     _extend_tpr(tpr_name, new_tpr_name, _time, _log)
                 if verbose:
                     print(' '*4 + 'Done extending tpr files.')
-        elif verbose:
-            print('tpr files not extended (no time to be added)')
+            extended = True
+        else:
+            extended = False
+            if verbose:
+                print('tpr files not extended (no time to be added)')
         if sub_script is not None:
             _sub_script = os.path.relpath(_sub_script)
-            if verbose:
-                print('Editing {} for new tpr names '
-                      'with {}'.format(_sub_script, extend_infix))
-            _replace_string_in_file(_rel_base_name + ' ', _rel_base_name +
-                                    extend_infix + ' ', _sub_script, _log)
+            if extended:
+                if verbose:
+                    print('Editing {} for new tpr names '
+                          'with {}'.format(_sub_script, extend_infix))
+                _replace_string_in_file(_rel_base_name + ' ', _rel_base_name +
+                                        extend_infix + ' ', _sub_script, _log)
             if first_extension:
                 _cpt_base = _find_cpt_base(cpt_base)
                 _add_cpt_to_sub_script(_sub_script, _cpt_base, _log)
