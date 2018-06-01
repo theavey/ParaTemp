@@ -271,23 +271,26 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
                                         'here or working_dir.')
     else:
         _sub_script = None  # Only needed so the IDE stops bothering me
-    _time = str(time)
-    re_split_name = re.compile(r'({})(\d+\.tpr)'.format(_rel_base_name))
     with cd(_working_dir), open(log, 'a') as _log:
-        with cd(_tpr_dir):
-            tpr_names = glob.glob(_rel_base_name+'*.tpr')
-            if len(tpr_names) < 1:
-                raise InputError(base_name, 'no files found for {}'.format(
-                                     base_name+'*.tpr'))
-            if verbose:
-                print('Extending {} tpr files'.format(len(tpr_names)))
-            for tpr_name in tpr_names:
-                tpr_groups = re_split_name.match(tpr_name)
-                new_tpr_name = (tpr_groups.group(1) + extend_infix +
-                                tpr_groups.group(2))
-                _extend_tpr(tpr_name, new_tpr_name, _time, _log)
-            if verbose:
-                print(' '*4 + 'Done extending tpr files.')
+        if float(time):
+            _time = str(time)
+            re_split_name = re.compile(r'({})(\d+\.tpr)'.format(_rel_base_name))
+            with cd(_tpr_dir):
+                tpr_names = glob.glob(_rel_base_name+'*.tpr')
+                if len(tpr_names) < 1:
+                    raise InputError(base_name, 'no files found for {}'.format(
+                                         base_name+'*.tpr'))
+                if verbose:
+                    print('Extending {} tpr files'.format(len(tpr_names)))
+                for tpr_name in tpr_names:
+                    tpr_groups = re_split_name.match(tpr_name)
+                    new_tpr_name = (tpr_groups.group(1) + extend_infix +
+                                    tpr_groups.group(2))
+                    _extend_tpr(tpr_name, new_tpr_name, _time, _log)
+                if verbose:
+                    print(' '*4 + 'Done extending tpr files.')
+        elif verbose:
+            print('tpr files not extended (no time to be added)')
         if sub_script is not None:
             _sub_script = os.path.relpath(_sub_script)
             if verbose:
