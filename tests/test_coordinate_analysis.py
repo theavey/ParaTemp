@@ -195,8 +195,36 @@ class TestXTCUniverse(object):
             assert tmpdir.join(f_name).exists()
             with pd.HDFStore(f_name) as store:
                 df = store[time]
-        assert out == 'Saved data to t-spc2-traj.h5[time_0ns]\n'
+        assert out == 'Saved data to {f_name}[{time}]\n'.format(
+            f_name=f_name, time=time)
         assert np.allclose(df, univ_w_a.data)
+
+    def test_save_data_no_new(self, univ_w_a, tmpdir, capsys):
+        time = 'time_' + str(int(univ_w_a._last_time / 1000)) + 'ns'
+        f_name = univ_w_a.trajectory.filename.replace('xtc', 'h5')
+        with tmpdir.as_cwd():
+            univ_w_a.save_data()
+            capsys.readouterr()
+            univ_w_a.save_data()
+            out, err = capsys.readouterr()
+            assert tmpdir.join(f_name).exists()
+            with pd.HDFStore(f_name) as store:
+                df = store[time]
+        assert out == 'No data added to {f_name}[{time}]\n'.format(
+            f_name=f_name, time=time)
+        assert np.allclose(df, univ_w_a.data)
+
+    def test_save_data_add_new(self, univ, univ_w_a, tmpdir, capsys):
+        time = 'time_' + str(int(univ_w_a._last_time / 1000)) + 'ns'
+        f_name = univ_w_a.trajectory.filename.replace('xtc', 'h5')
+        with tmpdir.as_cwd():
+            univ_w_a.save_data()
+            capsys.readouterr()
+            univ.calculate_distances(b='4 5')
+            univ.save_data()
+            out, err = capsys.readouterr()
+        assert out == 'Saved data to {f_name}[{time}]\n'.format(
+            f_name=f_name, time=time)
 
     def test_read_data(self, univ, univ_w_a, tmpdir, capsys):
         """
