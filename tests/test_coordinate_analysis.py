@@ -186,15 +186,28 @@ class TestXTCUniverse(object):
         univ._last_time = 5.1e12
         assert univ.final_time_str == '5100ms'
 
-    def test_save_data(self, univ_w_a, tmpdir):
+    def test_save_data(self, univ_w_a, tmpdir, capsys):
         time = 'time_' + str(int(univ_w_a._last_time / 1000)) + 'ns'
         f_name = univ_w_a.trajectory.filename.replace('xtc', 'h5')
         with tmpdir.as_cwd():
             univ_w_a.save_data()
+            out, err = capsys.readouterr()
             assert tmpdir.join(f_name).exists()
             with pd.HDFStore(f_name) as store:
                 df = store[time]
+        assert out == 'Saved data to t-spc2-traj.h5[time_0ns]\n'
         assert np.allclose(df, univ_w_a.data)
+
+    def test_read_data(self, univ, univ_w_a, tmpdir, capsys):
+        """
+        :type univ_w_a: paratemp.Universe
+        :type univ: paratemp.Universe
+        """
+        with tmpdir.as_cwd():
+            univ_w_a.save_data()
+            capsys.readouterr()  # just so it doesn't print
+            univ.read_data()
+        assert (univ_w_a.data == univ.data).all().all()
 
 # TODO add further Universe tests
 #       ignore_file_change=True
