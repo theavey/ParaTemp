@@ -57,7 +57,8 @@ class TestXTCUniverse(object):
 
     @pytest.fixture
     def univ_w_a(self, univ):
-        univ.calculate_distances(a='4 5')
+        univ.calculate_distances(a='4 5',
+                                 read_data=False, save_data=False)
         return univ
 
     @pytest.fixture
@@ -220,7 +221,7 @@ class TestXTCUniverse(object):
         with tmpdir.as_cwd():
             univ_w_a.save_data()
             capsys.readouterr()
-            univ.calculate_distances(b='4 5')
+            univ.calculate_distances(b='4 5', save_data=False)
             univ.save_data()
             out, err = capsys.readouterr()
         assert out == 'Saved data to {f_name}[{time}]\n'.format(
@@ -236,6 +237,22 @@ class TestXTCUniverse(object):
             capsys.readouterr()  # just so it doesn't print
             univ.read_data()
         assert (univ_w_a.data == univ.data).all().all()
+
+    def test_calculate_distances_save(self, univ, tmpdir, capsys):
+        """
+        :type univ: paratemp.Universe
+        """
+        time = 'time_' + str(int(univ._last_time / 1000)) + 'ns'
+        f_name = univ.trajectory.filename.replace('xtc', 'h5')
+        with tmpdir.as_cwd():
+            univ.calculate_distances(a='4 5')
+            out, err = capsys.readouterr()
+            assert tmpdir.join(f_name).exists()
+            with pd.HDFStore(f_name) as store:
+                df = store[time]
+        assert out == 'Saved data to {f_name}[{time}]\n'.format(
+            f_name=f_name, time=time)
+        assert np.allclose(df, univ.data)
 
 # TODO add further Universe tests
 #       ignore_file_change=True

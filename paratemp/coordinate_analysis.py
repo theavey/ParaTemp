@@ -164,6 +164,7 @@ class Universe(MDa.Universe):
             self._data[key] = read_df[key]
 
     def calculate_distances(self, recalculate=False, ignore_file_change=False,
+                            read_data=True, save_data=True,
                             *args, **kwargs):
         """
         Calculate distances by iterating through the trajectory
@@ -180,6 +181,13 @@ class Universe(MDa.Universe):
             the file has changed will be printed.
             If False, if the length of the trajectory has changed,
             FileChangedError will be raised.
+        :param bool read_data: Default: True.
+            If True, :func:`read_data` will be used to read any data in the
+            default file with `ignore_no_data=True`.
+        :param bool save_data: Default: True.
+            If True, :func:`save_data` will be used to save the calculated
+            distances to the default file.
+            Nothing will be saved if there is nothing new to calculate.
         :param args:
         :param kwargs:
         :return: None
@@ -270,6 +278,8 @@ class Universe(MDa.Universe):
                                          result=dists[i])
         for i, column in enumerate(column_names):
             self._data[column] = dists[:, i]
+        if save_data:
+            self.save_data()
 
     def calculate_dihedrals(self, *args, **kwargs):
         """"""
