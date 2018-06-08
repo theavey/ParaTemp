@@ -238,6 +238,21 @@ class TestXTCUniverse(object):
             univ.read_data()
         assert (univ_w_a.data == univ.data).all().all()
 
+    def test_read_data_no_data(self, univ, tmpdir, capsys):
+        """
+        :type univ: paratemp.Universe
+        """
+        time = 'time_' + str(int(univ._last_time / 1000)) + 'ns'
+        f_name = univ.trajectory.filename.replace('xtc', 'h5')
+        with tmpdir.as_cwd():
+            with pytest.raises(IOError, message='This data does not exist!\n'
+                                                '{}[{}]\n'.format(f_name,
+                                                                  time)):
+                univ.read_data()
+            univ.read_data(ignore_no_data=True)
+            out, err = capsys.readouterr()
+        assert out == 'No data to read in {}[{}]\n'.format(f_name, time)
+
     def test_calculate_distances_save(self, univ, tmpdir, capsys):
         """
         :type univ: paratemp.Universe
