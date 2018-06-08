@@ -160,6 +160,7 @@ class Universe(MDa.Universe):
                     if self._verbosity:
                         print('No data to read in '
                               '{}[{}]'.format(filename, time))
+                    return
         for key in keys_to_read:
             self._data[key] = read_df[key]
 
