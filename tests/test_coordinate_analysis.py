@@ -24,9 +24,11 @@
 
 from __future__ import absolute_import
 
-import pytest
-import numpy as np
 import matplotlib
+import numpy as np
+import pandas as pd
+import py
+import pytest
 
 
 matplotlib.use('agg')
@@ -41,11 +43,16 @@ def test_matplotlib_testing_backend():
 class TestXTCUniverse(object):
 
     @pytest.fixture
-    def univ(self):
+    def univ(self, tmpdir):
         from paratemp import coordinate_analysis as ca
-        _univ = ca.Universe('tests/test-data/spc2.gro',
-                            'tests/test-data/t-spc2-traj.xtc',
-                            temp=205.)
+        gro = py.path.local('tests/test-data/spc2.gro')
+        traj = py.path.local('tests/test-data/t-spc2-traj.xtc')
+        gro.copy(tmpdir)
+        traj.copy(tmpdir)
+        with tmpdir.as_cwd():
+            _univ = ca.Universe(gro.basename,
+                                traj.basename,
+                                temp=205.)
         return _univ
 
     @pytest.fixture
@@ -54,11 +61,16 @@ class TestXTCUniverse(object):
         return univ
 
     @pytest.fixture
-    def univ_pbc(self):
+    def univ_pbc(self, tmpdir):
         from paratemp import coordinate_analysis as ca
-        _univ = ca.Universe('tests/test-data/spc2.gro',
-                            'tests/test-data/spc2-traj-pbc.xtc',
-                            temp=205.)
+        gro = py.path.local('tests/test-data/spc2.gro')
+        traj = py.path.local('tests/test-data/spc2-traj-pbc.xtc')
+        gro.copy(tmpdir)
+        traj.copy(tmpdir)
+        with tmpdir.as_cwd():
+            _univ = ca.Universe(gro.basename,
+                                traj.basename,
+                                temp=205.)
         return _univ
 
     @pytest.fixture
@@ -145,7 +157,7 @@ class TestXTCUniverse(object):
 
     def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
         """
-        :type univ_w_a: paratemp.coordinate_analysiss.Universe
+        :type univ_w_a: paratemp.coordinate_analysis.Universe
         :type ref_delta_g: np.ndarray
         :type ref_bins: np.ndarray
         """
@@ -173,6 +185,16 @@ class TestXTCUniverse(object):
         assert univ.final_time_str == '32us'
         univ._last_time = 5.1e12
         assert univ.final_time_str == '5100ms'
+
+    def test_save_data(self, univ_w_a, tmpdir):
+        time = 'time_' + str(int(univ_w_a._last_time / 1000)) + 'ns'
+        f_name = univ_w_a.trajectory.filename.replace('xtc', 'h5')
+        with tmpdir.as_cwd():
+            univ_w_a.save_data()
+            assert tmpdir.join(f_name).exists()
+            with pd.HDFStore(f_name) as store:
+                df = store[time]
+        assert np.allclose(df, univ_w_a.data)
 
 # TODO add further Universe tests
 #       ignore_file_change=True
