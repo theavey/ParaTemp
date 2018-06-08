@@ -198,6 +198,11 @@ class Universe(MDa.Universe):
         # TODO document this function
         # TODO find a way to take keyword type args with non-valid python
         # identifiers (e.g., "O-O").
+        if read_data:
+            v = self._verbosity
+            self._verbosity = False
+            self.read_data(ignore_no_data=True)
+            self._verbosity = v
         # Make empty atom selections to be appended to:
         first_group = self.select_atoms('protein and not protein')
         second_group = self.select_atoms('protein and not protein')

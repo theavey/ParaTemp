@@ -254,6 +254,20 @@ class TestXTCUniverse(object):
             f_name=f_name, time=time)
         assert np.allclose(df, univ.data)
 
+    def test_calculate_distances_read(self, univ_w_a, tmpdir, capsys):
+        """
+        :type univ_w_a: paratemp.Universe
+        """
+        with tmpdir.as_cwd():
+            univ_w_a.save_data()
+            capsys.readouterr()
+            univ_w_a._data = univ_w_a._init_dataframe()
+            univ_w_a.calculate_distances(a='4 5')
+            out, err = capsys.readouterr()
+        assert out == 'Nothing (new) to calculate here.\n'
+
+
+
 # TODO add further Universe tests
 #       ignore_file_change=True
 #       fes_2d
