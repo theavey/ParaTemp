@@ -112,7 +112,7 @@ class Universe(MDa.Universe):
             if overwrite or ('/'+time not in store.keys()):
                 store[time] = self._data
             else:
-                store_cols = store.get_node(time).axis0.read()
+                store_cols = store.get_node(time).axis0.read().astype(str)
                 set_diff_cols = set(self._data.columns).difference(store_cols)
                 if not set_diff_cols:
                     if self._verbosity:
