@@ -112,7 +112,7 @@ class Universe(MDa.Universe):
             if overwrite or ('/'+time not in store.keys()):
                 store[time] = self._data
             else:
-                store_cols = store.get_node(time).axis0.read()
+                store_cols = store.get_node(time).axis0.read().astype(str)
                 set_diff_cols = set(self._data.columns).difference(store_cols)
                 if not set_diff_cols:
                     if self._verbosity:
@@ -160,10 +160,12 @@ class Universe(MDa.Universe):
                     if self._verbosity:
                         print('No data to read in '
                               '{}[{}]'.format(filename, time))
+                    return
         for key in keys_to_read:
             self._data[key] = read_df[key]
 
     def calculate_distances(self, recalculate=False, ignore_file_change=False,
+                            read_data=True, save_data=True,
                             *args, **kwargs):
         """
         Calculate distances by iterating through the trajectory
@@ -180,6 +182,13 @@ class Universe(MDa.Universe):
             the file has changed will be printed.
             If False, if the length of the trajectory has changed,
             FileChangedError will be raised.
+        :param bool read_data: Default: True.
+            If True, :func:`read_data` will be used to read any data in the
+            default file with `ignore_no_data=True`.
+        :param bool save_data: Default: True.
+            If True, :func:`save_data` will be used to save the calculated
+            distances to the default file.
+            Nothing will be saved if there is nothing new to calculate.
         :param args:
         :param kwargs:
         :return: None
@@ -190,6 +199,11 @@ class Universe(MDa.Universe):
         # TODO document this function
         # TODO find a way to take keyword type args with non-valid python
         # identifiers (e.g., "O-O").
+        if read_data:
+            v = self._verbosity
+            self._verbosity = False
+            self.read_data(ignore_no_data=True)
+            self._verbosity = v
         # Make empty atom selections to be appended to:
         first_group = self.select_atoms('protein and not protein')
         second_group = self.select_atoms('protein and not protein')
@@ -270,6 +284,8 @@ class Universe(MDa.Universe):
                                          result=dists[i])
         for i, column in enumerate(column_names):
             self._data[column] = dists[:, i]
+        if save_data:
+            self.save_data()
 
     def calculate_dihedrals(self, *args, **kwargs):
         """"""

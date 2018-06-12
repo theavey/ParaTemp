@@ -6,6 +6,7 @@ matplotlib
 panedr
 py
 gromacswrapper
+tables
 typing
 scipy
 six

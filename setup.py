@@ -20,6 +20,7 @@ setup(
         'matplotlib',
         'panedr',
         'gromacswrapper',
+        'tables',
         'typing',
         'scipy',
         'six',
