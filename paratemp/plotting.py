@@ -34,11 +34,66 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 from six.moves import range
 
-from paratemp.utils import calc_fes_1d
+from paratemp.utils import calc_fes_1d, _parse_ax_input
 from .exceptions import InputError
 
 
 __all__ = ['fes_array_3_legend', 'plot_dist_array']
+
+
+def fes_1d(x, temp, ax=None, bins=None,
+           xlabel=r'distance / $\mathrm{\AA}$',
+           data=None, **kwargs):
+    """
+    Make FES of some time series data
+
+    :type x: Iterable or str
+    :param x: Data to form the FES from.
+        If a string is given, the data will be taken from `data[x]` and `data`
+        must also be given.
+
+    :param float temp: Temperature for Boltzmann weighting
+        calculation.
+
+    :type bins: int or Sequence[int or float] or str
+    :param bins: Default: None. The bins argument to be passed to
+        np.histogram
+
+    :param str xlabel: Default: 'distance / $\mathrm{\AA}$'. The label for
+        the x axis.
+
+    :type ax: matplotlib.axes.Axes
+    :param ax: Default: None. The axes objects on which to make the plots.
+        If None is supplied, new axes objects will be created.
+
+    :param data: Default: None.
+        If given, this must be an object that can be indexed by `x` to give
+        the series from which the FES should be made.
+
+        For example, these are equivalent:
+
+        >>> fes_1d(data[x], temp)
+
+        >>> fes_1d(x, temp, data=data)
+
+    :param kwargs: keyword arguments to pass to the plotter
+
+    :rtype: Tuple(np.ndarray, np.ndarray, matplotlib.lines.Line2D,
+        matplotlib.figure.Figure, matplotlib.axes.Axes)
+
+    :return: The delta G values, the bin centers, the lines object, the
+        figure and the axes
+    """
+    if data is not None:
+        _x = data[x]
+    else:
+        _x = x
+    _fig, _ax = _parse_ax_input(ax)
+    delta_g, bin_mids = calc_fes_1d(_x, temp=temp, bins=bins)
+    lines = _ax.plot(bin_mids, delta_g, **kwargs)
+    _ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
+    _ax.set_xlabel(xlabel)
+    return delta_g, bin_mids, lines, _fig, _ax
 
 
 def fes_array_3_legend(data, temp, labels=None, axes=None, bins=None, **kwargs):

@@ -36,7 +36,7 @@ import numpy as np
 import pandas as pd
 from typing import Iterable, Sequence
 
-from paratemp.plotting import fes_array_3_legend, plot_dist_array
+from paratemp.plotting import fes_array_3_legend, plot_dist_array, fes_1d
 from paratemp.utils import calc_fes_2d, calc_fes_1d, _parse_ax_input, \
     _parse_z_bin_input
 from .exceptions import InputError, FileChangedError
@@ -391,12 +391,8 @@ class Universe(MDa.Universe):
         """
         _temp = self._parse_temp_input(temp)
         _data = self._parse_data_input(data)
-        _fig, _ax = _parse_ax_input(ax)
-        delta_g, bin_mids = calc_fes_1d(_data, temp=_temp, bins=bins)
-        lines = _ax.plot(bin_mids, delta_g, **kwargs)
-        _ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
-        _ax.set_xlabel(xlabel)
-        return delta_g, bin_mids, lines, _fig, _ax
+        return fes_1d(x=_data, temp=_temp, ax=ax, bins=bins, xlabel=xlabel,
+                      **kwargs)
 
     def fes_2d(self, x, y, temp=None, ax=None, bins=None,
                zrange=(0, 20, 11), zfinal=40, n_bins=32, transpose=False,
