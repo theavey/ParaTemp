@@ -34,11 +34,11 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 from six.moves import range
 
-from paratemp.utils import calc_fes_1d, _parse_ax_input
+from .utils import calc_fes_1d, _parse_ax_input
 from .exceptions import InputError
 
 
-__all__ = ['fes_array_3_legend', 'plot_dist_array']
+__all__ = ['fes_array_3_legend', 'plot_dist_array', 'fes_1d']
 
 
 def fes_1d(x, temp, ax=None, bins=None,
