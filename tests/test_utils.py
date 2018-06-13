@@ -71,6 +71,27 @@ def test_parse_z_bin_input():
     assert v == 5
 
 
+def test_calc_fes_1d(ref_a_dists, ref_delta_g, ref_bins, ref_delta_g_20,
+                     ref_bins_20):
+    """
+
+    :type ref_a_dists: pandas.DataFrame
+    :type ref_delta_g: np.ndarray
+    :type ref_bins: np.ndarray
+    :type ref_delta_g_20: np.ndarray
+    :type ref_bins_20: np.ndarray
+    """
+    from paratemp.utils import calc_fes_1d
+    delta_g_data, bins_data = calc_fes_1d(ref_a_dists['a'], temp=205.,
+                                          bins=None)
+    assert np.allclose(delta_g_data, ref_delta_g)
+    assert np.allclose(bins_data, ref_bins)
+    delta_g_20, bins_20 = calc_fes_1d(ref_a_dists['a'], temp=205.,
+                                      bins=20)
+    assert np.allclose(delta_g_20, ref_delta_g_20)
+    assert np.allclose(bins_20, ref_bins_20)
+
+
 def test_calc_fes_2d():
     from paratemp.utils import calc_fes_2d as cf2
     ref_dg = np.array([[0, 54.54240779], [54.54240779, 0]])

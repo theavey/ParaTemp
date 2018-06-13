@@ -75,35 +75,10 @@ class TestXTCUniverse(object):
         return _univ
 
     @pytest.fixture
-    def ref_a_dists(self):
-        import pandas
-        return pandas.read_csv('tests/ref-data/spc2-a-dists.csv',
-                               index_col=0)
-
-    @pytest.fixture
     def ref_a_pbc_dists(self):
         import pandas
         return pandas.read_csv('tests/ref-data/spc2-a-pbc-dists.csv',
                                index_col=0)
-
-    @pytest.fixture
-    def ref_delta_g(self):
-        return np.load('tests/ref-data/spc2-fes1d-delta-gs.npy')
-
-    @pytest.fixture
-    def ref_bins(self):
-        return np.load('tests/ref-data/spc2-fes1d-bins.npy')
-
-    @pytest.fixture
-    def ref_delta_g_20(self):
-        """Created using calc_fes_1d with temp=205. and bins=20.
-        Saved with np.save('spc2-fes1d-delta-gs-20.npy', dg20,
-        allow_pickle=False)."""
-        return np.load('tests/ref-data/spc2-fes1d-delta-gs-20.npy')
-
-    @pytest.fixture
-    def ref_bins_20(self):
-        return np.load('tests/ref-data/spc2-fes1d-bins-20.npy')
 
     def test_distance_str(self, univ, ref_a_dists):
         univ.calculate_distances(a='4 5',
@@ -138,29 +113,6 @@ class TestXTCUniverse(object):
         univ_pbc.calculate_distances(a='4 5',
                                      read_data=False, save_data=False)
         assert np.isclose(ref_a_pbc_dists['a'], univ_pbc.data['a']).all()
-
-    def test_calc_fes_1d(self, univ_w_a, ref_delta_g, ref_bins, ref_delta_g_20,
-                         ref_bins_20):
-        """
-
-        While not technically a test of Universe, the useful fixtures are
-        all already defined here.
-
-        :type univ_w_a: paratemp.coordinate_analysis.Universe
-        :type ref_delta_g: np.ndarray
-        :type ref_bins: np.ndarray
-        :type ref_delta_g_20: np.ndarray
-        :type ref_bins_20: np.ndarray
-        """
-        from paratemp.utils import calc_fes_1d
-        delta_g_data, bins_data = calc_fes_1d(univ_w_a.data['a'], temp=205.,
-                                              bins=None)
-        assert np.allclose(delta_g_data, ref_delta_g)
-        assert np.allclose(bins_data, ref_bins)
-        delta_g_20, bins_20 = calc_fes_1d(univ_w_a.data['a'], temp=205.,
-                                          bins=20)
-        assert np.allclose(delta_g_20, ref_delta_g_20)
-        assert np.allclose(bins_20, ref_bins_20)
 
     def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
         """
