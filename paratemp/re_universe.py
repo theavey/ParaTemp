@@ -290,13 +290,33 @@ class REUniverse(collections.Sequence):
         return zip(self.keys(), self.values())
 
 
-class REIndex(object):
+class REIndex(collections.Sequence):
+
+    _index = np.array([])  # type: np.ndarray
 
     def __init__(self, filename=None, values=None):
         if values is not None and filename is not None:
             raise ValueError('Please provide either a filename or values, '
                              'not both')
         if values is not None:
-            self._index = np.array([float(t) for t in values])
+            self._index = np.array([float(v) for v in values])
         if filename is not None:
             self._index = get_temperatures(filename)
+        else:
+            raise ValueError('Either filename or values must be given')
+
+    def __len__(self):
+        return len(self._index)
+
+    def __getitem__(self, item):
+        if isinstance(item, int):
+            if item < len(self) - 1:
+                return item
+            else:
+                raise IndexError(
+                    'index {} is '.format(item) +
+                    'larger than the number of replicas present')
+        if isinstance(item, six.string_types) or isinstance(item, float):
+            return find_nearest_idx(self._index, float(item))
+
+    __call__ = __getitem__
