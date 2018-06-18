@@ -288,3 +288,15 @@ class REUniverse(collections.Sequence):
 
         """
         return zip(self.keys(), self.values())
+
+
+class REIndex(object):
+
+    def __init__(self, filename=None, values=None):
+        if values is not None and filename is not None:
+            raise ValueError('Please provide either a filename or values, '
+                             'not both')
+        if values is not None:
+            self._index = np.array([float(t) for t in values])
+        if filename is not None:
+            self._index = get_temperatures(filename)
