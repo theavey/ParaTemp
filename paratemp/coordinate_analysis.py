@@ -396,7 +396,7 @@ class Universe(MDa.Universe):
 
     def fes_2d(self, x, y, temp=None, ax=None, bins=None,
                zrange=(0, 20, 11), zfinal=40, n_bins=32, transpose=False,
-               xlabel='x', ylabel='y', scale=True,
+               xlabel='x', ylabel='y', scale=True, square=True,
                **kwargs):
         """
         plot FES in 2D along defined values
@@ -440,6 +440,10 @@ class Universe(MDa.Universe):
             transpose=True).
         :param bool scale: Default: True. Include a colorbar scale in the
             figure of the axes.
+        :param bool square: Default: True.
+            If True, the plot will be made square with `ax.set_aspect(
+            'equal', 'box')`.
+            If False, the aspect ratio will be the default value.
         :param kwargs: Keyword arguments to pass to the plotting function.
         :return: The delta G values, the bin centers, the contours, the figure,
             and the axes
@@ -464,7 +468,8 @@ class Universe(MDa.Universe):
                                _bins, vmax=vmax, **kwargs)
         ax.set_xlabel(_xlabel)
         ax.set_ylabel(_ylabel)
-        ax.set_aspect('equal', 'box')
+        if square:
+            ax.set_aspect('equal', 'box')
         if scale:
             fig.colorbar(contours, label='kcal / mol')
         fig.tight_layout()
