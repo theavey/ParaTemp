@@ -467,7 +467,7 @@ class Universe(MDa.Universe):
         ax.set_aspect('equal', 'box')
         if scale:
             fig.colorbar(contours, label='kcal / mol')
-            fig.tight_layout()
+        fig.tight_layout()
         return delta_g, (xmids, ymids), contours, fig, ax
 
     def update_num_frames(self, silent=False):
