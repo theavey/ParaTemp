@@ -239,13 +239,32 @@ class TestXTCUniverse(object):
             out, err = capsys.readouterr()
         assert out == 'Nothing (new) to calculate here.\n'
 
+    def test_select_frames(self, univ_pbc, capsys):
+        u = univ_pbc
+        u.calculate_distances(a='4 5',
+                              read_data=False, save_data=False)
+        frames = u.select_frames({'a': (0.1, 0.75)}, 'short')
+        out, err = capsys.readouterr()
+        assert out == 'These criteria include 1 frame\n'
+        assert (u.data['short'] == [False, True]).all()
+        assert (frames == [1]).all()
+
+    def test_update_num_frames(self, univ, capsys):
+        old_lt, old_nf = univ._last_time, univ._num_frames
+        univ.load_new(['tests/test-data/t-spc2-traj.xtc',
+                       'tests/test-data/spc2-traj-pbc.xtc'])
+        univ.update_num_frames()
+        out, err = capsys.readouterr()
+        assert old_lt != univ._last_time
+        assert old_nf != univ._num_frames
+        assert out == 'Updating num of frames from {} to {}'.format(
+            old_nf, univ._num_frames) + '\nand the final time.\n'
+
 
 
 # TODO add further Universe tests
 #       ignore_file_change=True
 #       fes_2d
-#       save_data
-#       read_data
 #       calculate_dihedrals
 #       figure from fes_1d
 #       figure from fes_2d

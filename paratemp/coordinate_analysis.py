@@ -356,6 +356,42 @@ class Universe(MDa.Universe):
         for i, column in enumerate(column_names):
             self._data[column] = diheds[:, i]
 
+    def select_frames(self, criteria, name):
+        """
+        Select some of the trajectory frames based on some min/max criteria
+
+        This function can select a subset of the frames where the given
+        criteria are satisfied by certain values in `self.data` being between
+        the given min and max criteria.
+        This then returns the frame index numbers where the criteria are
+        satisfied.
+        The True/False values are saved to a column `self.data` with the
+        given `name` parameter as the column name.
+
+        :param dict criteria: The criteria for selecting frames from the
+            trajectory.
+            This is a dict with distance names (or other columns that will
+            be in `Universe.data`) as the keys and the values being a
+            List-like of min and max values.
+            For example, `{'c1_c2': (1.5, 4.0), 'c1_c3': (2.2, 5.1)}` will
+            select frames where 'c1_c2' is between 1.5 and 4.0 and 'c1_c3'
+            is between 2.2 and 5.1.
+        :param str name: Name for the bool column in `self.data`
+        :rtype: numpy.ndarray
+        :return: A numpy array of the frame numbers where the criteria are
+            satisfied
+        """
+        d = dict()
+        for key in criteria:
+            d[key+'_min'] = self.data[key] > criteria[key][0]
+            d[key+'_max'] = self.data[key] < criteria[key][1]
+        self._data[name] = pd.DataFrame(d).all(axis=1)
+        if self._verbosity:
+            num = len(self.data[self.data[name]])
+            plural = 's' if num != 1 else ''
+            print('These criteria include {} frame{}'.format(num, plural))
+        return np.array(self.data.index[self.data[name]])
+
     def fes_1d(self, data, bins=None, temp=None,
                xlabel=r'distance / $\mathrm{\AA}$', ax=None, **kwargs):
         """
@@ -396,7 +432,7 @@ class Universe(MDa.Universe):
 
     def fes_2d(self, x, y, temp=None, ax=None, bins=None,
                zrange=(0, 20, 11), zfinal=40, n_bins=32, transpose=False,
-               xlabel='x', ylabel='y', scale=True,
+               xlabel='x', ylabel='y', scale=True, square=True,
                **kwargs):
         """
         plot FES in 2D along defined values
@@ -440,6 +476,10 @@ class Universe(MDa.Universe):
             transpose=True).
         :param bool scale: Default: True. Include a colorbar scale in the
             figure of the axes.
+        :param bool square: Default: True.
+            If True, the plot will be made square with `ax.set_aspect(
+            'equal', 'box')`.
+            If False, the aspect ratio will be the default value.
         :param kwargs: Keyword arguments to pass to the plotting function.
         :return: The delta G values, the bin centers, the contours, the figure,
             and the axes
@@ -464,7 +504,8 @@ class Universe(MDa.Universe):
                                _bins, vmax=vmax, **kwargs)
         ax.set_xlabel(_xlabel)
         ax.set_ylabel(_ylabel)
-        ax.set_aspect('equal', 'box')
+        if square:
+            ax.set_aspect('equal', 'box')
         if scale:
             fig.colorbar(contours, label='kcal / mol')
         fig.tight_layout()
