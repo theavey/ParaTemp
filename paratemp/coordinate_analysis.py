@@ -357,6 +357,30 @@ class Universe(MDa.Universe):
             self._data[column] = diheds[:, i]
 
     def select_frames(self, criteria, name):
+        """
+        Select some of the trajectory frames based on some min/max criteria
+
+        This function can select a subset of the frames where the given
+        criteria are satisfied by certain values in `self.data` being between
+        the given min and max criteria.
+        This then returns the frame index numbers where the criteria are
+        satisfied.
+        The True/False values are saved to a column `self.data` with the
+        given `name` parameter as the column name.
+
+        :param dict criteria: The criteria for selecting frames from the
+            trajectory.
+            This is a dict with distance names (or other columns that will
+            be in `Universe.data`) as the keys and the values being a
+            List-like of min and max values.
+            For example, `{'c1_c2': (1.5, 4.0), 'c1_c3': (2.2, 5.1)}` will
+            select frames where 'c1_c2' is between 1.5 and 4.0 and 'c1_c3'
+            is between 2.2 and 5.1.
+        :param str name: Name for the bool column in `self.data`
+        :rtype: numpy.ndarray
+        :return: A numpy array of the frame numbers where the criteria are
+            satisfied
+        """
         d = dict()
         for key in criteria:
             d[key+'_min'] = self.data[key] > criteria[key][0]
@@ -366,8 +390,7 @@ class Universe(MDa.Universe):
             num = len(self.data[self.data[name]])
             plural = 's' if num != 1 else ''
             print('These criteria include {} frame{}'.format(num, plural))
-        return self.data.index[self.data[name]]
-
+        return np.array(self.data.index[self.data[name]])
 
     def fes_1d(self, data, bins=None, temp=None,
                xlabel=r'distance / $\mathrm{\AA}$', ax=None, **kwargs):

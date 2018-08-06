@@ -249,6 +249,17 @@ class TestXTCUniverse(object):
         assert (u.data['short'] == [False, True]).all()
         assert (frames == [1]).all()
 
+    def test_update_num_frames(self, univ, capsys):
+        old_lt, old_nf = univ._last_time, univ._num_frames
+        univ.load_new(['tests/test-data/t-spc2-traj.xtc',
+                       'tests/test-data/spc2-traj-pbc.xtc'])
+        univ.update_num_frames()
+        out, err = capsys.readouterr()
+        assert old_lt != univ._last_time
+        assert old_nf != univ._num_frames
+        assert out == 'Updating num of frames from {} to {}'.format(
+            old_nf, univ._num_frames) + '\nand the final time.\n'
+
 
 
 # TODO add further Universe tests
