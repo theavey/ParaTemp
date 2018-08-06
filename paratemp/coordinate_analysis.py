@@ -356,6 +356,19 @@ class Universe(MDa.Universe):
         for i, column in enumerate(column_names):
             self._data[column] = diheds[:, i]
 
+    def select_frames(self, criteria, name):
+        d = dict()
+        for key in criteria:
+            d[key+'_min'] = self.data[key] > criteria[key][0]
+            d[key+'_max'] = self.data[key] < criteria[key][1]
+        self._data[name] = pd.DataFrame(d).all(axis=1)
+        if self._verbosity:
+            num = len(self.data[self.data[name]])
+            plural = 's' if num != 1 else ''
+            print('These criteria include {} frame{}'.format(num, plural))
+        return self.data.index[self.data[name]]
+
+
     def fes_1d(self, data, bins=None, temp=None,
                xlabel=r'distance / $\mathrm{\AA}$', ax=None, **kwargs):
         """

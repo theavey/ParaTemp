@@ -239,13 +239,21 @@ class TestXTCUniverse(object):
             out, err = capsys.readouterr()
         assert out == 'Nothing (new) to calculate here.\n'
 
+    def test_select_frames(self, univ_pbc, capsys):
+        u = univ_pbc
+        u.calculate_distances(a='4 5',
+                              read_data=False, save_data=False)
+        frames = u.select_frames({'a': (0.1, 0.75)}, 'short')
+        out, err = capsys.readouterr()
+        assert out == 'These criteria include 1 frame\n'
+        assert (u.data['short'] == [False, True]).all()
+        assert (frames == [1]).all()
+
 
 
 # TODO add further Universe tests
 #       ignore_file_change=True
 #       fes_2d
-#       save_data
-#       read_data
 #       calculate_dihedrals
 #       figure from fes_1d
 #       figure from fes_2d
