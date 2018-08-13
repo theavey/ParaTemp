@@ -157,14 +157,14 @@ class XYZ(object):
         return self._original_energy
 
     def replace_coords(self, arg):
-        if type(arg) is str:
+        if isinstance(arg, str):
             self.coords = XYZ(arg).coords.copy()
         else:
             self.coords = arg.coords.copy()
         self._energy = None  # Moved atoms, don't know energy
 
     def move_subset(self, movement, indices):
-        if type(movement) is not Vector:
+        if not isinstance(movement, Vector):
             movement = Vector(*movement)
         for index in indices:
             self.coords[index] = self.coords[index] + movement
