@@ -110,7 +110,12 @@ class XYZ(object):
             self._energy = None
         self._original_energy = self._energy
         data = [line.split() for line in f_lines[2:]]
-        self.atoms = [atom[0] for atom in data]
+        if not data[-1]:
+            data = data[:-1]  # Ignore blank last line
+        try:
+            self.atoms = [atom[0] for atom in data]
+        except IndexError:
+            raise ValueError('invalid line in xyz file: {}'.format(atom))
         self.coords = [Vector([float(coord) for coord in atom[1:4]]) for
                        atom in data]
 
