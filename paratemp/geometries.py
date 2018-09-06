@@ -116,8 +116,16 @@ class XYZ(object):
             self.atoms = [atom[0] for atom in data]
         except IndexError:
             raise ValueError('invalid line in xyz file: {}'.format(atom))
+        if re.search(r'([a-z]|[A-Z])+\d+', self.atoms[0]):
+            self._fix_atom_names()
         self.coords = [Vector([float(coord) for coord in atom[1:4]]) for
                        atom in data]
+
+    def _fix_atom_names(self):
+        atoms_new = []
+        for atom in self.atoms:
+            atoms_new.append(re.match(r'([a-z]|[A-Z])+', atom).group(0))
+        self.atoms = atoms_new
 
     def center_on(self, index):
         center = self.coords[index]
