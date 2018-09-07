@@ -8,7 +8,7 @@ addons:
 python:
   - "2.7"
   - "3.6"
-  - "3.7"
+  #- "3.7"
 
 # command to install dependencies and package
 install:
