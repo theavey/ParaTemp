@@ -118,8 +118,11 @@ class XYZ(object):
             raise ValueError('invalid line in xyz file: {}'.format(atom))
         if re.search(r'([a-z]|[A-Z])+\d+', self.atoms[0]):
             self._fix_atom_names()
-        self.coords = [Vector([float(coord) for coord in atom[1:4]]) for
-                       atom in data]
+        try:
+            self.coords = [Vector([float(coord) for coord in atom[1:4]]) for
+                           atom in data]
+        except (IndexError, InputError):
+            raise ValueError('invalid line in xyz file: {}'.format(atom))
 
     def _fix_atom_names(self):
         atoms_new = []

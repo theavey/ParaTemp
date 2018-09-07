@@ -41,6 +41,13 @@ class TestXYZ(object):
     def test_energy(self, xyz):
         assert xyz.energy == -1058630.8496721
 
+    def test_bad_lines(self):
+        from paratemp.geometries import XYZ
+        with pytest.raises(ValueError):
+            XYZ('tests/test-data/stil-3htmf-bad.xyz')
+        with pytest.raises(ValueError):
+            XYZ('tests/test-data/stil-3htmf-bad-2.xyz')
+
 
 class TestXYZNewline(object):
 
