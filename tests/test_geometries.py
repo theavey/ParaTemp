@@ -42,6 +42,34 @@ class TestXYZ(object):
         assert xyz.energy == -1058630.8496721
 
 
+class TestXYZNewline(object):
+
+    @pytest.fixture
+    def xyz(self):
+        from paratemp.geometries import XYZ
+        return XYZ('tests/test-data/stil-3htmf-newline.xyz')
+
+    def test_n_atoms(self, xyz):
+        assert xyz.n_atoms == 66
+
+    def test_energy(self, xyz):
+        assert xyz.energy == -1058630.8496721
+
+
+class TestXYZIndexed(object):
+
+    @pytest.fixture
+    def xyz(self):
+        from paratemp.geometries import XYZ
+        return XYZ('tests/test-data/stil-3htmf-indexed.xyz')
+
+    def test_n_atoms(self, xyz):
+        assert xyz.n_atoms == 66
+
+    def test_energy(self, xyz):
+        assert xyz.energy == -1058630.8496721
+
+
 class TestVector(object):
 
     @pytest.fixture
