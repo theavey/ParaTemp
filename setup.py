@@ -33,14 +33,14 @@ setup(
             'tests': [
                 'pytest',
                 'pytest-cov',
-                'python-coveralls',
+                'coveralls',
                 'py',
             ],
     },
     tests_require=[
         'pytest',
         'pytest-cov',
-        'python-coveralls',
+        'coveralls',
         'py',
     ],
     classifiers=[
