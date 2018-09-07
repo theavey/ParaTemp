@@ -125,14 +125,17 @@ class TestGetNSolvent(object):
 
     def test_get_solv_count_top(self, folder_dc):
         from paratemp.sim_setup import get_n_solvent
-        assert get_n_solvent(folder=folder_dc, solvent='dcm') == 361
+        with pytest.warns(DeprecationWarning):
+            assert get_n_solvent(folder=folder_dc, solvent='dcm') == 361
 
     def test_get_solv_count_top_no_result(self, tmpdir, folder_dc):
         from paratemp.sim_setup import get_n_solvent
         with pytest.raises(ValueError):
-            get_n_solvent(str(tmpdir))
+            with pytest.warns(DeprecationWarning):
+                get_n_solvent(str(tmpdir))
         with pytest.raises(ValueError):
-            get_n_solvent(folder=folder_dc, solvent='Not here')
+            with pytest.warns(DeprecationWarning):
+                get_n_solvent(folder=folder_dc, solvent='Not here')
 
 
 class TestGetSolvCountTop(object):
