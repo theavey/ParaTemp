@@ -112,15 +112,20 @@ class XYZ(object):
         data = [line.split() for line in f_lines[2:]]
         if not data[-1]:
             data = data[:-1]  # Ignore blank last line
+        atom = None
         try:
-            self.atoms = [atom[0] for atom in data]
+            self.atoms = []
+            for atom in data:
+                self.atoms.append(atom[0])
         except IndexError:
             raise ValueError('invalid line in xyz file: {}'.format(atom))
         if re.search(r'([a-z]|[A-Z])+\d+', self.atoms[0]):
             self._fix_atom_names()
         try:
-            self.coords = [Vector([float(coord) for coord in atom[1:4]]) for
-                           atom in data]
+            self.coords = list()
+            for atom in data:
+                self.coords.append(
+                    Vector([float(coord) for coord in atom[1:4]]))
         except (IndexError, InputError):
             raise ValueError('invalid line in xyz file: {}'.format(atom))
 
