@@ -365,7 +365,7 @@ class Universe(MDa.Universe):
         the given min and max criteria.
         This then returns the frame index numbers where the criteria are
         satisfied.
-        The True/False values are saved to a column `self.data` with the
+        The True/False values are saved to a column in `self.data` with the
         given `name` parameter as the column name.
 
         :param dict criteria: The criteria for selecting frames from the
