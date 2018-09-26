@@ -203,6 +203,72 @@ class XYZ(object):
             total_vec = total_vec + self.coords[i]
         return total_vec / len(args)
 
+    def distance_between(self, a, b):
+        """
+        Calculate distance between two atoms by atom index
+
+        :param int a: Index of first atom
+        :param int b: Index of second atom
+        :rtype: float
+        :return: Distance between the two atoms
+        """
+        diff = self.coords[a] - self.coords[b]
+        return norm(diff)
+
+    def angle_between(self, a, b, c):
+        """
+        Calculate angle between three atoms by atom index
+
+        :param int a: Index of first atom
+        :param int b: Index of second atom
+        :param int c: Index of third atom
+        :rtype: float
+        :return: Angle between the atoms in degrees
+        """
+        vec_a = self.coords[a] - self.coords[b]
+        vec_c = self.coords[c] - self.coords[b]
+        return np.degrees(vec_a.diff_angle(vec_c))
+
+    def dihedral_between(self, a, b, c, d):
+        """
+        Calculate dihedral between four atoms by atom index
+
+        :param int a: Index of first atom
+        :param int b: Index of second atom
+        :param int c: Index of third atom
+        :param int d: Index of fourth atom
+        :rtype: float
+        :return: Dihedral between the atoms in degrees
+        """
+        # from https://stackoverflow.com/questions/20305272/dihedral-torsion-
+        # angle-from-four-points-in-cartesian-coordinates-in-python
+        p0 = self.coords[a]
+        p1 = self.coords[b]
+        p2 = self.coords[c]
+        p3 = self.coords[d]
+
+        b0 = -1.0 * (p1 - p0)
+        b1 = p2 - p1
+        b2 = p3 - p2
+
+        # normalize b1 so that it does not influence magnitude of vector
+        # rejections that come next
+        b1 /= norm(b1)
+
+        # vector rejections
+        # v = projection of b0 onto plane perpendicular to b1
+        #   = b0 minus component that aligns with b1
+        # w = projection of b2 onto plane perpendicular to b1
+        #   = b2 minus component that aligns with b1
+        v = b0 - np.dot(b0, b1) * b1
+        w = b2 - np.dot(b2, b1) * b1
+
+        # angle between v and w in a plane is the torsion angle
+        # v and w may not be normalized but that's fine since tan is y/x
+        x = np.dot(v, w)
+        y = np.dot(np.cross(b1, v), w)
+        return np.degrees(np.arctan2(y, x))
+
 
 class COM(XYZ):
     def __init__(self, f_name):
