@@ -41,6 +41,15 @@ class TestXYZ(object):
     def test_energy(self, xyz):
         assert xyz.energy == -1058630.8496721
 
+    def test_dihedral(self, xyz):
+        assert xyz.dihedral_between(21, 34, 35, 36) == pytest.approx(62.085346)
+
+    def test_angle(self, xyz):
+        assert xyz.angle_between(9, 13, 3) == pytest.approx(122.521027)
+
+    def test_distance(self, xyz):
+        assert xyz.distance_between(41, 40) == pytest.approx(3.891653)
+
     def test_bad_lines(self):
         from paratemp.geometries import XYZ
         with pytest.raises(ValueError):
