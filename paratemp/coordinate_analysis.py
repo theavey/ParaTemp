@@ -208,6 +208,8 @@ class Universe(MDa.Universe):
         first_group = self.select_atoms('protein and not protein')
         second_group = self.select_atoms('protein and not protein')
         column_names = []
+        groups_CoM = []
+        column_names_CoM = []
         if len(args) == 0 and len(kwargs) == 0:
             args = ['all']
         if len(args) != 0:
@@ -250,6 +252,14 @@ class Universe(MDa.Universe):
                                               ' currently supported.\nAt your '
                                               'own risk you can try assigning '
                                               'to self._data[{}].'.format(key))
+                except TypeError:
+                    selections = []
+                    for g in atoms:
+                        sel_string = 'bynum ' + ' '.join([str(i) for i in g])
+                        selections.append(self.select_atoms(sel_string))
+                    groups_CoM.append(selections)
+                    column_names_CoM.append(key)
+                    continue
                 first_group += self.select_atoms('bynum '+str(atoms[0]))
                 second_group += self.select_atoms('bynum '+str(atoms[1]))
                 column_names += [key]
@@ -267,6 +277,14 @@ class Universe(MDa.Universe):
                                                                        n2,
                                                                        nc) +
                               '\nThis should not happen.')
+        n_groups = len(groups_CoM)
+        n_group_names = len(column_names_CoM)
+        if not n_groups == n_group_names:
+            raise SyntaxError('Different numbers of atom groups or number'
+                              ' of column labels for CoM calculations'
+                              '({} and {}, respectively).\n'
+                              'This should not happen.'.format(n_groups,
+                                                               n_group_names))
         if self._num_frames != self.trajectory.n_frames:
             if self._verbosity:
                 print('Current trajectory has {} frames, '.format(
@@ -275,14 +293,21 @@ class Universe(MDa.Universe):
                       '{} frames.'.format(self._num_frames))
             if not ignore_file_change:
                 raise FileChangedError()
-        dists = np.zeros((self._num_frames, n1))
+        dists = np.zeros((self._num_frames, n1 + n_groups))
+        positions_1 = np.zeros((n1+n_groups, 3))
+        positions_2 = np.zeros((n1+n_groups, 3))
         for i in range(self._num_frames):
             self.trajectory[i]
-            MDa.lib.distances.calc_bonds(first_group.positions,
-                                         second_group.positions,
+            positions_1[:n1] = first_group.positions
+            positions_2[:n1] = second_group.positions
+            for j, group in enumerate(groups_CoM):
+                positions_1[n1+j] = group[0].center_of_mass()
+                positions_2[n1+j] = group[1].center_of_mass()
+            MDa.lib.distances.calc_bonds(positions_1,
+                                         positions_2,
                                          box=self.dimensions,
                                          result=dists[i])
-        for i, column in enumerate(column_names):
+        for i, column in enumerate(column_names + column_names_CoM):
             self._data[column] = dists[:, i]
         if save_data:
             self.save_data()
