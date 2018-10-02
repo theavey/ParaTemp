@@ -294,8 +294,8 @@ class Universe(MDa.Universe):
             if not ignore_file_change:
                 raise FileChangedError()
         dists = np.zeros((self._num_frames, n1 + n_groups))
-        positions_1 = np.zeros((n1+n_groups, 3))
-        positions_2 = np.zeros((n1+n_groups, 3))
+        positions_1 = np.zeros((n1+n_groups, 3), dtype=np.float32)
+        positions_2 = np.zeros((n1+n_groups, 3), dtype=np.float32)
         for i in range(self._num_frames):
             self.trajectory[i]
             positions_1[:n1] = first_group.positions
