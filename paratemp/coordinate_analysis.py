@@ -410,7 +410,7 @@ class Universe(MDa.Universe):
         :param bins: Default: None. The bins argument to be passed to
             np.histogram
 
-        :param str xlabel: Default: 'distance / $\mathrm{\AA}$'. The label for
+        :param str xlabel: Default: 'distance / $\\mathrm{\\AA}$'. The label for
             the x axis.
 
         :type ax: matplotlib.axes.Axes
@@ -935,7 +935,7 @@ class Taddol(Universe):
                 **kwargs)
         ax.legend()
         ax.set_xlabel('time / ps')
-        ax.set_ylabel('distance / $\mathrm{\AA}$')
+        ax.set_ylabel(r'distance / $\mathrm{\AA}$')
         if save:
             fig.savefig(save_base_name + save_format)
         if display:
@@ -1194,7 +1194,7 @@ def make_plot_taddol_ox_dists(data, save=False, save_format='pdf',
     axes.plot(data[:, 0], data[:, 3], label='O(r)-Cy')
     axes.legend()
     axes.set_xlabel('time / ps')
-    axes.set_ylabel('distance / $\mathrm{\AA}$')
+    axes.set_ylabel(r'distance / $\mathrm{\AA}$')
     if save:
         fig.savefig(save_base_name+save_format)
     if display:
@@ -1279,7 +1279,7 @@ def make_taddol_pi_dist_array(dists, save=False, save_format='pdf',
     """Plot array of pi distances in TADDOL trajectory"""
     fig = plot_dist_array(dists)
     [ax.get_xaxis().set_ticks([]) for ax in fig.axes]
-    fig.text(0.05, 0.585, 'distance / $\mathrm{\AA}$', ha='center',
+    fig.text(0.05, 0.585, r'distance / $\mathrm{\AA}$', ha='center',
              rotation='vertical')
     fig.text(0.513, 0.08, 'time', ha='center')
     if save:
