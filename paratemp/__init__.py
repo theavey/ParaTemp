@@ -24,8 +24,6 @@
 
 from __future__ import absolute_import
 
-import sys
-
 from . import para_temp_setup
 from .tools import copy_no_overwrite, cd, get_temperatures
 from . import coordinate_analysis
@@ -36,12 +34,6 @@ from ._version import get_versions
 from . import plotting
 
 del absolute_import
-
-if sys.version_info.major == 2:
-    # These (at this point) require python 2 because of gromacs (gromacswrapper)
-    from . import energy_histo
-    from . import energy_bin_analysis
-del sys
 
 
 __version__ = get_versions()['version']

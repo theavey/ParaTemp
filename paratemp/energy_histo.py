@@ -36,12 +36,7 @@ import numpy as np
 import pandas as pd
 
 from .tools import all_elements_same
-
-__version__ = '0.0.2'
-
-# todo define a set of run data as a class
-# possibly as a class of mdanalysis universes, but not sure how to work with
-# replicas vs. walkers there.
+from . import __version__
 
 # TODO update docstrings to PEP specs
 # (one brief description line, blank line, longer description/guidelines)
