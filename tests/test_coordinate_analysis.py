@@ -114,6 +114,20 @@ class TestXTCUniverse(object):
                                      read_data=False, save_data=False)
         assert np.isclose(ref_a_pbc_dists['a'], univ_pbc.data['a']).all()
 
+    def test_calculate_distance_raises(self, univ):
+        with pytest.raises(SyntaxError):
+            univ.calculate_distances(1, read_data=False, save_data=False)
+        with pytest.raises(SyntaxError):
+            univ.calculate_distances(a=['0', '5'],
+                                     read_data=False, save_data=False)
+        with pytest.raises(SyntaxError):
+            univ.calculate_distances(a=['1', '2', '5'],
+                                     read_data=False, save_data=False)
+        with pytest.raises(NotImplementedError):
+            univ.calculate_distances(a=['fail', 'here'],
+                                     read_data=False, save_data=False)
+
+
     def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
         """
         :type univ_w_a: paratemp.coordinate_analysis.Universe

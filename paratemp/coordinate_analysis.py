@@ -164,9 +164,10 @@ class Universe(MDa.Universe):
         for key in keys_to_read:
             self._data[key] = read_df[key]
 
-    def calculate_distances(self, recalculate=False, ignore_file_change=False,
+    def calculate_distances(self, *args, recalculate=False,
+                            ignore_file_change=False,
                             read_data=True, save_data=True,
-                            *args, **kwargs):
+                            **kwargs):
         """
         Calculate distances by iterating through the trajectory
 
