@@ -127,6 +127,11 @@ class TestXTCUniverse(object):
             univ.calculate_distances(a=['fail', 'here'],
                                      read_data=False, save_data=False)
 
+    def test_calculate_distance_warns(self, univ):
+        with pytest.warns(UserWarning,
+                          match='following positional arguments were given'):
+            univ.calculate_distances('fail', read_data=False, save_data=False)
+
 
     def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
         """
