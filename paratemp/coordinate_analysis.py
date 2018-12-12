@@ -197,8 +197,6 @@ class Universe(MDa.Universe):
         :raises: NotImplementedError
         """
         # TODO document this function
-        # TODO find a way to take keyword type args with non-valid python
-        # identifiers (e.g., "O-O").
         if read_data:
             v = self._verbosity
             self._verbosity = False
@@ -266,7 +264,8 @@ class Universe(MDa.Universe):
                               '({}, {}, and {}, respectively).'.format(n1,
                                                                        n2,
                                                                        nc) +
-                              '\nThis should not happen.')
+                              '\nThis should not happen.\nPossibly invalid '
+                              'atom selection.')
         if self._num_frames != self.trajectory.n_frames:
             if self._verbosity:
                 print('Current trajectory has {} frames, '.format(
