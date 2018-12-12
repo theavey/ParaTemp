@@ -52,6 +52,8 @@ def test_running_mean():
     from paratemp.tools import running_mean
     tl = [0, 2, 4]
     assert (running_mean(tl) == [1, 3]).all()
+    with pytest.raises(ValueError):
+        running_mean((), 2)
 
 
 def test_all_elements_same():
