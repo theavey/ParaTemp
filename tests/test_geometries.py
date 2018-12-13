@@ -56,6 +56,10 @@ class TestXYZ(object):
             XYZ('tests/test-data/stil-3htmf-bad.xyz')
         with pytest.raises(ValueError):
             XYZ('tests/test-data/stil-3htmf-bad-2.xyz')
+        with pytest.raises(TypeError):
+            XYZ('tests/test-data/empty.txt')
+        with pytest.raises(TypeError):
+            XYZ('tests/test-data/empty_line.txt')
 
 
 class TestXYZNewline(object):

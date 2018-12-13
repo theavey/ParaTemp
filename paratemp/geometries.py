@@ -34,7 +34,6 @@ from .exceptions import UnknownEnergyError, InputError
 __all__ = ['rotation_matrix', 'Vector', 'XYZ', 'COM']
 
 
-
 def rotation_matrix(axis, theta):
     """
     Return the rotation matrix associated with counterclockwise rotation about
@@ -101,9 +100,12 @@ class XYZ(object):
         self.file = f_name
         with open(f_name, 'r') as f_file:
             f_lines = f_file.readlines()
+        if len(f_lines) < 2:
+            raise TypeError('The given file {} appears '
+                            'to be empty'.format(f_name))
         self._header = f_lines[0:2]
         if 'Energy' in self._header[1]:
-            energy_match = re.search('(?:Energy:\s+)(-\d+\.\d+)',
+            energy_match = re.search(r'(?:Energy:\s+)(-\d+\.\d+)',
                                      self._header[1])
             self._energy = float(energy_match.group(1))
         else:
