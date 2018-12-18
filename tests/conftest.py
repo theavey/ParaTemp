@@ -25,6 +25,7 @@
 import numpy as np
 import pathlib
 import pytest
+import shutil
 
 
 @pytest.fixture
@@ -66,7 +67,6 @@ def ref_bins_20():
 @pytest.fixture
 def pt_run_dir(tmp_path):
     dir_from = pathlib.Path('tests/test-data/spc-and-methanol-run')
-    files_from = dir_from.listdir()
-    for f in files_from:
-        f.copy(tmp_path)
+    for f in dir_from.iterdir():
+        shutil.copy(f, tmp_path)
     return tmp_path

@@ -38,7 +38,7 @@ setup(
             ],
     },
     tests_require=[
-        'pytest',
+        'pytest>=3.9',
         'pytest-cov',
         'coveralls',
         'py',
@@ -46,7 +46,6 @@ setup(
     classifiers=[
             'Development Status :: 4 - Beta',
             'Intended Audience :: Science/Research',
-            'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
     ],
     zip_safe=True,
