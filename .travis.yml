@@ -18,6 +18,7 @@ matrix:
       addons:
         apt:
           packages:
+            - gromacs
             - libhdf5-dev
 
 # command to install dependencies and package
