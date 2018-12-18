@@ -68,5 +68,6 @@ def ref_bins_20():
 def pt_run_dir(tmp_path):
     dir_from = pathlib.Path('tests/test-data/spc-and-methanol-run')
     tmp_path = tmp_path.join('spc-and-methanol-run')
-    shutil.copytree(dir_from, tmp_path)
+    # str needed for Python 3.5
+    shutil.copytree(str(dir_from), str(tmp_path))
     return tmp_path
