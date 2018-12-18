@@ -67,6 +67,6 @@ def ref_bins_20():
 @pytest.fixture
 def pt_run_dir(tmp_path):
     dir_from = pathlib.Path('tests/test-data/spc-and-methanol-run')
-    for f in dir_from.iterdir():
-        shutil.copy(f, tmp_path)
+    tmp_path = tmp_path.join('spc-and-methanol-run')
+    shutil.copytree(dir_from, tmp_path)
     return tmp_path

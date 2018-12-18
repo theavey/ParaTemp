@@ -286,7 +286,32 @@ class TestXTCUniverse(object):
 
 
 class TestXTCTaddol(TestXTCUniverse):
-    pass
+
+    @pytest.fixture
+    def univ(self, tmpdir):
+        from paratemp import coordinate_analysis as ca
+        gro = py.path.local('tests/test-data/spc2.gro')
+        traj = py.path.local('tests/test-data/t-spc2-traj.xtc')
+        gro.copy(tmpdir)
+        traj.copy(tmpdir)
+        with tmpdir.as_cwd():
+            _univ = ca.Taddol(gro.basename,
+                              traj.basename,
+                              temp=205.)
+        return _univ
+
+    @pytest.fixture
+    def univ_pbc(self, tmpdir):
+        from paratemp import coordinate_analysis as ca
+        gro = py.path.local('tests/test-data/spc2.gro')
+        traj = py.path.local('tests/test-data/spc2-traj-pbc.xtc')
+        gro.copy(tmpdir)
+        traj.copy(tmpdir)
+        with tmpdir.as_cwd():
+            _univ = ca.Taddol(gro.basename,
+                              traj.basename,
+                              temp=205.)
+        return _univ
 
 
 # TODO add further Universe tests
