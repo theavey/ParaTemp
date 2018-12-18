@@ -285,6 +285,9 @@ class TestXTCUniverse(object):
             old_nf, univ._num_frames) + '\nand the final time.\n'
 
 
+class TestXTCTaddol(TestXTCUniverse):
+    pass
+
 
 # TODO add further Universe tests
 #       ignore_file_change=True
