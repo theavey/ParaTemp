@@ -33,7 +33,7 @@ and access to the individual replica Universes.
 
 from __future__ import absolute_import, print_function
 
-import collections
+from collections.abc import Sequence
 import errno
 import glob
 import numpy as np
@@ -49,7 +49,7 @@ from . import get_temperatures, exceptions
 __all__ = ['REUniverse']
 
 
-class REUniverse(collections.Sequence):
+class REUniverse(Sequence):
     """
     A class for working with MDAnalysis Universes from replica exchange sims.
 
