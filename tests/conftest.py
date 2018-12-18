@@ -34,6 +34,12 @@ def ref_a_dists():
 
 
 @pytest.fixture
+def ref_g_dists():
+    import numpy
+    return numpy.load('tests/ref-data/spc2-g-dists.npy')
+
+
+@pytest.fixture
 def ref_delta_g():
     return np.load('tests/ref-data/spc2-fes1d-delta-gs.npy')
 

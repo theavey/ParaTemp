@@ -114,6 +114,12 @@ class TestXTCUniverse(object):
                                      read_data=False, save_data=False)
         assert np.isclose(ref_a_pbc_dists['a'], univ_pbc.data['a']).all()
 
+    def test_distances_com(self, univ, ref_g_dists):
+        univ.calculate_distances(
+            read_data=False, save_data=False,
+            g=((1, 2), (3, 4)))
+        assert np.isclose(ref_g_dists, univ.data).all()
+
     def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
         """
         :type univ_w_a: paratemp.coordinate_analysis.Universe
