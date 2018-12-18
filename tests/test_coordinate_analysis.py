@@ -285,6 +285,8 @@ class TestXTCUniverse(object):
             old_nf, univ._num_frames) + '\nand the final time.\n'
 
 
+# interface to calculate_distances is not the same, currently
+@pytest.mark.xfail(run=False)
 class TestXTCTaddol(TestXTCUniverse):
 
     @pytest.fixture
