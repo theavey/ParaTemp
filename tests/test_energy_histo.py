@@ -1,4 +1,4 @@
-"""This contains a set of fixtures and such for tests"""
+"""This contains a set of tests for paratemp.coordinate_analysis"""
 
 ########################################################################
 #                                                                      #
@@ -22,51 +22,32 @@
 #                                                                      #
 ########################################################################
 
-import numpy as np
-import pathlib
-import pytest
+from __future__ import absolute_import
+
+from paratemp.tools import cd
+import re
 
 
-@pytest.fixture
-def ref_a_dists():
-    import pandas
-    return pandas.read_csv('tests/ref-data/spc2-a-dists.csv',
-                           names=['a'], index_col=0)
+def test_find_energies(pt_run_dir):
+    # Doesn't currently test:
+    #    content of the outputs
+    #    what happens if they already exist
+    from paratemp.energy_histo import find_energies
+    with cd(pt_run_dir):
+        l_xvgs = find_energies()
+    for xvg in l_xvgs:
+        assert pt_run_dir.join(xvg).exists()
+        assert re.match(r'energy[01].xvg', xvg)
+    assert len(l_xvgs) == 2
 
 
-@pytest.fixture
-def ref_g_dists():
-    import numpy
-    return numpy.load('tests/ref-data/spc2-g-dists.npy')
-
-
-@pytest.fixture
-def ref_delta_g():
-    return np.load('tests/ref-data/spc2-fes1d-delta-gs.npy')
-
-
-@pytest.fixture
-def ref_bins():
-    return np.load('tests/ref-data/spc2-fes1d-bins.npy')
-
-
-@pytest.fixture
-def ref_delta_g_20():
-    """Created using calc_fes_1d with temp=205. and bins=20.
-    Saved with np.save('spc2-fes1d-delta-gs-20.npy', dg20,
-    allow_pickle=False)."""
-    return np.load('tests/ref-data/spc2-fes1d-delta-gs-20.npy')
-
-
-@pytest.fixture
-def ref_bins_20():
-    return np.load('tests/ref-data/spc2-fes1d-bins-20.npy')
-
-
-@pytest.fixture
-def pt_run_dir(tmp_path):
-    dir_from = pathlib.Path('tests/test-data/spc-and-methanol-run')
-    files_from = dir_from.listdir()
-    for f in files_from:
-        f.copy(tmp_path)
-    return tmp_path
+def test_make_indices(pt_run_dir):
+    # Doesn't currently test:
+    #    content of the outputs
+    #    what happens if they already exist
+    from paratemp.energy_histo import make_indices
+    with cd(pt_run_dir):
+        make_indices('PT-out0.log')
+    assert pt_run_dir.join('replica_temp.xvg').exists()
+    assert pt_run_dir.join('replica_index.xvg').exists()
+    assert pt_run_dir.join('demux.pl.log').exists()

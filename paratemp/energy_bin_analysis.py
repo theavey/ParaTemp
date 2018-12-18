@@ -23,25 +23,28 @@
 ########################################################################
 
 
-def get_energies(in_base_name='npt_PT_out'):
+import glob
+import pandas as pd
+import panedr
+import re
+
+
+def get_energies(in_base_name: str = 'npt_PT_out') -> pd.Panel:
     """Import the energies of GROMACS REMD trajectories.
 
-    :param in_base_name:
-    :return:
+    :param in_base_name: The base name for the output energy files
+    :return: The Panel of all the time-step energies
+    :rtype: pd.Panel
     """
-    from panedr import edr_to_df
-    from glob import glob
-    from re import match
-    from pandas import Panel
-    in_files = glob(in_base_name+'*.edr')
+    in_files = glob.glob(in_base_name+'*.edr')
     in_files.sort()
     in_files.sort(key=len)
-    dfs = {}
+    dfs = dict()
     for edr_file in in_files:
-        number = int(match('\w+?(\d+)\.edr', edr_file).group(1))
-        df = edr_to_df(edr_file)
+        number = int(re.match(r'\w+?(\d+)\.edr', edr_file).group(1))
+        df = panedr.edr_to_df(edr_file)
         dfs[number] = df
-    return Panel(dfs).rename_axis('replica')
+    return pd.Panel(dfs).rename_axis('replica')
 
 
 def make_energy_component_plots(panel, component, save=False,

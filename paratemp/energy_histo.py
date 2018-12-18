@@ -34,6 +34,8 @@ import gromacs.tools
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import subprocess
+from typing import List
 
 from .tools import all_elements_same
 from . import __version__
@@ -42,8 +44,11 @@ from . import __version__
 # (one brief description line, blank line, longer description/guidelines)
 
 
-def find_energies():
-    """find_energies() is a function that finds all files in the current
+def find_energies() -> List[str]:
+    """
+    Make energy{}.xvg files if they don't yet exist
+
+    find_energies() is a function that finds all files in the current
     directory that end in a numeral followed by '.edr'. For each of these
     files, it checks if a file named energy(same number).xvg exists, and if
     not, creates it by calling the GROMACS tool gmx energy where input='13'
@@ -52,7 +57,7 @@ def find_energies():
     energy_files = glob.glob('*[0-9].edr')
     output_files = []
     for file_name in energy_files:
-        output_name = ('energy' + re.search('[0-9]*(?=\.edr)',
+        output_name = ('energy' + re.search(r'[0-9]*(?=\.edr)',
                                             file_name).group(0) + '.xvg')
         if not os.path.isfile(output_name):
             gromacs.tools.Energy_mpi(f=file_name, o=output_name,
@@ -81,19 +86,26 @@ def import_energies(output_files, return_lengths=False):
         return imported_data
 
 
-def make_indices(logfile='npt_PT_out0.log'):
-    """make_indices(logfile='npt_PT_out0.log') will check for files named
+def make_indices(logfile: str = 'npt_PT_out0.log') -> None:
+    """
+    Make replica_temp and replica_index.xvg if they don't exist
+
+    make_indices(logfile='npt_PT_out0.log') will check for files named
     'replica_temp.xvg' and 'replica_index.xvg', and if they don't exist will
     create them by calling 'demux.pl [logfile]'.
-    It returns nothing."""
-    from subprocess import Popen, PIPE
-    if not os.path.isfile('replica_temp.xvg'):
-        if not os.path.isfile('replica_index.xvg'):
-            command_line = ['demux.pl', logfile]
-            with open('demux.pl.log', 'w') as log_out_file:
-                proc = Popen(command_line, stdout=PIPE, bufsize=1)
-                for line in proc.stdout:
-                    log_out_file.write(line)
+
+    :param str logfile: Name of the logfile to use as input to demux.pl
+    :return: None
+    :raises: subprocess.CalledProcessError if demux.pl returns a non-zero
+        exit status.
+    """
+    if (not os.path.isfile('replica_temp.xvg') and
+            not os.path.isfile('replica_index.xvg')):
+        command_line = ['demux.pl', logfile]
+        with open('demux.pl.log', 'w') as log_out_file:
+            proc = subprocess.run(command_line, stdout=log_out_file,
+                                  stderr=subprocess.STDOUT, bufsize=1)
+            proc.check_returncode()
 
 
 # Run this only if called from the command line
