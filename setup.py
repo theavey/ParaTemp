@@ -31,7 +31,7 @@ setup(
                 'sphinx',
             ],
             'tests': [
-                'pytest',
+                'pytest>=3.9',
                 'pytest-cov',
                 'coveralls',
                 'py',
