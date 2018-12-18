@@ -83,7 +83,7 @@ def get_n_solvent(folder, solvent='DCM'):
     """
     warnings.warn('This function is deprecated. Please use '
                   'get_solv_count_top', DeprecationWarning)
-    re_n_solv = re.compile('(?:^\s*{}\s+)(\d+)'.format(solvent))
+    re_n_solv = re.compile(r'(?:^\s*{}\s+)(\d+)'.format(solvent))
     with cd(folder):
         f_top = glob.glob('*.top')
         if len(f_top) != 1:

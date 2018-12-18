@@ -223,7 +223,7 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
     Extend a set of tpr files
 
     :param str base_name: Base of the tpr files. This should return the file
-        names when globbed with '\*.tpr' appended to this base name. Also, this
+        names when globbed with '*.tpr' appended to this base name. Also, this
         will cause issues when adding the infix if the file name doesn't fit
         the pattern of '{base_name}{number}.tpr'.
     :param time: Amount of time in picoseconds by which to extend the job. This
@@ -380,7 +380,7 @@ def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
         this will be deleted after the new file is written.
     :return: None
     """
-    re_mdrun_line = re.compile('mdrun_mpi|gmx_mpi\s+mdrun|gmx\s+mdrun_mpi')
+    re_mdrun_line = re.compile(r'mdrun_mpi|gmx_mpi\s+mdrun|gmx\s+mdrun_mpi')
     log_stream.write('Adding "-cpi {}" to {}\n'.format(cpt_base, sub_script))
     log_stream.flush()
     with open(sub_script, 'r') as f_in:
