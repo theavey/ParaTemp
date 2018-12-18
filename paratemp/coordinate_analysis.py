@@ -164,9 +164,10 @@ class Universe(MDa.Universe):
         for key in keys_to_read:
             self._data[key] = read_df[key]
 
-    def calculate_distances(self, recalculate=False, ignore_file_change=False,
+    def calculate_distances(self, *args, recalculate=False,
+                            ignore_file_change=False,
                             read_data=True, save_data=True,
-                            *args, **kwargs):
+                            **kwargs):
         """
         Calculate distances by iterating through the trajectory
 
@@ -197,8 +198,6 @@ class Universe(MDa.Universe):
         :raises: NotImplementedError
         """
         # TODO document this function
-        # TODO find a way to take keyword type args with non-valid python
-        # identifiers (e.g., "O-O").
         if read_data:
             v = self._verbosity
             self._verbosity = False
@@ -276,7 +275,8 @@ class Universe(MDa.Universe):
                               '({}, {}, and {}, respectively).'.format(n1,
                                                                        n2,
                                                                        nc) +
-                              '\nThis should not happen.')
+                              '\nThis should not happen.\nPossibly invalid '
+                              'atom selection.')
         n_groups = len(groups_CoM)
         n_group_names = len(column_names_CoM)
         if not n_groups == n_group_names:
@@ -435,7 +435,7 @@ class Universe(MDa.Universe):
         :param bins: Default: None. The bins argument to be passed to
             np.histogram
 
-        :param str xlabel: Default: 'distance / $\mathrm{\AA}$'. The label for
+        :param str xlabel: Default: 'distance / $\\mathrm{\\AA}$'. The label for
             the x axis.
 
         :type ax: matplotlib.axes.Axes
@@ -960,7 +960,7 @@ class Taddol(Universe):
                 **kwargs)
         ax.legend()
         ax.set_xlabel('time / ps')
-        ax.set_ylabel('distance / $\mathrm{\AA}$')
+        ax.set_ylabel(r'distance / $\mathrm{\AA}$')
         if save:
             fig.savefig(save_base_name + save_format)
         if display:
@@ -1219,7 +1219,7 @@ def make_plot_taddol_ox_dists(data, save=False, save_format='pdf',
     axes.plot(data[:, 0], data[:, 3], label='O(r)-Cy')
     axes.legend()
     axes.set_xlabel('time / ps')
-    axes.set_ylabel('distance / $\mathrm{\AA}$')
+    axes.set_ylabel(r'distance / $\mathrm{\AA}$')
     if save:
         fig.savefig(save_base_name+save_format)
     if display:
@@ -1304,7 +1304,7 @@ def make_taddol_pi_dist_array(dists, save=False, save_format='pdf',
     """Plot array of pi distances in TADDOL trajectory"""
     fig = plot_dist_array(dists)
     [ax.get_xaxis().set_ticks([]) for ax in fig.axes]
-    fig.text(0.05, 0.585, 'distance / $\mathrm{\AA}$', ha='center',
+    fig.text(0.05, 0.585, r'distance / $\mathrm{\AA}$', ha='center',
              rotation='vertical')
     fig.text(0.513, 0.08, 'time', ha='center')
     if save:

@@ -165,4 +165,7 @@ def running_mean(x, n=2):
     :return: Array of the running mean values.
     :rtype: np.ndarray
     """
-    return np.convolve(x, np.ones((n,)) / n, mode='valid')
+    if len(x) != 0:
+        return np.convolve(x, np.ones((n,)) / n, mode='valid')
+    else:
+        raise ValueError('x cannot be empty')

@@ -19,7 +19,7 @@ setup(
         'numpy',
         'matplotlib',
         'panedr',
-        'gromacswrapper',
+        'gromacswrapper>=0.7',
         'tables',
         'typing',
         'scipy',

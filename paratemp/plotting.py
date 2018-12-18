@@ -59,7 +59,7 @@ def fes_1d(x, temp, ax=None, bins=None,
     :param bins: Default: None. The bins argument to be passed to
         np.histogram
 
-    :param str xlabel: Default: 'distance / $\mathrm{\AA}$'. The label for
+    :param str xlabel: Default: 'distance / $\\mathrm{\\AA}$'. The label for
         the x axis.
 
     :type ax: matplotlib.axes.Axes

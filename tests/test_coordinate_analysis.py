@@ -120,6 +120,24 @@ class TestXTCUniverse(object):
             g=((1, 2), (3, 4)))
         assert np.isclose(ref_g_dists, univ.data).all()
 
+    def test_calculate_distance_raises(self, univ):
+        with pytest.raises(SyntaxError):
+            univ.calculate_distances(1, read_data=False, save_data=False)
+        with pytest.raises(SyntaxError):
+            univ.calculate_distances(a=['0', '5'],
+                                     read_data=False, save_data=False)
+        with pytest.raises(SyntaxError):
+            univ.calculate_distances(a=['1', '2', '5'],
+                                     read_data=False, save_data=False)
+        with pytest.raises(NotImplementedError):
+            univ.calculate_distances(a=['fail', 'here'],
+                                     read_data=False, save_data=False)
+
+    def test_calculate_distance_warns(self, univ):
+        with pytest.warns(UserWarning,
+                          match='following positional arguments were given'):
+            univ.calculate_distances('fail', read_data=False, save_data=False)
+
     def test_fes_1d_data_str(self, univ_w_a, ref_delta_g, ref_bins):
         """
         :type univ_w_a: paratemp.coordinate_analysis.Universe

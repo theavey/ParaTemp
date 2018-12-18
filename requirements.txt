@@ -5,7 +5,7 @@ numpy
 matplotlib
 panedr
 py
-gromacswrapper
+gromacswrapper>=0.7
 tables
 typing
 scipy
