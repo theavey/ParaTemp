@@ -212,22 +212,7 @@ class Universe(MDa.Universe):
         if len(args) == 0 and len(kwargs) == 0:
             args = ['all']
         if len(args) != 0:
-            try:
-                args = [arg.lower() for arg in args]
-            except AttributeError:
-                raise SyntaxError('All positional arguments must be strings')
-            bad_args = []
-            for arg in args:
-                try:
-                    temp_dict = self._dict_dist_defs[arg]
-                    temp_dict.update(kwargs)
-                    kwargs = temp_dict.copy()
-                except KeyError:
-                    bad_args.append(arg)
-            if len(bad_args) != 0:
-                warn('The following positional arguments were given but not '
-                     'recognized: ' + str(bad_args) + '\nThey will be '
-                     'ignored.')
+            kwargs = self._parse_calc_dist_pos_args(args, kwargs)
         if not recalculate:
             set_existing_data = set(self.data.columns)
             set_new_data = set(kwargs.keys())
@@ -311,6 +296,25 @@ class Universe(MDa.Universe):
             self._data[column] = dists[:, i]
         if save_data:
             self.save_data()
+
+    def _parse_calc_dist_pos_args(self, args, kwargs):
+        try:
+            args = [arg.lower() for arg in args]
+        except AttributeError:
+            raise SyntaxError('All positional arguments must be strings')
+        bad_args = []
+        for arg in args:
+            try:
+                temp_dict = self._dict_dist_defs[arg]
+                temp_dict.update(kwargs)
+                kwargs = temp_dict.copy()
+            except KeyError:
+                bad_args.append(arg)
+        if len(bad_args) != 0:
+            warn('The following positional arguments were given but not '
+                 'recognized: ' + str(bad_args) + '\nThey will be '
+                                                  'ignored.')
+        return kwargs
 
     def calculate_dihedrals(self, *args, **kwargs):
         """"""
@@ -661,84 +665,34 @@ class Taddol(Universe):
                                        'CV2': (133, 8)}}
         self._dict_dihed_defs = {}
 
-    def calculate_distances(self, *args, **kwargs):
-        """"""
-        # TODO document this function
-        # TODO find a way to take keyword type args with non-valid python
-        # identifiers (e.g., "O-O").
-        # Make empty atom selections to be appended to:
-        first_group = self.select_atoms('protein and not protein')
-        second_group = self.select_atoms('protein and not protein')
-        column_names = []
-        if len(args) == 0 and len(kwargs) == 0:
-            args = ['all']
-        if len(args) != 0:
+    def _parse_calc_dist_pos_args(self, args, kwargs):
+        try:
+            args = [arg.lower() for arg in args]
+        except AttributeError:
+            raise SyntaxError('All positional arguments must be strings')
+        if 'pi' in args:
+            args.remove('pi')
+            warn('pi distances have not yet been implemented and will not'
+                 ' be calculated.')
+        if 'all' in args:
+            args.remove('all')
+            print('"all" given or implied, calculating distances for '
+                  'oxygens and CVs')
+            args.append('ox')
+            args.append('cv')
+        bad_args = []
+        for arg in args:
             try:
-                args = [arg.lower() for arg in args]
-            except AttributeError:
-                raise SyntaxError('All positional arguments must be strings')
-            if 'pi' in args:
-                args.remove('pi')
-                warn('pi distances have not yet been implemented and will not'
-                     ' be calculated.')
-            if 'all' in args:
-                args.remove('all')
-                print('"all" given or implied, calculating distances for '
-                      'oxygens and CVs')
-                args.append('ox')
-                args.append('cv')
-            bad_args = []
-            for arg in args:
-                try:
-                    temp_dict = self._dict_dist_defs[arg]
-                    temp_dict.update(kwargs)
-                    kwargs = temp_dict.copy()
-                except KeyError:
-                    bad_args.append(arg)
-            if len(bad_args) != 0:
-                warn('The following positional arguments were given but not '
-                     'recognized: ' + str(bad_args) + '\nThey will be '
-                     'ignored.')
-        if len(kwargs) != 0:
-            for key in kwargs:
-                try:
-                    atoms = kwargs[key].split()
-                except AttributeError:
-                    # assume it is iterable as is
-                    atoms = kwargs[key]
-                if len(atoms) != 2:
-                    raise SyntaxError('This input should split to two atom '
-                                      'indices: {}'.format(kwargs[key]))
-                try:
-                    [int(atom) for atom in atoms]
-                except ValueError:
-                    raise NotImplementedError('Only selection by atom index is'
-                                              ' currently supported.\nAt your '
-                                              'own risk you can try assigning '
-                                              'to self._data[{}].'.format(key))
-                first_group += self.select_atoms('bynum '+str(atoms[0]))
-                second_group += self.select_atoms('bynum '+str(atoms[1]))
-                column_names += [key]
-        n1 = first_group.n_atoms
-        n2 = second_group.n_atoms
-        nc = len(column_names)
-        if not nc == n1 == n2:
-            raise SyntaxError('Different numbers of atom selections or number'
-                              'of column labels '
-                              '({}, {}, and {}, respectively).'.format(n1,
-                                                                       n2,
-                                                                       nc) +
-                              '\nThis should not happen.')
-        if self._num_frames != self.trajectory.n_frames:
-            raise FileChangedError()
-        dists = np.zeros((self._num_frames, n1))
-        for i, frame in enumerate(self.trajectory):
-            MDa.lib.distances.calc_bonds(first_group.positions,
-                                         second_group.positions,
-                                         box=self.dimensions,
-                                         result=dists[i])
-        for i, column in enumerate(column_names):
-            self._data[column] = dists[:, i]
+                temp_dict = self._dict_dist_defs[arg]
+                temp_dict.update(kwargs)
+                kwargs = temp_dict.copy()
+            except KeyError:
+                bad_args.append(arg)
+        if len(bad_args) != 0:
+            warn('The following positional arguments were given but not '
+                 'recognized: ' + str(bad_args) + '\nThey will be '
+                                                  'ignored.')
+        return kwargs
 
     @property
     def ox_dists(self):

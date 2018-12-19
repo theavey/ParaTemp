@@ -31,20 +31,31 @@ import errno
 import numpy as np
 import os
 import shutil
+import sys
 
 
 __all__ = ['cd', 'copy_no_overwrite', 'get_temperatures', 'all_elements_same',
            'find_nearest_idx', 'running_mean']
 
-
-@contextmanager
-def cd(new_dir):
-    prev_dir = os.getcwd()
-    os.chdir(os.path.expanduser(new_dir))
-    try:
-        yield
-    finally:
-        os.chdir(prev_dir)
+if sys.version_info >= (3, 6):
+    @contextmanager
+    def cd(new_dir):
+        prev_dir = os.getcwd()
+        os.chdir(os.path.expanduser(new_dir))
+        try:
+            yield
+        finally:
+            os.chdir(prev_dir)
+else:
+    @contextmanager
+    def cd(new_dir):
+        new_dir = str(new_dir)
+        prev_dir = os.getcwd()
+        os.chdir(os.path.expanduser(new_dir))
+        try:
+            yield
+        finally:
+            os.chdir(prev_dir)
 
 
 def copy_no_overwrite(src, dst, silent=False):
