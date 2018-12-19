@@ -80,9 +80,8 @@ def import_energies(output_files, return_lengths=False):
         xvg_file = gromacs.formats.XVG(filename=file_name)
         imported_data += [xvg_file.array[1]]
         lengths += [len(xvg_file.array[1])]
-        # TODO might be faster to find lengths after importing them all
-        # call XVG.array may be slow, not really sure
     if return_lengths:
+        lengths = [len(arr) for arr in imported_data]
         return imported_data, lengths
     else:
         return imported_data
@@ -143,7 +142,7 @@ def combine_energy_files(basename='energy', files=False):
     """combine_energy_files(basename='energy', files=False) is a function that
     combines a set of .xvg files writes a combined .xvg file.
     'basename' is the first part of the name for the xvg files to be combined
-    and should differentiate these from any other \*.xvg files in the folder.
+    and should differentiate these from any other *.xvg files in the folder.
     Alternatively, the list of files (in the desired order) can be passed in
     with the keyword 'files'.
     Returns None"""
@@ -152,26 +151,26 @@ def combine_energy_files(basename='energy', files=False):
         print('Seems like this has already been run. \n'
               'If you want it run again, change the name or delete '
               'the file named "{}".'.format(output_name))
+        return None
+    if not files:
+        files = glob.glob(basename + '*.xvg')
+        files.sort()
+        files.sort(key=len)
+    imported_data, lengths = import_energies(files, return_lengths=True)
+    if all_elements_same(lengths):
+        data = [gromacs.formats.XVG(filename=files[0]).array[0]]
+        data += imported_data
     else:
-        if not files:
-            files = glob.glob(basename + '*.xvg')
-            files.sort()
-            files.sort(key=len)
-        imported_data, lengths = import_energies(files, return_lengths=True)
-        if all_elements_same(lengths):
-            data = [gromacs.formats.XVG(filename=files[0]).array[0]]
-            data += imported_data
-        else:
-            len_shortest = min(lengths)
-            data = [gromacs.formats.XVG(filename=files[0]).array[0,
-                    :len_shortest]]
-            print('Energy lists not all equal lengths. '
-                  'Cropping all to the length of the shortest:'
-                  ' {}'.format(len_shortest))
-            imported_data = [part[:len_shortest] for part in imported_data]
-            data += imported_data
-        data = np.array(data)
-        gromacs.formats.XVG(array=data).write(filename=output_name)
+        len_shortest = min(lengths)
+        data = [gromacs.formats.XVG(filename=files[0]).array[0,
+                :len_shortest]]
+        print('Energy lists not all equal lengths. '
+              'Cropping all to the length of the shortest:'
+              ' {}'.format(len_shortest))
+        imported_data = [part[:len_shortest] for part in imported_data]
+        data += imported_data
+    data = np.array(data)
+    gromacs.formats.XVG(array=data).write(filename=output_name)
     return None
 
 
@@ -413,7 +412,7 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
         raise IndexError('Number of trr and tpr files not equal: '
                          '{} and {}'.format(len(trr_files), len(tpr_files)))
     for (i, trr_name) in enumerate(trr_files):
-        number_match = re.search('(?:'+trr_base_name+')(\d+)(?:\.trr)',
+        number_match = re.search(r'(?:{})(\d+)(?:\.trr)'.format(trr_base_name),
                                  trr_name)
         number = number_match.group(1)
         out_file = output_base_name + number + '.trr'
@@ -591,7 +590,7 @@ class _WRBase(object):
         """
         self._time_per_frame = time_per_frame
         self._wr_count = len(open(filename, 'r').readline().split()) - 1
-        self._df = pd.read_csv(filename, sep='\s+', header=None,
+        self._df = pd.read_csv(filename, sep=r'\s+', header=None,
                                names=['times']+[str(i) for i in range(
                                    self._wr_count)],
                                index_col=0)

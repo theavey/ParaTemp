@@ -24,10 +24,11 @@
 
 from __future__ import absolute_import
 
+import numpy as np
 import pathlib
+
 from paratemp.tools import cd
 import re
-
 
 n_gro, n_top, n_template, n_ndx = ('spc-and-methanol.gro',
                                    'spc-and-methanol.top',
@@ -69,3 +70,20 @@ def test_make_indices(pt_run_dir: pathlib.PosixPath):
     assert pt_run_dir.joinpath('replica_temp.xvg').exists()
     assert pt_run_dir.joinpath('replica_index.xvg').exists()
     assert pt_run_dir.joinpath('demux.pl.log').exists()
+
+
+class TestImportEnergies(object):
+    # Doesn't currently test:
+    #    content of the outputs
+    #    what happens if they don't exist
+    #    any modes of failure
+    #    return_lengths=True
+    def test_import_energies(self, pt_run_dir: pathlib.PosixPath):
+        from paratemp.energy_histo import import_energies, find_energies
+        with cd(pt_run_dir):
+            l_xvgs = find_energies()
+            data = import_energies(l_xvgs)
+        assert isinstance(data, list)
+        for d in data:
+            assert isinstance(d, np.ndarray)
+        assert len(data) == 2
