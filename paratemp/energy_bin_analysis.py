@@ -41,7 +41,11 @@ def get_energies(in_base_name: str = 'npt_PT_out') -> pd.Panel:
     in_files.sort(key=len)
     dfs = dict()
     for edr_file in in_files:
-        number = int(re.match(r'\w+?(\d+)\.edr', edr_file).group(1))
+        try:
+            number = int(re.match(r'.+?(\d+)\.edr', edr_file).group(1))
+        except AttributeError:
+            raise ValueError('Unable to parse edr file name '
+                             '"{}"'.format(edr_file))
         df = panedr.edr_to_df(edr_file)
         dfs[number] = df
     return pd.Panel(dfs).rename_axis('replica')

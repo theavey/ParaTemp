@@ -46,7 +46,7 @@ def test_pt_run_dir(pt_run_dir: pathlib.PosixPath):
     assert must_contain - files_present == set()
 
 
-def test_find_energies(pt_run_dir):
+def test_find_energies(pt_run_dir: pathlib.PosixPath):
     # Doesn't currently test:
     #    content of the outputs
     #    what happens if they already exist
@@ -54,18 +54,18 @@ def test_find_energies(pt_run_dir):
     with cd(pt_run_dir):
         l_xvgs = find_energies()
     for xvg in l_xvgs:
-        assert pt_run_dir.join(xvg).exists()
+        assert pt_run_dir.joinpath(xvg).exists()
         assert re.match(r'energy[01].xvg', xvg)
     assert len(l_xvgs) == 2
 
 
-def test_make_indices(pt_run_dir):
+def test_make_indices(pt_run_dir: pathlib.PosixPath):
     # Doesn't currently test:
     #    content of the outputs
     #    what happens if they already exist
     from paratemp.energy_histo import make_indices
     with cd(pt_run_dir):
         make_indices('PT-out0.log')
-    assert pt_run_dir.join('replica_temp.xvg').exists()
-    assert pt_run_dir.join('replica_index.xvg').exists()
-    assert pt_run_dir.join('demux.pl.log').exists()
+    assert pt_run_dir.joinpath('replica_temp.xvg').exists()
+    assert pt_run_dir.joinpath('replica_index.xvg').exists()
+    assert pt_run_dir.joinpath('demux.pl.log').exists()

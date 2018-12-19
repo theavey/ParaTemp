@@ -22,10 +22,14 @@
 #                                                                      #
 ########################################################################
 
+import gromacs
 import numpy as np
 import pathlib
 import pytest
 import shutil
+
+
+gromacs.config.setup()
 
 
 @pytest.fixture
