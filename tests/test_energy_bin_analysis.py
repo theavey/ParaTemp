@@ -30,7 +30,7 @@ import pytest
 import sys
 
 
-@pytest.mark.xfail(condition=(sys.version_info == (3, 7)),
+@pytest.mark.xfail(condition=(sys.version_info >= (3, 7)),
                    reason='panedr currently not working on Python 3.7')
 def test_get_energies(pt_run_dir):
     # Doesn't currently test:
