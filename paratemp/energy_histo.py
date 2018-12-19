@@ -62,8 +62,8 @@ def find_energies() -> List[str]:
         output_name = ('energy' + re.search(r'[0-9]*(?=\.edr)',
                                             file_name).group(0) + '.xvg')
         if not os.path.isfile(output_name):
-            gromacs.tools.Energy(f=file_name, o=output_name,
-                                 input='Total-Energy')()
+            gromacs.tools.G_energy(f=file_name, o=output_name,
+                                   input='Total-Energy')()
         output_files += [output_name]
     output_files.sort()
     output_files.sort(key=len)

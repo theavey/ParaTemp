@@ -26,8 +26,12 @@ from __future__ import absolute_import
 
 import pandas as pd
 from paratemp.tools import cd
+import pytest
+import sys
 
 
+@pytest.mark.xfail(condition=(sys.version_info == (3, 7)),
+                   reason='panedr currently not working on Python 3.7')
 def test_get_energies(pt_run_dir):
     # Doesn't currently test:
     #    content of the outputs
