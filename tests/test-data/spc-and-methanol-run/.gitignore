@@ -1,0 +1,4 @@
+# Created by .ignore support plugin (hsz.mobi)
+
+# Don't ignore GROMACS log files in this output folder
+!*.log

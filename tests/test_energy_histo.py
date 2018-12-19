@@ -24,8 +24,26 @@
 
 from __future__ import absolute_import
 
+import pathlib
 from paratemp.tools import cd
 import re
+
+
+n_gro, n_top, n_template, n_ndx = ('spc-and-methanol.gro',
+                                   'spc-and-methanol.top',
+                                   'templatemdp.txt',
+                                   'index.ndx')
+n_gro_o1, n_gro_o2 = 'PT-out0.gro', 'PT-out1.gro'
+n_edr_o1, n_edr_o2 = 'PT-out0.edr', 'PT-out1.edr'
+n_log_o1, n_log_o2 = 'PT-out0.log', 'PT-out1.log'
+n_trr_o1, n_trr_o2 = 'PT-out0.trr', 'PT-out1.trr'
+
+
+def test_pt_run_dir(pt_run_dir: pathlib.PosixPath):
+    files_present = {f.name for f in pt_run_dir.iterdir()}
+    must_contain = {n_gro_o1, n_gro_o2, n_log_o1, n_log_o2,
+                    n_edr_o1, n_edr_o2, n_trr_o1, n_trr_o2}
+    assert must_contain - files_present == set()
 
 
 def test_find_energies(pt_run_dir):

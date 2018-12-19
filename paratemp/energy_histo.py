@@ -24,6 +24,8 @@
 
 from __future__ import absolute_import
 
+import distutils.spawn
+import errno
 import glob
 import os
 import re
@@ -60,8 +62,8 @@ def find_energies() -> List[str]:
         output_name = ('energy' + re.search(r'[0-9]*(?=\.edr)',
                                             file_name).group(0) + '.xvg')
         if not os.path.isfile(output_name):
-            gromacs.tools.Energy_mpi(f=file_name, o=output_name,
-                                     input='Total-Energy')()
+            gromacs.tools.Energy(f=file_name, o=output_name,
+                                 input='Total-Energy')()
         output_files += [output_name]
     output_files.sort()
     output_files.sort(key=len)
@@ -86,6 +88,15 @@ def import_energies(output_files, return_lengths=False):
         return imported_data
 
 
+def _demux_exe():
+    if distutils.spawn.find_executable('demux'):
+        return 'demux'
+    elif distutils.spawn.find_executable('demux.pl'):
+        return 'demux.pl'
+    else:
+        raise OSError(errno.ENOENT, 'No demux executable found')
+
+
 def make_indices(logfile: str = 'npt_PT_out0.log') -> None:
     """
     Make replica_temp and replica_index.xvg if they don't exist
@@ -101,7 +112,7 @@ def make_indices(logfile: str = 'npt_PT_out0.log') -> None:
     """
     if (not os.path.isfile('replica_temp.xvg') and
             not os.path.isfile('replica_index.xvg')):
-        command_line = ['demux.pl', logfile]
+        command_line = [_demux_exe(), logfile]
         with open('demux.pl.log', 'w') as log_out_file:
             proc = subprocess.run(command_line, stdout=log_out_file,
                                   stderr=subprocess.STDOUT, bufsize=1)
