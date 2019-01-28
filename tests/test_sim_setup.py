@@ -29,6 +29,29 @@ import py
 import pytest
 import re
 
+from paratemp.tools import cd
+
+
+class TestGetGroFiles(object):
+
+    def test_get_gro_files(self, pt_run_dir):
+        from paratemp.sim_setup import get_gro_files
+        with cd(pt_run_dir):
+            gros = get_gro_files(trr_base='PT-out',
+                                 tpr_base='TOPO/nvt',
+                                 time=2)
+            assert len(gros) == 2
+            assert gros == ['PT-out0.gro', 'PT-out1.gro']
+
+    def test_raises(self, pt_run_dir):
+        from paratemp.sim_setup import get_gro_files
+        with cd(pt_run_dir):
+            open('PT-out2.trr', 'a').close()
+            with pytest.raises(ValueError):
+                get_gro_files(trr_base='PT-out',
+                              tpr_base='TOPO/nvt',
+                              time=2)
+
 
 def test_job_info_from_qsub():
     from paratemp.sim_setup import _job_info_from_qsub

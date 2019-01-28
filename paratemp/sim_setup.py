@@ -49,10 +49,12 @@ def get_gro_files(trr_base='npt_PT_out', tpr_base='TOPO/npt',
     """
     Get a single frame from TRR as GRO file for several trajectories
 
-    :param trr_base:
-    :param tpr_base:
+    :param str trr_base: Base name of the trr files (excluding any index and
+        trr extension)
+    :param str tpr_base: Base name of the tpr files (excluding any index and
+        tpr extension)
     :param time:
-    :return:
+    :return: List of the names of the generated .gro files
     """
     from glob import glob
     trr_files = glob(trr_base+'*.trr')
@@ -61,11 +63,17 @@ def get_gro_files(trr_base='npt_PT_out', tpr_base='TOPO/npt',
     tpr_files = glob(tpr_base + '*.tpr')
     tpr_files.sort()
     tpr_files.sort(key=len)
-    from gromacs.tools import Trjconv_mpi
-    for i, trr_file in enumerate(trr_files):
+    if len(trr_files) != len(tpr_files):
+        raise ValueError('Number of trr and tpr files not equal: '
+                         '{} != {}'.format(len(trr_files), len(tpr_files)))
+    out_files = list()
+    from gromacs.tools import Trjconv
+    for tpr_file, trr_file in zip(tpr_files, trr_files):
         out_file = trr_file.replace('trr', 'gro')
-        Trjconv_mpi(s=tpr_files[i], f=trr_file, o=out_file, dump=time,
-                    input='0')()
+        Trjconv(s=tpr_file, f=trr_file, o=out_file, dump=time,
+                input='0')()
+        out_files.append(out_file)
+    return out_files
 
 
 def get_n_solvent(folder, solvent='DCM'):
