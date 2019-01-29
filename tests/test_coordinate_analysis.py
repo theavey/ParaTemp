@@ -227,9 +227,9 @@ class TestXTCUniverse(object):
         time = 'time_' + str(int(univ._last_time / 1000)) + 'ns'
         f_name = univ.trajectory.filename.replace('xtc', 'h5')
         with tmpdir.as_cwd():
-            with pytest.raises(IOError, message='This data does not exist!\n'
-                                                '{}[{}]\n'.format(f_name,
-                                                                  time)):
+            with pytest.raises(IOError, match=r'This data does not exist!\n'
+                                              r'{}\[{}\]'.format(f_name,
+                                                                 time)):
                 univ.read_data()
             univ.read_data(ignore_no_data=True)
             out, err = capsys.readouterr()
