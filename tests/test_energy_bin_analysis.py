@@ -25,9 +25,11 @@
 from __future__ import absolute_import
 
 import pandas as pd
-from paratemp.tools import cd
+import pathlib
 import pytest
-import sys
+from matplotlib.figure import Figure
+
+from paratemp.tools import cd
 
 
 def test_get_energies(pt_run_dir):
@@ -35,6 +37,42 @@ def test_get_energies(pt_run_dir):
     #    content of the outputs
     from paratemp.energy_bin_analysis import get_energies
     with cd(pt_run_dir):
-        panel = get_energies('PT-out')
-    assert len(panel) == 2
-    assert isinstance(panel, pd.Panel)
+        mi_df = get_energies('PT-out')
+    assert len(mi_df.index.levels[0]) == 2
+    assert isinstance(mi_df, pd.DataFrame)
+    assert isinstance(mi_df.index, pd.MultiIndex)
+
+
+@pytest.fixture
+def energies_df(pt_run_dir):
+    from paratemp.energy_bin_analysis import get_energies
+    with cd(pt_run_dir):
+        mi_df = get_energies('PT-out')
+    return mi_df
+
+
+def test_make_energy_component_plots(energies_df):
+    from paratemp.energy_bin_analysis import make_energy_component_plots
+    fig = make_energy_component_plots(energies_df, 'Pressure', display=True)
+    assert isinstance(fig, Figure)
+    fig = make_energy_component_plots(energies_df, 'Pressure', display=False)
+    assert fig is None
+
+
+@pytest.fixture
+def replica_temp_path(pt_run_dir: pathlib.PosixPath):
+    # Doesn't currently test:
+    #    content of the outputs
+    #    what happens if they already exist
+    from paratemp.energy_histo import make_indices
+    with cd(pt_run_dir):
+        make_indices('PT-out0.log')
+        return pt_run_dir / 'replica_temp.xvg'
+
+
+class TestDeconvolveEnergies(object):
+
+    def test_function_runs(self, energies_df, replica_temp_path):
+        from paratemp.energy_bin_analysis import deconvolve_energies
+        df = deconvolve_energies(energies_df, index=str(replica_temp_path))
+        assert isinstance(df, pd.DataFrame)

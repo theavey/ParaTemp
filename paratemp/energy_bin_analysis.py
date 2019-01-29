@@ -2,10 +2,10 @@
 
 ########################################################################
 #                                                                      #
-# This script was written by Thomas Heavey in 2017.                    #
+# This script was written by Thomas Heavey in 2017-19.                 #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
-# Copyright 2017 Thomas J. Heavey IV                                   #
+# Copyright 2017-19 Thomas J. Heavey IV                                #
 #                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");      #
 # you may not use this file except in compliance with the License.     #
@@ -29,12 +29,12 @@ import panedr
 import re
 
 
-def get_energies(in_base_name: str = 'npt_PT_out') -> pd.Panel:
+def get_energies(in_base_name: str = 'npt_PT_out') -> pd.DataFrame:
     """Import the energies of GROMACS REMD trajectories.
 
     :param in_base_name: The base name for the output energy files
-    :return: The Panel of all the time-step energies
-    :rtype: pd.Panel
+    :return: The MultiIndexed DataFrame of all the time-step energies
+    :rtype: pd.DataFrame
     """
     in_files = glob.glob(in_base_name+'*.edr')
     in_files.sort()
@@ -48,27 +48,31 @@ def get_energies(in_base_name: str = 'npt_PT_out') -> pd.Panel:
                              '"{}"'.format(edr_file))
         df = panedr.edr_to_df(edr_file)
         dfs[number] = df
-    return pd.Panel(dfs).rename_axis('replica')
+    return pd.concat(dfs, names=['replica', 'time'])
 
 
-def make_energy_component_plots(panel, component, save=False,
-                                save_format='.png',
-                                save_base_name='energy_component_',
-                                display=True):
+def make_energy_component_plots(energies_df: pd.DataFrame, component: str,
+                                save: bool = False,
+                                save_format: str = '.png',
+                                save_base_name: str = 'energy_component_',
+                                display: bool = True):
     """Plot an energy component from a Panel of energy DataFrames.
 
-    :param panel:
-    :param component:
-    :param save:
-    :param save_format:
-    :param save_base_name:
-    :param display:
-    :return:
+    :param pd.DataFrame energies_df: DataFrame with MultiIndex as returned by
+        get_energies
+    :param str component: Name of the component to be plotted (e.g., Pressure)
+    :param bool save: Whether to save the plot to disk
+    :param str save_format: str of extension for saving the file
+    :param save_base_name: base name to be joined with component and
+        save_format for the file name
+    :param display: Whether to return to generated figure
+    :return: If display == True, return the figure. If False, None
+    :rtype: Union[matplotlib.figure.Figure, None]
     """
     # TODO add option to only plot some?
     # TODO add option to plot multiple energy components either
     # separately or together
-    num_traj = len(panel)
+    num_traj = len(energies_df.index.levels[0])
     from math import sqrt, ceil
     n_rows = int(ceil(sqrt(float(num_traj))))
     n_cols = n_rows
@@ -77,7 +81,7 @@ def make_energy_component_plots(panel, component, save=False,
                          sharey=True)
     for i in range(num_traj):
         ax = axes.flat[i]
-        ax.plot(panel[i][component])
+        ax.plot(energies_df.loc[i][component])
     [ax.get_xaxis().set_ticks([]) for ax in fig.axes]
     fig.text(0.513, 0.08, 'time', ha='center')
     # These y-axis units are right for (all?) the energy components,
@@ -93,17 +97,17 @@ def make_energy_component_plots(panel, component, save=False,
         return None
 
 
-def select_open_closed_energies(panel, set_open, set_closed,
+def select_open_closed_energies(energies_df: pd.DataFrame, set_open, set_closed,
                                 frame_index=15):
     """Select the energies for open vs. closed TADDOL configurations.
 
-    :param panel: a pd.Panel returned from get_energies
+    :param energies_df: a pd.DataFrame returned from get_energies
     :param set_open:
     :param set_closed:
     :param frame_index:
     :return:
     """
-    df = panel[frame_index]
+    df = energies_df.loc[frame_index]
     from pandas import merge
     energies_open = merge(df, set_open, on='Time', how='inner')
     energies_closed = merge(df, set_closed, on='Time', how='inner')
@@ -171,14 +175,15 @@ def make_hist_o_v_c_energy_components(eners_open, eners_closed,
         return None
 
 
-def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
+def deconvolve_energies(energies_df: pd.DataFrame,
+                        index: str = 'replica_temp.xvg') -> pd.DataFrame:
     """Return the energies of walkers from REMD simulations.
 
     This assumes a near-integer ratio of number of energies to indexes
     or near-integer inverse of that. If it's like 3/2 or 5/3 (either
     way) it won't throw an error, but also won't give meaningful
     results.
-    :param energies_panel:
+    :param energies_df:
     :param index:
     :return:
     """
@@ -189,7 +194,7 @@ def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
     # Assuming all replicas have the same times, though I don't know
     # why it would be otherwise.
     from numpy import array
-    e_all_times = array(energies_panel[0]['Time'])
+    e_all_times = array(energies_df.loc[0]['Time'])
     e_len = len(e_all_times)
     i_len = len(i_all_times)
     ratio = float(e_len) / float(i_len)
@@ -264,15 +269,17 @@ def deconvolve_energies(energies_panel, index='replica_temp.xvg'):
         print('These values should be about the same if this is working'
               ' properly')
 
+    num_traj = len(energies_df.index.levels[0])
     from numpy import arange
-    energies_array = array(energies_panel)[:, :e_end:e_freq][
-        indexer[:, :i_end:i_freq], arange(i_end/i_freq)]
-    from pandas import Panel
-    # todo remove this deprecated panel def below
-    return Panel(energies_array,
-                 items=energies_panel.items.set_names('walker'),
-                 major_axis=energies_panel.major_axis[:e_end:e_freq],
-                 minor_axis=energies_panel.minor_axis)
+    energies_array = array(
+        [energies_df.loc[i].values for i in range(num_traj)])[:, :e_end:e_freq]
+    energies_array = energies_array[indexer[:, :i_end:i_freq],
+                                    arange(i_end/i_freq, dtype=int)]
+    times = energies_df['Time'][:e_end:e_freq]
+    dfs = {i: pd.DataFrame(energies_array[i], index=times,
+                           columns=energies_df.columns)
+           for i in range(num_traj)}
+    return pd.concat(dfs,  names=['walker', 'time'])
 
 
 def plot_convergence():
