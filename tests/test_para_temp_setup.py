@@ -70,7 +70,7 @@ class TestCompileTPRs(object):
         :param py.path.local pt_dir_blank:
         :return:
         """
-        from paratemp.para_temp_setup import compile_tprs
+        from paratemp.sim_setup import compile_tprs
         from paratemp.tools import get_temperatures
         dir_topo = pt_dir_blank.mkdir('TOPO')
         number = 2
@@ -88,7 +88,7 @@ class TestCompileTPRs(object):
             str(dir_topo.join('temperatures.dat'))).shape == (2,)
 
     def test_multi_structure(self, pt_dir_blank, grompp):
-        from paratemp.para_temp_setup import compile_tprs
+        from paratemp.sim_setup import compile_tprs
         from paratemp.tools import get_temperatures
         dir_topo = pt_dir_blank.mkdir('TOPO')
         number = 2
@@ -107,7 +107,7 @@ class TestCompileTPRs(object):
             str(dir_topo.join('temperatures.dat'))).shape == (2,)
 
     def test_raises_os_error(self, pt_dir_blank, grompp):
-        from paratemp.para_temp_setup import compile_tprs
+        from paratemp.sim_setup import compile_tprs
         dir_topo = pt_dir_blank.mkdir('TOPO')
         number = 2
         with dir_topo.as_cwd(), pytest.raises(
@@ -138,7 +138,7 @@ class TestCompileTPRs(object):
                          grompp_exe=grompp)
 
     def test_raises_runtime_error(self, pt_dir_blank, grompp):
-        from paratemp.para_temp_setup import compile_tprs
+        from paratemp.sim_setup import compile_tprs
         dir_topo = pt_dir_blank.mkdir('TOPO')
         number = 2
         with dir_topo.as_cwd(), pytest.raises(RuntimeError):
@@ -150,7 +150,7 @@ class TestCompileTPRs(object):
                          grompp_exe=grompp)
 
     def test_warns(self, pt_dir_blank, grompp):
-        from paratemp.para_temp_setup import compile_tprs
+        from paratemp.sim_setup import compile_tprs
         from paratemp.tools import get_temperatures
         dir_topo = pt_dir_blank.mkdir('TOPO')
         number = 2
@@ -205,7 +205,8 @@ class TestAddCptToSubScript(object):
 
     def test_adding_to_script(self, sub_script_path):
         orig_lines = open(sub_script_path, 'r').readlines()
-        from paratemp.para_temp_setup import _add_cpt_to_sub_script as acpt
+        from paratemp.sim_setup.para_temp_setup import \
+            _add_cpt_to_sub_script as acpt
         acpt(sub_script_path, 'checkpoint_test')
         new_lines = open(sub_script_path, 'r').readlines()
         for line in new_lines:
@@ -219,7 +220,8 @@ class TestAddCptToSubScript(object):
 
     def test_no_change(self, sub_script_path_cpt):
         orig_lines = open(sub_script_path_cpt, 'r').readlines()
-        from paratemp.para_temp_setup import _add_cpt_to_sub_script as acpt
+        from paratemp.sim_setup.para_temp_setup import \
+            _add_cpt_to_sub_script as acpt
         acpt(sub_script_path_cpt, 'checkpoint_test')
         new_lines = open(sub_script_path_cpt, 'r').readlines()
         for line in new_lines:
@@ -233,7 +235,8 @@ class TestAddCptToSubScript(object):
 
     def test_comment_line(self, sub_script_path):
         orig_lines = open(sub_script_path, 'r').readlines()
-        from paratemp.para_temp_setup import _add_cpt_to_sub_script as acpt
+        from paratemp.sim_setup.para_temp_setup import \
+            _add_cpt_to_sub_script as acpt
         acpt(sub_script_path, 'checkpoint_test')
         new_lines = open(sub_script_path, 'r').readlines()
         for line in new_lines:
@@ -251,7 +254,8 @@ class TestAddCptToSubScript(object):
         assert orig_comm_line == new_comm_line
 
     def test_raises_value_error(self, tmpdir):
-        from paratemp.para_temp_setup import _add_cpt_to_sub_script as acpt
+        from paratemp.sim_setup.para_temp_setup import \
+            _add_cpt_to_sub_script as acpt
         test_sub = tmpdir.join('test.sub').ensure()
         with pytest.raises(ValueError, match='Could not find GROMACS mdrun'):
             acpt(str(test_sub), 'checkpoint_test')
@@ -268,11 +272,11 @@ class TestFindCPTBase(object):
             raise OSError(errno.ENOENT, 'run spc-and-methanol dir not found')
 
     def test_works(self, test_dir):
-        from paratemp.para_temp_setup import _find_cpt_base
+        from paratemp.sim_setup.para_temp_setup import _find_cpt_base
         cpt_base = _find_cpt_base(str(test_dir)+'/')
         assert cpt_base == str(test_dir.join('PT-out'))
 
     def test_raises_value_error(self, tmpdir):
-        from paratemp.para_temp_setup import _find_cpt_base
+        from paratemp.sim_setup.para_temp_setup import _find_cpt_base
         with pytest.raises(ValueError):
             _find_cpt_base(str(tmpdir))

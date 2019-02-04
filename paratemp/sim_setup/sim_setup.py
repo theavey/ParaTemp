@@ -34,9 +34,9 @@ import subprocess
 from typing import Callable, Iterable, Match
 import warnings
 
-from .tools import _BlankStream
-from .exceptions import InputError
-from .tools import cd, copy_no_overwrite
+from paratemp.tools import _BlankStream
+from paratemp.exceptions import InputError
+from paratemp.tools import cd, copy_no_overwrite
 
 
 __all__ = ['get_gro_files', 'get_n_solvent', 'get_solv_count_top',

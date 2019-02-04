@@ -1,11 +1,11 @@
-
+"""This module has functions and classes useful for setting up simulations"""
 
 ########################################################################
 #                                                                      #
-# This package was written by Thomas Heavey in 2018.                   #
+# This test was written by Thomas Heavey in 2019.                      #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
-# Copyright 2017-18 Thomas J. Heavey IV                                #
+# Copyright 2017-19 Thomas J. Heavey IV                                #
 #                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");      #
 # you may not use this file except in compliance with the License.     #
@@ -24,18 +24,5 @@
 
 from __future__ import absolute_import
 
-from .tools import copy_no_overwrite, cd, get_temperatures
-from . import coordinate_analysis
-from .coordinate_analysis import Universe
-from . import re_universe
-from .re_universe import REUniverse
-from ._version import get_versions
-from . import plotting
-
-del absolute_import
-
-
-__version__ = get_versions()['version']
-del get_versions
-
-__author__ = 'Thomas Heavey'
+from .para_temp_setup import *
+from .sim_setup import *

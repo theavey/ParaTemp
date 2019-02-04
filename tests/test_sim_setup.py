@@ -54,7 +54,7 @@ class TestGetGroFiles(object):
 
 
 def test_job_info_from_qsub():
-    from paratemp.sim_setup import _job_info_from_qsub
+    from paratemp.sim_setup.sim_setup import _job_info_from_qsub
     job_info = _job_info_from_qsub('Your job 2306551 ("PT-NTD-CG") '
                                    'has been submitted')
     assert job_info == ('2306551', 'PT-NTD-CG', '2306551 ("PT-NTD-CG")')
@@ -88,14 +88,14 @@ class TestUpdateNum(object):
         return {10: 30}
 
     def test_update_num(self, match_10, rd1030):
-        from paratemp.sim_setup import _update_num
+        from paratemp.sim_setup.sim_setup import _update_num
         assert '=30' == _update_num(match_10, shift=10, cat_repl_dict=rd1030)
         assert '=1' == _update_num(match_10, shift=9, cat_repl_dict=dict())
         assert '=1' == _update_num(match_10, shift=9, cat_repl_dict=rd1030)
 
     def test_update_num_raises(self, match_10, match_text, match_float,
                                match_bad_few, match_bad_many):
-        from paratemp.sim_setup import _update_num
+        from paratemp.sim_setup.sim_setup import _update_num
         from paratemp.exceptions import InputError
         with pytest.raises(KeyError):
             _update_num(match_10, shift=10, cat_repl_dict=dict())
@@ -212,7 +212,7 @@ class TestSetSolvCountTop(object):
             set_solv_count_top(n_top_dc, res_name='Not here')
 
     def test_get_n_top_fail(self, tmpdir):
-        from paratemp.sim_setup import _get_n_top
+        from paratemp.sim_setup.sim_setup import _get_n_top
         from paratemp.exceptions import InputError
         with pytest.raises(InputError):
             _get_n_top(None, None)
@@ -247,7 +247,7 @@ class TestMakeGROMACSSubScript(object):
             path.remove()
 
     def test_make_sge_line(self):
-        from paratemp.sim_setup import _make_sge_line
+        from paratemp.sim_setup.sim_setup import _make_sge_line
         assert _make_sge_line('l', 5) == '#$ -l 5'
         assert _make_sge_line('test', 'str') == '#$ -test str'
 
@@ -268,7 +268,7 @@ class TestMakeGROMACSSubScript(object):
         assert ts1.readlines() == ts2.readlines()
 
     def test_get_mdrun_line(self):
-        from paratemp.sim_setup import _get_mdrun_line
+        from paratemp.sim_setup.sim_setup import _get_mdrun_line
         kwargs = dict(checkpoint='PT-out', deffnm='PT-out',
                       multi=True, nsims=4,
                       other_mdrun=None,
@@ -288,7 +288,7 @@ class TestMakeGROMACSSubScript(object):
         assert line == ref_line + other
 
     def test_get_sge_basic_lines(self):
-        from paratemp.sim_setup import _get_sge_basic_lines
+        from paratemp.sim_setup.sim_setup import _get_sge_basic_lines
         ref_lines = ['#!/bin/bash -l\n',
                      '#$ -l h_rt=12:00:00',
                      '#$ -N job_name',
