@@ -25,6 +25,7 @@
 import gromacs
 import numpy as np
 import pathlib
+import py
 import pytest
 import shutil
 
@@ -66,6 +67,15 @@ def ref_delta_g_20():
 @pytest.fixture
 def ref_bins_20():
     return np.load('tests/ref-data/spc2-fes1d-bins-20.npy')
+
+
+@pytest.fixture
+def pt_blank_dir(tmp_path: pathlib.PosixPath):
+    dir_from = pathlib.Path('tests/test-data/spc-and-methanol')
+    tmp_path = tmp_path.joinpath('spc-and-methanol')
+    # str needed for Python 3.5
+    shutil.copytree(str(dir_from), str(tmp_path))
+    return tmp_path
 
 
 @pytest.fixture

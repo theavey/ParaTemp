@@ -1,4 +1,4 @@
-"""This contains a set of tests for paratemp.sim_setup"""
+"""This contains a set of tests for paratemp.sim_setup.sim_setup"""
 
 ########################################################################
 #                                                                      #
