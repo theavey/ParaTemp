@@ -25,7 +25,6 @@
 import gromacs
 import numpy as np
 import pathlib
-import py
 import pytest
 import shutil
 

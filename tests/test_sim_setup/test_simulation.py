@@ -34,6 +34,22 @@ from paratemp.tools import cd
 @pytest.mark.xfail
 class TestSimulation(object):
 
-    def test_runs(self):
+    def test_runs(self, pt_blank_dir):
         from paratemp.sim_setup import Simulation
-        sim = Simulation()
+        gro = pt_blank_dir / 'PT-out0.gro'
+        top = pt_blank_dir / 'spc-and-methanol.top'
+        sim = Simulation(gro=gro, top=top, base_folder=pt_blank_dir)
+
+    @pytest.fixture
+    def sim(self, pt_blank_dir):
+        from paratemp.sim_setup import Simulation
+        gro = pt_blank_dir / 'PT-out0.gro'
+        top = pt_blank_dir / 'spc-and-methanol.top'
+        min_mdp = 'examples/sample-mdps/minim.mdp'
+        equil_mdp = 'examples/sample-mdps/equil.mdp'
+        prod_mdp = 'examples/sample-mdps/prod.mdp'
+        mdps = dict(minimize=min_mdp, equilibrate=equil_mdp,
+                    production=prod_mdp)
+        sim = Simulation(gro=gro, top=top, base_folder=pt_blank_dir,
+                         mdps=mdps)
+        return sim
