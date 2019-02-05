@@ -30,9 +30,9 @@ import pytest
 from paratemp.tools import cd
 
 
-@pytest.mark.xfail
 class TestSimulation(object):
 
+    @pytest.mark.xfail
     def test_runs(self, pt_blank_dir):
         from paratemp.sim_setup import Simulation
         gro = pt_blank_dir / 'PT-out0.gro'
@@ -72,17 +72,20 @@ class TestSimulation(object):
              'folders': dict,
              }
 
+    @pytest.mark.xfail
     def test_attrs_exist_and_type(self, sim):
         for attr in self.attrs:
             assert hasattr(sim, attr)
             dtype = self.attrs[attr]
             assert isinstance(getattr(sim, attr), dtype)
 
+    @pytest.mark.xfail
     def test_methods_exist_and_callable(self, sim):
         for step in self.mdps:
             assert hasattr(sim, step)
             assert callable(getattr(sim, step))
 
+    @pytest.mark.xfail
     def test_fp(self, sim):
         sample_file = 'tests/__init__.py'
         fp: pathlib.Path = sim._fp(sample_file)
@@ -91,6 +94,7 @@ class TestSimulation(object):
         assert fp.is_file()
         assert fp.samefile(sample_file)
 
+    @pytest.mark.xfail
     def test_last_geom(self, sim):
         gro: pathlib.Path = sim.last_geometry
         assert isinstance(gro, pathlib.Path)
@@ -98,6 +102,7 @@ class TestSimulation(object):
         assert gro.is_absolute()
         assert gro.is_file()
 
+    @pytest.mark.xfail
     def test_compile_tpr(self, sim_with_dir):
         sim, path = sim_with_dir
         step = 'minimize'
@@ -126,6 +131,7 @@ class TestSimulation(object):
             tpr = sim._compile_tpr(step_name=step)
         return sim, min_path, step
 
+    @pytest.mark.xfail
     def test_run_mdrun(self, sim_with_tpr):
         sim, path, step = sim_with_tpr
         with cd(path):
@@ -139,6 +145,7 @@ class TestSimulation(object):
         assert isinstance(sim.deffnms[step], pathlib.Path)
         assert isinstance(sim.outputs['run_{}'.format(step)], str)
 
+    @pytest.mark.xfail
     @pytest.mark.parametrize('step', list(mdps.keys()))
     def test_step_methods(self, sim, step):
         method = getattr(sim, step)
