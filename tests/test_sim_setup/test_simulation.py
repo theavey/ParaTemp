@@ -24,10 +24,8 @@
 
 from __future__ import absolute_import
 
-import os
 import pathlib
 import pytest
-import re
 
 from paratemp.tools import cd
 
@@ -74,15 +72,16 @@ class TestSimulation(object):
              'deffnms': dict,
              'outputs': dict,
              'geometries': dict,
+             'folders': dict,
              }
 
-    def test_attrs_exist(self, sim):
+    def test_attrs_exist_and_type(self, sim):
         for attr in self.attrs:
             assert hasattr(sim, attr)
             dtype = self.attrs[attr]
             assert isinstance(getattr(sim, attr), dtype)
 
-    def test_methods_exist(self, sim, mdps):
+    def test_methods_exist_and_callable(self, sim, mdps):
         for step in mdps:
             assert hasattr(sim, step)
             assert callable(getattr(sim, step))
@@ -142,3 +141,14 @@ class TestSimulation(object):
         assert gro.samefile(sim.last_geometry)
         assert isinstance(sim.deffnms[step], pathlib.Path)
         assert isinstance(sim.outputs['run_{}'.format(step)], str)
+
+    @pytest.mark.parametrize('step', list(mdps.keys()))
+    def test_step_methods(self, sim, step):
+        method = getattr(sim, step)
+        step_dir = method()
+        assert step in step_dir.name
+        assert step_dir.exists()
+        assert step_dir.is_dir()
+        d_step_dir = sim.folders[step]
+        assert isinstance(d_step_dir, pathlib.Path)
+        assert step_dir.samefile(d_step_dir)
