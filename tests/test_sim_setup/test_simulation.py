@@ -41,23 +41,20 @@ class TestSimulation(object):
                          gro=gro, top=top, base_folder=pt_blank_dir)
         assert isinstance(sim, Simulation)
 
-    @pytest.fixture
-    def mdps(self):
-        min_mdp = 'examples/sample-mdps/minim.mdp'
-        equil_mdp = 'examples/sample-mdps/equil.mdp'
-        prod_mdp = 'examples/sample-mdps/prod.mdp'
-        mdps = dict(minimize=min_mdp, equilibrate=equil_mdp,
-                    production=prod_mdp)
-        return mdps
+    min_mdp = 'examples/sample-mdps/minim.mdp'
+    equil_mdp = 'examples/sample-mdps/equil.mdp'
+    prod_mdp = 'examples/sample-mdps/prod.mdp'
+    mdps = dict(minimize=min_mdp, equilibrate=equil_mdp,
+                production=prod_mdp)
 
     @pytest.fixture
-    def sim_with_dir(self, pt_blank_dir, mdps):
+    def sim_with_dir(self, pt_blank_dir):
         from paratemp.sim_setup import Simulation
         gro = pt_blank_dir / 'PT-out0.gro'
         top = pt_blank_dir / 'spc-and-methanol.top'
         sim = Simulation(name='sim_fixture',
                          gro=gro, top=top, base_folder=pt_blank_dir,
-                         mdps=mdps)
+                         mdps=self.mdps)
         return sim, pt_blank_dir
 
     @pytest.fixture
@@ -81,8 +78,8 @@ class TestSimulation(object):
             dtype = self.attrs[attr]
             assert isinstance(getattr(sim, attr), dtype)
 
-    def test_methods_exist_and_callable(self, sim, mdps):
-        for step in mdps:
+    def test_methods_exist_and_callable(self, sim):
+        for step in self.mdps:
             assert hasattr(sim, step)
             assert callable(getattr(sim, step))
 
