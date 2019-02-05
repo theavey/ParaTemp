@@ -88,7 +88,7 @@ class TestSimulation(object):
     @pytest.mark.xfail
     def test_fp(self, sim):
         sample_file = 'tests/__init__.py'
-        fp: pathlib.Path = sim._fp(sample_file)
+        fp = sim._fp(sample_file)
         assert fp.exists()
         assert fp.is_absolute()
         assert fp.is_file()
@@ -96,7 +96,7 @@ class TestSimulation(object):
 
     @pytest.mark.xfail
     def test_last_geom(self, sim):
-        gro: pathlib.Path = sim.last_geometry
+        gro = sim.last_geometry
         assert isinstance(gro, pathlib.Path)
         assert gro.suffix == '.gro'
         assert gro.is_absolute()
@@ -106,7 +106,7 @@ class TestSimulation(object):
     def test_compile_tpr(self, sim_with_dir):
         sim, path = sim_with_dir
         step = 'minimize'
-        min_path: pathlib.Path = path / step
+        min_path = path / step
         min_path.mkdir()
         with cd(min_path):
             tpr = sim._compile_tpr(step_name=step)
@@ -125,10 +125,10 @@ class TestSimulation(object):
     def sim_with_tpr(self, sim_with_dir):
         sim, path = sim_with_dir
         step = 'minimize'
-        min_path: pathlib.Path = path / step
+        min_path = path / step
         min_path.mkdir()
         with cd(min_path):
-            tpr = sim._compile_tpr(step_name=step)
+            sim._compile_tpr(step_name=step)
         return sim, min_path, step
 
     @pytest.mark.xfail
