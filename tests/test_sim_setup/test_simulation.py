@@ -25,6 +25,7 @@
 from __future__ import absolute_import
 
 import os
+import pathlib
 import pytest
 import re
 
@@ -38,18 +39,45 @@ class TestSimulation(object):
         from paratemp.sim_setup import Simulation
         gro = pt_blank_dir / 'PT-out0.gro'
         top = pt_blank_dir / 'spc-and-methanol.top'
-        sim = Simulation(gro=gro, top=top, base_folder=pt_blank_dir)
+        sim = Simulation(name='test_sim',
+                         gro=gro, top=top, base_folder=pt_blank_dir)
+        assert isinstance(sim, Simulation)
 
     @pytest.fixture
-    def sim(self, pt_blank_dir):
-        from paratemp.sim_setup import Simulation
-        gro = pt_blank_dir / 'PT-out0.gro'
-        top = pt_blank_dir / 'spc-and-methanol.top'
+    def mdps(self):
         min_mdp = 'examples/sample-mdps/minim.mdp'
         equil_mdp = 'examples/sample-mdps/equil.mdp'
         prod_mdp = 'examples/sample-mdps/prod.mdp'
         mdps = dict(minimize=min_mdp, equilibrate=equil_mdp,
                     production=prod_mdp)
-        sim = Simulation(gro=gro, top=top, base_folder=pt_blank_dir,
+        return mdps
+
+    @pytest.fixture
+    def sim(self, pt_blank_dir, mdps):
+        from paratemp.sim_setup import Simulation
+        gro = pt_blank_dir / 'PT-out0.gro'
+        top = pt_blank_dir / 'spc-and-methanol.top'
+        sim = Simulation(name='sim_fixture',
+                         gro=gro, top=top, base_folder=pt_blank_dir,
                          mdps=mdps)
         return sim
+
+    attrs = {'name': str,
+             'top': pathlib.Path,
+             'base_folder': pathlib.Path,
+             'mdps': dict,
+             'tprs': dict,
+             'deffnms': dict,
+             'outputs': dict,
+             }
+
+    def test_attrs_exist(self, sim):
+        for attr in self.attrs:
+            assert hasattr(sim, attr)
+            dtype = self.attrs[attr]
+            assert isinstance(getattr(sim, attr), dtype)
+
+    def test_methods_exist(self, sim, mdps):
+        for step in mdps:
+            assert hasattr(sim, step)
+            assert callable(getattr(sim, step))
