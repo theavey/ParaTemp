@@ -53,14 +53,18 @@ class TestSimulation(object):
         return mdps
 
     @pytest.fixture
-    def sim(self, pt_blank_dir, mdps):
+    def sim_with_dir(self, pt_blank_dir, mdps):
         from paratemp.sim_setup import Simulation
         gro = pt_blank_dir / 'PT-out0.gro'
         top = pt_blank_dir / 'spc-and-methanol.top'
         sim = Simulation(name='sim_fixture',
                          gro=gro, top=top, base_folder=pt_blank_dir,
                          mdps=mdps)
-        return sim
+        return sim, pt_blank_dir
+
+    @pytest.fixture
+    def sim(self, sim_with_dir):
+        return sim_with_dir[0]
 
     attrs = {'name': str,
              'top': pathlib.Path,
@@ -69,6 +73,7 @@ class TestSimulation(object):
              'tprs': dict,
              'deffnms': dict,
              'outputs': dict,
+             'geometries': dict,
              }
 
     def test_attrs_exist(self, sim):
@@ -81,3 +86,59 @@ class TestSimulation(object):
         for step in mdps:
             assert hasattr(sim, step)
             assert callable(getattr(sim, step))
+
+    def test_fp(self, sim):
+        sample_file = 'tests/__init__.py'
+        fp: pathlib.Path = sim._fp(sample_file)
+        assert fp.exists()
+        assert fp.is_absolute()
+        assert fp.is_file()
+        assert fp.samefile(sample_file)
+
+    def test_last_geom(self, sim):
+        gro: pathlib.Path = sim.last_geometry
+        assert isinstance(gro, pathlib.Path)
+        assert gro.suffix == '.gro'
+        assert gro.is_absolute()
+        assert gro.is_file()
+
+    def test_compile_tpr(self, sim_with_dir):
+        sim, path = sim_with_dir
+        step = 'minimize'
+        min_path: pathlib.Path = path / step
+        min_path.mkdir()
+        with cd(min_path):
+            tpr = sim._compile_tpr(step_name=step)
+            mdout = pathlib.Path('mdout.mdp').resolve()
+        assert isinstance(tpr, pathlib.Path)
+        assert tpr.exists()
+        assert tpr.is_absolute()
+        assert tpr.is_file()
+        assert tpr.suffix == '.tpr'
+        assert mdout.exists()
+        d_tpr = sim.tprs[step]
+        assert tpr.samefile(d_tpr)
+        assert isinstance(sim.outputs['compile_{}'.format(step)], str)
+
+    @pytest.fixture
+    def sim_with_tpr(self, sim_with_dir):
+        sim, path = sim_with_dir
+        step = 'minimize'
+        min_path: pathlib.Path = path / step
+        min_path.mkdir()
+        with cd(min_path):
+            tpr = sim._compile_tpr(step_name=step)
+        return sim, min_path, step
+
+    def test_run_mdrun(self, sim_with_tpr):
+        sim, path, step = sim_with_tpr
+        with cd(path):
+            gro = sim._run_mdrun(step_name=step)
+        assert isinstance(gro, pathlib.Path)
+        assert gro.exists()
+        assert gro.is_absolute()
+        assert gro.is_file()
+        assert gro.suffix == '.gro'
+        assert gro.samefile(sim.last_geometry)
+        assert isinstance(sim.deffnms[step], pathlib.Path)
+        assert isinstance(sim.outputs['run_{}'.format(step)], str)
