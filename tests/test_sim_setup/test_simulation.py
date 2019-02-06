@@ -32,7 +32,6 @@ from paratemp.tools import cd
 
 class TestSimulation(object):
 
-    @pytest.mark.xfail
     def test_runs(self, pt_blank_dir):
         from paratemp.sim_setup import Simulation
         gro = pt_blank_dir / 'PT-out0.gro'
@@ -72,20 +71,17 @@ class TestSimulation(object):
              'folders': dict,
              }
 
-    @pytest.mark.xfail
-    def test_attrs_exist_and_type(self, sim):
-        for attr in self.attrs:
-            assert hasattr(sim, attr)
-            dtype = self.attrs[attr]
-            assert isinstance(getattr(sim, attr), dtype)
+    @pytest.mark.parametrize('attr', list(attrs.keys()))
+    def test_attrs_exist_and_type(self, sim, attr):
+        assert hasattr(sim, attr)
+        dtype = self.attrs[attr]
+        assert isinstance(getattr(sim, attr), dtype)
 
-    @pytest.mark.xfail
-    def test_methods_exist_and_callable(self, sim):
-        for step in self.mdps:
-            assert hasattr(sim, step)
-            assert callable(getattr(sim, step))
+    @pytest.mark.parametrize('step', list(mdps.keys()))
+    def test_methods_exist_and_callable(self, sim, step):
+        assert hasattr(sim, step)
+        assert callable(getattr(sim, step))
 
-    @pytest.mark.xfail
     def test_fp(self, sim):
         sample_file = 'tests/__init__.py'
         fp = sim._fp(sample_file)
@@ -94,7 +90,6 @@ class TestSimulation(object):
         assert fp.is_file()
         assert fp.samefile(sample_file)
 
-    @pytest.mark.xfail
     def test_last_geom(self, sim):
         gro = sim.last_geometry
         assert isinstance(gro, pathlib.Path)
@@ -102,7 +97,26 @@ class TestSimulation(object):
         assert gro.is_absolute()
         assert gro.is_file()
 
-    @pytest.mark.xfail
+    def test_next_folder_index(self, sim):
+        assert sim._next_folder_index == 1
+        path = sim.base_folder
+        with cd(path):
+            path.joinpath('01-minimize-phen').mkdir()
+            path.joinpath('02-equil-phen').mkdir()
+        assert sim._next_folder_index == 3
+        with cd(path):
+            path.joinpath('05-step-mol').mkdir()
+        assert sim._next_folder_index == 6
+        with cd(path):
+            path.joinpath('100-step-mol').mkdir()
+        assert sim._next_folder_index == 6
+        with cd(path):
+            path.joinpath('06-step-mol').touch()
+        assert sim._next_folder_index == 6
+        with cd(path):
+            path.joinpath('07-dont_work_none').mkdir()
+        assert sim._next_folder_index == 6
+
     def test_compile_tpr(self, sim_with_dir):
         sim, path = sim_with_dir
         step = 'minimize'
@@ -131,7 +145,6 @@ class TestSimulation(object):
             sim._compile_tpr(step_name=step)
         return sim, min_path, step
 
-    @pytest.mark.xfail
     def test_run_mdrun(self, sim_with_tpr):
         sim, path, step = sim_with_tpr
         with cd(path):
@@ -142,10 +155,10 @@ class TestSimulation(object):
         assert gro.is_file()
         assert gro.suffix == '.gro'
         assert gro.samefile(sim.last_geometry)
+        assert gro.samefile(sim.geometries[step])
         assert isinstance(sim.deffnms[step], pathlib.Path)
         assert isinstance(sim.outputs['run_{}'.format(step)], str)
 
-    @pytest.mark.xfail
     @pytest.mark.parametrize('step', list(mdps.keys()))
     def test_step_methods(self, sim, step):
         method = getattr(sim, step)
