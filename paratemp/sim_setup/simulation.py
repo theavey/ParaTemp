@@ -26,15 +26,32 @@ from collections import OrderedDict
 import gromacs
 import pathlib
 import re
+import sys
 
 from ..tools import cd
 
 
+__all__ = ['Simulation']
+
+
+if sys.version_info >= (3, 6):
+    def resolve_path(path):
+        return pathlib.Path(path).resolve()
+else:
+    def resolve_path(path):
+        try:
+            return pathlib.Path(path).resolve()
+        except FileNotFoundError:
+            pass
+        path = pathlib.Path(path)
+        if path.is_absolute():
+            return path
+        return pathlib.Path.cwd().joinpath(path)
+
+
 class Simulation(object):
 
-    @staticmethod
-    def _fp(path):
-        return pathlib.Path(path).resolve()
+    _fp = staticmethod(resolve_path)
 
     def __init__(self, name, gro, top, base_folder='.', mdps=None):
         self.name = name
@@ -73,9 +90,9 @@ class Simulation(object):
         def func(geometry=None):
             geometry = self.last_geometry if geometry is None else geometry
             folder_index = self._next_folder_index
-            folder = self.base_folder / '{:2}-{}-{}'.format(folder_index,
-                                                            step_name,
-                                                            self.name)
+            folder = self.base_folder / '{:0>2}-{}-{}'.format(folder_index,
+                                                              step_name,
+                                                              self.name)
             folder.mkdir()
             self.folders[step_name] = folder
             with cd(folder):
