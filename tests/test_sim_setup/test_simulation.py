@@ -37,7 +37,8 @@ class TestSimulation(object):
         gro = pt_blank_dir / 'PT-out0.gro'
         top = pt_blank_dir / 'spc-and-methanol.top'
         sim = Simulation(name='test_sim',
-                         gro=gro, top=top, base_folder=pt_blank_dir)
+                         gro=str(gro), top=str(top),  # need to be str of Py3.5
+                         base_folder=str(pt_blank_dir))
         assert isinstance(sim, Simulation)
 
     min_mdp = 'examples/sample-mdps/minim.mdp'
@@ -52,7 +53,8 @@ class TestSimulation(object):
         gro = pt_blank_dir / 'PT-out0.gro'
         top = pt_blank_dir / 'spc-and-methanol.top'
         sim = Simulation(name='sim_fixture',
-                         gro=gro, top=top, base_folder=pt_blank_dir,
+                         gro=str(gro), top=str(top),
+                         base_folder=str(pt_blank_dir),
                          mdps=self.mdps)
         return sim, pt_blank_dir
 

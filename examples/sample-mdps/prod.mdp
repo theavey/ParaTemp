@@ -12,8 +12,6 @@ nstxout                 = 5000          ; save coordinates every 10 ps
 nstvout                 = 5000          ; save velocities every 10 ps
 nstenergy               = 5000          ; save energies every 10 ps
 nstlog                  = 5000          ; update log file every 10 ps
-nstxout-compressed      = 1000          ; update xtc coords every 2 ps
-compressed-x-precision  = 1000          ; precision of coords in xtc file
 
 
 ; Bond parameters
@@ -32,7 +30,6 @@ ns_type                 = grid          ; search neighboring grid cells
 nstlist                 = 10            ; 20 fs, largely irrelevant with Verlet scheme
 rcoulomb                = 1.0           ; short-range electrostatic cutoff (in nm)
 rvdw                    = 1.0           ; short-range van der Waals cutoff (in nm)
-verlet-buffer-tolerance = 0.001         ; recommended because of constraint on some angle?
 
 
 ; Electrostatics
