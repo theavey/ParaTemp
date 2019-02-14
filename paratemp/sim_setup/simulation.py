@@ -50,6 +50,9 @@ else:
 
 
 class Simulation(object):
+    """
+    A class for setting up and running GROMACS simulations
+    """
 
     _fp = staticmethod(resolve_path)
 
@@ -68,11 +71,16 @@ class Simulation(object):
             self.mdps[mdp] = self._fp(mdps[mdp])
 
     @property
-    def last_geometry(self):
+    def last_geometry(self) -> pathlib.Path:
+        """
+        The path to the output geometry from the most recent simulation
+
+        :return: The path to the last output geometry
+        """
         return next(reversed(self.geometries.items()))[1]
 
     @property
-    def _next_folder_index(self):
+    def _next_folder_index(self) -> int:
         """
         Index for next folder to be created
 
@@ -87,6 +95,11 @@ class Simulation(object):
         return nums[-1]+1 if nums else 1
 
     def _make_step_method(self, step_name):
+        """
+        Make a function that runs a GROMACS "step" (minimization, equil, etc.)
+        :param step_name:
+        :return:
+        """
         def func(geometry=None):
             geometry = self.last_geometry if geometry is None else geometry
             folder_index = self._next_folder_index
