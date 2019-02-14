@@ -21,7 +21,6 @@ setup(
         'panedr',
         'gromacswrapper>=0.7',
         'tables',
-        'typing',
         'scipy',
         'six',
         'py',
