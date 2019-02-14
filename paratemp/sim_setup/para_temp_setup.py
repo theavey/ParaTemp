@@ -36,11 +36,11 @@ import subprocess
 from subprocess import Popen, PIPE, STDOUT
 from warnings import warn
 
-from .sim_setup import _submit_script
-from .tools import _BlankStream, _replace_string_in_file
-from .exceptions import InputError
-from .tools import cd
-from ._version import get_versions
+from paratemp.sim_setup.sim_setup import _submit_script
+from paratemp.tools import _BlankStream, _replace_string_in_file
+from paratemp.exceptions import InputError
+from paratemp.tools import cd
+from paratemp._version import get_versions
 
 
 __all__ = ['compile_tprs', 'extend_tprs', 'cleanup_bad_gromacs_restart']

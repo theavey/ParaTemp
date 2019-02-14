@@ -1,4 +1,4 @@
-"""This contains a set of tests for paratemp.para_temp_setup"""
+"""This contains a set of tests for paratemp.sim_setup.para_temp_setup"""
 
 ########################################################################
 #                                                                      #
@@ -25,9 +25,11 @@
 import distutils.spawn
 import errno
 import os
-import py
+import pathlib
 import pytest
 import shutil
+
+from paratemp.tools import cd
 
 
 n_gro, n_top, n_template, n_ndx = ('spc-and-methanol.gro',
@@ -51,48 +53,42 @@ def grompp():
 
 class TestCompileTPRs(object):
 
-    @pytest.fixture
-    def pt_dir_blank(self, tmpdir):
-        dir_from = py.path.local('tests/test-data/spc-and-methanol')
-        files_from = dir_from.listdir()
-        for f in files_from:
-            f.copy(tmpdir)
-        return tmpdir
-
-    def test_pt_dir_blank(self, pt_dir_blank):
-        files_present = {f.basename for f in pt_dir_blank.listdir()}
+    def test_pt_dir_blank(self, pt_blank_dir):
+        files_present = {f.name for f in pt_blank_dir.glob('*')}
         must_contain = {n_top, n_gro, n_template, n_ndx, n_gro_o1, n_gro_o2}
         assert must_contain - files_present == set()
 
-    def test_basic(self, pt_dir_blank, grompp):
+    def test_basic(self, pt_blank_dir, grompp):
         """
 
-        :param py.path.local pt_dir_blank:
+        :param pathlib.PosixPath pt_blank_dir:
         :return:
         """
-        from paratemp.para_temp_setup import compile_tprs
+        from paratemp.sim_setup import compile_tprs
         from paratemp.tools import get_temperatures
-        dir_topo = pt_dir_blank.mkdir('TOPO')
+        dir_topo = pt_blank_dir.joinpath('TOPO')
+        dir_topo.mkdir()
         number = 2
-        with dir_topo.as_cwd():
+        with cd(dir_topo):
             compile_tprs(start_temp=298, scaling_exponent=0.025,
                          number=number,
                          template='../'+n_template,
                          structure='../'+n_gro,
                          base_name='nvt',
                          grompp_exe=grompp)
-        assert dir_topo.check()
+        assert dir_topo.exists()
         for i in range(number):
-            assert dir_topo.join('nvt{}.tpr'.format(i)).check()
+            assert dir_topo.joinpath('nvt{}.tpr'.format(i)).exists()
         assert get_temperatures(
-            str(dir_topo.join('temperatures.dat'))).shape == (2,)
+            str(dir_topo.joinpath('temperatures.dat'))).shape == (2,)
 
-    def test_multi_structure(self, pt_dir_blank, grompp):
-        from paratemp.para_temp_setup import compile_tprs
+    def test_multi_structure(self, pt_blank_dir, grompp):
+        from paratemp.sim_setup import compile_tprs
         from paratemp.tools import get_temperatures
-        dir_topo = pt_dir_blank.mkdir('TOPO')
+        dir_topo = pt_blank_dir.joinpath('TOPO')
+        dir_topo.mkdir()
         number = 2
-        with dir_topo.as_cwd():
+        with cd(dir_topo):
             compile_tprs(start_temp=298,  scaling_exponent=0.025,
                          number=number,
                          template='../'+n_template,
@@ -100,73 +96,79 @@ class TestCompileTPRs(object):
                          structure='../PT-out',
                          base_name='nvt',
                          grompp_exe=grompp)
-        assert dir_topo.check()
+        assert dir_topo.exists()
         for i in range(number):
-            assert dir_topo.join('nvt{}.tpr'.format(i)).check()
+            assert dir_topo.joinpath('nvt{}.tpr'.format(i)).exists()
         assert get_temperatures(
-            str(dir_topo.join('temperatures.dat'))).shape == (2,)
+            str(dir_topo.joinpath('temperatures.dat'))).shape == (2,)
 
-    def test_raises_os_error(self, pt_dir_blank, grompp):
-        from paratemp.para_temp_setup import compile_tprs
-        dir_topo = pt_dir_blank.mkdir('TOPO')
+    def test_raises_os_error(self, pt_blank_dir, grompp):
+        from paratemp.sim_setup import compile_tprs
+        dir_topo = pt_blank_dir.joinpath('TOPO')
+        dir_topo.mkdir()
         number = 2
-        with dir_topo.as_cwd(), pytest.raises(
-                OSError, match='Incorrect number of structure files found'):
-            compile_tprs(start_temp=298,  scaling_exponent=0.025,
-                         number=number,
-                         template='../'+n_template,
-                         multi_structure=True,
-                         structure='../',
-                         base_name='nvt',
-                         grompp_exe=grompp)
-        with dir_topo.as_cwd(), pytest.raises(
-                OSError, match='No structure file found'):
-            compile_tprs(start_temp=298,  scaling_exponent=0.025,
-                         number=number,
-                         template='../'+n_template,
-                         structure='../not-here.gro',
-                         base_name='nvt',
-                         grompp_exe=grompp)
-        with dir_topo.as_cwd(), pytest.raises(
-                OSError, match='No topology file found'):
-            compile_tprs(start_temp=298,  scaling_exponent=0.025,
-                         number=number,
-                         template='../'+n_template,
-                         structure='../'+n_gro,
-                         topology='../not-here.top',
-                         base_name='nvt',
-                         grompp_exe=grompp)
+        with cd(dir_topo):
+            with pytest.raises(OSError, match='Incorrect number of '
+                                              'structure files found'):
+                compile_tprs(start_temp=298,  scaling_exponent=0.025,
+                             number=number,
+                             template='../'+n_template,
+                             multi_structure=True,
+                             structure='../',
+                             base_name='nvt',
+                             grompp_exe=grompp)
+            with pytest.raises(
+                    OSError, match='No structure file found'):
+                compile_tprs(start_temp=298,  scaling_exponent=0.025,
+                             number=number,
+                             template='../'+n_template,
+                             structure='../not-here.gro',
+                             base_name='nvt',
+                             grompp_exe=grompp)
+            with pytest.raises(
+                    OSError, match='No topology file found'):
+                compile_tprs(start_temp=298,  scaling_exponent=0.025,
+                             number=number,
+                             template='../'+n_template,
+                             structure='../'+n_gro,
+                             topology='../not-here.top',
+                             base_name='nvt',
+                             grompp_exe=grompp)
 
-    def test_raises_runtime_error(self, pt_dir_blank, grompp):
-        from paratemp.para_temp_setup import compile_tprs
-        dir_topo = pt_dir_blank.mkdir('TOPO')
+    def test_raises_runtime_error(self, pt_blank_dir, grompp):
+        from paratemp.sim_setup import compile_tprs
+        dir_topo = pt_blank_dir.joinpath('TOPO')
+        dir_topo.mkdir()
         number = 2
-        with dir_topo.as_cwd(), pytest.raises(RuntimeError):
-            compile_tprs(start_temp=298,  scaling_exponent=0.025,
-                         number=number,
-                         template='../'+n_template,
-                         structure='../*top',
-                         base_name='nvt',
-                         grompp_exe=grompp)
+        with cd(dir_topo):
+            with pytest.raises(RuntimeError):
+                compile_tprs(start_temp=298,  scaling_exponent=0.025,
+                             number=number,
+                             template='../'+n_template,
+                             structure='../*top',
+                             base_name='nvt',
+                             grompp_exe=grompp)
 
-    def test_warns(self, pt_dir_blank, grompp):
-        from paratemp.para_temp_setup import compile_tprs
+    def test_warns(self, pt_blank_dir, grompp):
+        from paratemp.sim_setup import compile_tprs
         from paratemp.tools import get_temperatures
-        dir_topo = pt_dir_blank.mkdir('TOPO')
+        dir_topo = pt_blank_dir.joinpath('TOPO')
+        dir_topo.mkdir()
         number = 2
-        with dir_topo.as_cwd(), pytest.warns(
-                UserWarning, match=r'Found \d+ structure files'):
-            compile_tprs(start_temp=298,  scaling_exponent=0.025,
-                         number=number,
-                         template='../'+n_template,
-                         structure='../*.gro',
-                         base_name='nvt',
-                         grompp_exe=grompp)
-        assert dir_topo.check()
+        with cd(dir_topo):
+            with pytest.warns(
+                    UserWarning, match=r'Found \d+ structure files'):
+                compile_tprs(start_temp=298,  scaling_exponent=0.025,
+                             number=number,
+                             template='../'+n_template,
+                             structure='../*.gro',
+                             base_name='nvt',
+                             grompp_exe=grompp)
+        assert dir_topo.exists()
         for i in range(number):
-            assert dir_topo.join('nvt{}.tpr'.format(i)).check()
+            assert dir_topo.joinpath('nvt{}.tpr'.format(i)).exists()
         assert get_temperatures(
-            str(dir_topo.join('temperatures.dat'))).shape == (2,)
+            str(dir_topo.joinpath('temperatures.dat'))).shape == (2,)
 
 
 class TestAddCptToSubScript(object):
@@ -205,7 +207,8 @@ class TestAddCptToSubScript(object):
 
     def test_adding_to_script(self, sub_script_path):
         orig_lines = open(sub_script_path, 'r').readlines()
-        from paratemp.para_temp_setup import _add_cpt_to_sub_script as acpt
+        from paratemp.sim_setup.para_temp_setup import \
+            _add_cpt_to_sub_script as acpt
         acpt(sub_script_path, 'checkpoint_test')
         new_lines = open(sub_script_path, 'r').readlines()
         for line in new_lines:
@@ -219,7 +222,8 @@ class TestAddCptToSubScript(object):
 
     def test_no_change(self, sub_script_path_cpt):
         orig_lines = open(sub_script_path_cpt, 'r').readlines()
-        from paratemp.para_temp_setup import _add_cpt_to_sub_script as acpt
+        from paratemp.sim_setup.para_temp_setup import \
+            _add_cpt_to_sub_script as acpt
         acpt(sub_script_path_cpt, 'checkpoint_test')
         new_lines = open(sub_script_path_cpt, 'r').readlines()
         for line in new_lines:
@@ -233,7 +237,8 @@ class TestAddCptToSubScript(object):
 
     def test_comment_line(self, sub_script_path):
         orig_lines = open(sub_script_path, 'r').readlines()
-        from paratemp.para_temp_setup import _add_cpt_to_sub_script as acpt
+        from paratemp.sim_setup.para_temp_setup import \
+            _add_cpt_to_sub_script as acpt
         acpt(sub_script_path, 'checkpoint_test')
         new_lines = open(sub_script_path, 'r').readlines()
         for line in new_lines:
@@ -251,7 +256,8 @@ class TestAddCptToSubScript(object):
         assert orig_comm_line == new_comm_line
 
     def test_raises_value_error(self, tmpdir):
-        from paratemp.para_temp_setup import _add_cpt_to_sub_script as acpt
+        from paratemp.sim_setup.para_temp_setup import \
+            _add_cpt_to_sub_script as acpt
         test_sub = tmpdir.join('test.sub').ensure()
         with pytest.raises(ValueError, match='Could not find GROMACS mdrun'):
             acpt(str(test_sub), 'checkpoint_test')
@@ -259,20 +265,20 @@ class TestAddCptToSubScript(object):
 
 class TestFindCPTBase(object):
 
-    @pytest.fixture
     def test_dir(self):
-        lp = py.path.local('tests/test-data/spc-and-methanol-run')
-        if lp.check():
-            return lp
+        pp = pathlib.Path('tests/test-data/spc-and-methanol-run')
+        if pp.exists():
+            return pp
         else:
+            # This would be bad if this test data somehow went missing...
             raise OSError(errno.ENOENT, 'run spc-and-methanol dir not found')
 
-    def test_works(self, test_dir):
-        from paratemp.para_temp_setup import _find_cpt_base
-        cpt_base = _find_cpt_base(str(test_dir)+'/')
-        assert cpt_base == str(test_dir.join('PT-out'))
+    def test_works(self, pt_run_dir):
+        from paratemp.sim_setup.para_temp_setup import _find_cpt_base
+        cpt_base = _find_cpt_base(str(pt_run_dir)+'/')
+        assert cpt_base == str(pt_run_dir.joinpath('PT-out'))
 
     def test_raises_value_error(self, tmpdir):
-        from paratemp.para_temp_setup import _find_cpt_base
+        from paratemp.sim_setup.para_temp_setup import _find_cpt_base
         with pytest.raises(ValueError):
             _find_cpt_base(str(tmpdir))

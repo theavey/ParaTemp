@@ -69,6 +69,15 @@ def ref_bins_20():
 
 
 @pytest.fixture
+def pt_blank_dir(tmp_path: pathlib.PosixPath):
+    dir_from = pathlib.Path('tests/test-data/spc-and-methanol')
+    tmp_path = tmp_path.joinpath('spc-and-methanol')
+    # str needed for Python 3.5
+    shutil.copytree(str(dir_from), str(tmp_path))
+    return tmp_path
+
+
+@pytest.fixture
 def pt_run_dir(tmp_path: pathlib.PosixPath):
     dir_from = pathlib.Path('tests/test-data/spc-and-methanol-run')
     tmp_path = tmp_path.joinpath('spc-and-methanol-run')
