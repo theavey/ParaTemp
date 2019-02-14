@@ -27,11 +27,15 @@ import gromacs
 import pathlib
 import re
 import sys
+import typing
 
 from ..tools import cd
 
 
 __all__ = ['Simulation']
+
+
+GenPath = typing.Union[pathlib.Path, str]
 
 
 if sys.version_info >= (3, 6):
@@ -56,7 +60,9 @@ class Simulation(object):
 
     _fp = staticmethod(resolve_path)
 
-    def __init__(self, name, gro, top, base_folder='.', mdps=None):
+    def __init__(self, name: str, gro: GenPath,
+                 top: GenPath, base_folder: GenPath = '.',
+                 mdps: dict = None):
         self.name = name
         self.top = self._fp(top)
         self.geometries = OrderedDict(initial=self._fp(gro))
@@ -94,11 +100,15 @@ class Simulation(object):
         nums.sort()
         return nums[-1]+1 if nums else 1
 
-    def _make_step_method(self, step_name):
+    def _make_step_method(self, step_name: str) -> typing.Callable:
         """
         Make a function that runs a GROMACS "step" (minimization, equil, etc.)
-        :param step_name:
-        :return:
+
+        :param str step_name: Name of the step. This should be a valid key to
+            `mdps` dict and will be the name of the method to which this
+            function is mapped.
+        :return: A function to run the step specified by the mdp
+        :rtype: typing.Callable
         """
         def func(geometry=None):
             geometry = self.last_geometry if geometry is None else geometry
@@ -114,7 +124,22 @@ class Simulation(object):
             return folder
         return func
 
-    def _compile_tpr(self, step_name, geometry=None, trajectory=None):
+    def _compile_tpr(self, step_name: str,
+                     geometry: GenPath = None,
+                     trajectory: GenPath = None
+                     ) -> pathlib.Path:
+        """
+        Make a tpr file for the chosen step_name and associated mdp file
+
+        :param step_name: Key for the mdp file from the dict mdps
+        :param geometry: Path to the geometry to be used as input. If None,
+            :attr:`last_geometry` will be used.
+        :param trajectory: Path to a trajectory file from which to take the
+            input geometry. This is useful when a full precision geometry is
+            needed as input and a trr file can be used. If None,
+            no trajectory will be given to grompp.
+        :return: The Path to the tpr file
+        """
         geometry = self.last_geometry if geometry is None else geometry
         tpr = '{}-{}.tpr'.format(self.name, step_name)
         p_tpr = self._fp(tpr)
@@ -129,7 +154,16 @@ class Simulation(object):
         self.outputs['compile_{}'.format(step_name)] = output
         return p_tpr
 
-    def _run_mdrun(self, step_name, tpr=None):
+    def _run_mdrun(self, step_name: str, tpr: GenPath = None
+                   ) -> pathlib.Path:
+        """
+        Run mdrun with the given step_name or explicitly given tpr file.
+
+        :param step_name: The name of this step
+        :param tpr: Path to the tpr file. If None, the tpr will be found
+            from the dict :attr:`tprs` with the key being `step_name`
+        :return: The Path to the output geometry
+        """
         tpr = self.tprs[step_name] if tpr is None else tpr
         deffnm = '{}-{}-out'.format(self.name, step_name)
         p_deffnm = self._fp(deffnm)
