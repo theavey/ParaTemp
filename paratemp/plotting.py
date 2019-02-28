@@ -151,7 +151,7 @@ def fes_array_3_legend(data, temp, labels=None, axes=None, bins=None, **kwargs):
     handles = []
     # Use whatever the default colors for the system are
     # TODO find a more elegant way to do this
-    colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
+    colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
     for i, key in enumerate(_labels):
         delta_g, bin_mids = calc_fes_1d(data[key], temp=temp, bins=bins)
         delta_gs.append(delta_g)
