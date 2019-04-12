@@ -16,7 +16,7 @@ setup(
     install_requires=[
         'MDAnalysis>=0.17.0',
         'pandas',
-        'numpy>=1.16.0',
+        'numpy',
         'matplotlib',
         'panedr',
         'gromacswrapper>=0.7',
