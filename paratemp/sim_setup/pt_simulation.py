@@ -1,4 +1,4 @@
-"""This contains a set of tests for setting up parallel tempering calcs"""
+"""This contains code for setting up parallel tempering calcs"""
 
 ########################################################################
 #                                                                      #
@@ -22,9 +22,10 @@
 #                                                                      #
 ########################################################################
 
-from .test_simulation import TestSimulation
+from .simulation import Simulation
 
 
-class TestPTSimulation(TestSimulation):
+class PTSimulation(Simulation):
 
-    pass
+    def __init__(self, *args, **kwargs):
+        super(Simulation, self).__init__(*args, **kwargs)
