@@ -28,4 +28,4 @@ from .simulation import Simulation
 class PTSimulation(Simulation):
 
     def __init__(self, *args, **kwargs):
-        super(Simulation, self).__init__(*args, **kwargs)
+        super(PTSimulation, self).__init__(*args, **kwargs)
