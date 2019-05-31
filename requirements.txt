@@ -3,6 +3,7 @@ MDAnalysis>=0.17.0
 pandas
 numpy
 matplotlib
+parmed
 panedr
 py
 gromacswrapper>=0.7

@@ -18,6 +18,7 @@ setup(
         'pandas',
         'numpy',
         'matplotlib',
+        'parmed',
         'panedr',
         'gromacswrapper>=0.7',
         'tables',
