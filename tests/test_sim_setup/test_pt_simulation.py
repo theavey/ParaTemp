@@ -22,9 +22,20 @@
 #                                                                      #
 ########################################################################
 
+import pytest
+
 from .test_simulation import TestSimulation
 
 
 class TestPTSimulation(TestSimulation):
 
-    pass
+    @pytest.fixture
+    def sim_with_dir(self, pt_blank_dir):
+        from paratemp.sim_setup import PTSimulation
+        gro = pt_blank_dir / 'PT-out0.gro'
+        top = pt_blank_dir / 'spc-and-methanol.top'
+        sim = PTSimulation(name='sim_fixture',
+                           gro=str(gro), top=str(top),
+                           base_folder=str(pt_blank_dir),
+                           mdps=self.mdps)
+        return sim, pt_blank_dir
