@@ -95,6 +95,10 @@ class Molecule(object):
         ptop.save(str(self._directory / f'{self._name}.gro'))
         log.info(f'Wrote top and gro files in {self._directory}')
 
+    @property
+    def topology(self):
+        return self._ptop
+
     def _run_in_dir(self, cl) -> subprocess.CompletedProcess:
         with cd(self._directory):
             proc = subprocess.run(cl, stdout=subprocess.PIPE,
