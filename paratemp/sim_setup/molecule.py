@@ -27,14 +27,14 @@ from pathlib import Path
 import shlex
 import shutil
 import subprocess
-from typing import Union
+from typing import Union, Dict, Any
 
 import parmed
 
 from ..tools import cd
 
 
-__all__ = ['Molecule']
+__all__ = ['Molecule', 'make_mol_inputs']
 
 
 log = logging.getLogger(__name__)
@@ -47,6 +47,36 @@ if not log.hasHandlers():
                                   '%(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     log.addHandler(handler)
+
+
+def make_mol_inputs() -> Dict[str, Any]:
+    geometry = None
+    while geometry is None:
+        geometry = Path(input('Path to geometry input (as a PDB, '
+                              'MDL, or mol2): '))
+        if not geometry.exists():
+            print('That file does not exist. Try again...')
+            geometry = None
+    charge = None
+    while charge is None:
+        try:
+            charge = int(input('What is the charge on this molecule? '))
+        except ValueError:
+            print('That was not a valid integer. Try again...')
+    name = None
+    while name is None:
+        name = input('What is the name of this molecule? (try to avoid '
+                     'special characters)')
+    resname = None
+    while resname is None:
+        resname = input('What should be the residue name (normally a unique '
+                        'three character string)?')
+        resname = resname.strip()
+        if 0 == len(resname) or len(resname) > 4:
+            print('Try a shorter or longer string...')
+            resname = None
+    return dict(geometry=geometry, charge=charge,
+                name=name, resname=resname)
 
 
 class Molecule(object):
@@ -62,10 +92,18 @@ class Molecule(object):
         self._directory = Path(self._name).resolve()
         self._directory.mkdir(exist_ok=True)
         shutil.copy(self._input_geo_path, self._directory)
-        self.charge = charge
+        self.charge = int(charge)
         self._gro = None
         self._top = None
         self._ptop = None
+
+    @classmethod
+    def from_make_mol_inputs(cls, mol_inputs):
+        return cls(**mol_inputs)
+
+    @classmethod
+    def assisted(cls):
+        return cls(**make_mol_inputs())
 
     def parameterize(self):
         # could take keywords for FF
