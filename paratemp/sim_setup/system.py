@@ -57,13 +57,13 @@ class System(object):
                  shift: bool = True,
                  spacing: float = 2.0,
                  include_gbsa: bool = True,):
-        log.debug(f'Initializing System with {len(args)} Molecules')
+        log.debug('Initializing System with {} Molecules'.format(len(args)))
         self._name = name
         for arg in args:
             if not isinstance(arg, Molecule):
                 raise TypeError(
-                    f'positional arguments must of type Molecule; given '
-                    f'{type(arg)}')
+                    'positional arguments must of type Molecule; given '
+                    '{}'.format(type(arg)))
         self._directory = Path(self._name).resolve()
         self._directory.mkdir()
         ptop = args[0].topology.copy()  # type: GroTopFile
@@ -72,11 +72,11 @@ class System(object):
         self._ptop = ptop
         if shift:
             self._shift_to_nonoverlapping(spacing)
-        top_path = self._directory / f'{self._name}.top'
+        top_path = self._directory / '{}.top'.format(self._name)
         ptop.write(str(top_path))
         if include_gbsa:
             self._add_gbsa_include(top_path)
-        ptop.save(str(self._directory / f'rough_{self._name}.gro'))
+        ptop.save(str(self._directory / 'rough_{}.gro'.format(self._name)))
 
     @staticmethod
     def _get_res_max_z(res: ParmedRes) -> float:

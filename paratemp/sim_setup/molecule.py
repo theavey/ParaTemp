@@ -34,6 +34,9 @@ import parmed
 from ..tools import cd
 
 
+__all__ = ['Molecule']
+
+
 log = logging.getLogger(__name__)
 if not log.hasHandlers():
     level = logging.INFO
@@ -52,7 +55,7 @@ class Molecule(object):
                  charge: int = 0,
                  name: str = None,
                  resname: str = 'MOL',):
-        log.debug(f'Initializing Molecule with {geometry}')
+        log.debug('Initializing Molecule with {}'.format(geometry))
         self._input_geo_path = Path(geometry)
         self._name = self._input_geo_path.stem if name is None else name
         self.resname = resname
@@ -68,20 +71,23 @@ class Molecule(object):
         # could take keywords for FF
         # could use charges from QM calc
         # TODO convert from whatever to PDB, MDL, or MOL2
-        log.debug(f'Parameterizing {self._name} with acpype')
-        cl = shlex.split(f'acpype.py -i {self._input_geo_path.resolve()} '
-                         f'-o gmx '
-                         f'-n {self.charge} '
-                         f'-b {self._name} ')
+        log.debug('Parameterizing {} with acpype'.format(self._name))
+        cl = shlex.split('acpype.py -i {} '
+                         '-o gmx '
+                         '-n {} '
+                         '-b {} '.format(
+                            self._input_geo_path.resolve(),
+                            self.charge,
+                            self._name))
         log.warning('Running acpype.py; this may take a few minutes')
         proc = self._run_in_dir(cl)
-        log.info(f'acpype said:\n {proc.stdout}')
+        log.info('acpype said:\n {}'.format(proc.stdout))
         proc.check_returncode()
-        ac_dir = self._directory / f'{self._name}.acpype'
-        gro = ac_dir / f'{self._name}_GMX.gro'
-        top = ac_dir / f'{self._name}_GMX.top'
+        ac_dir = self._directory / '{}.acpype'.format(self._name)
+        gro = ac_dir / '{}_GMX.gro'.format(self._name)
+        top = ac_dir / '{}_GMX.top'.format(self._name)
         if not gro.is_file() or not top.is_file():
-            mes = f'gro or top file not created in {ac_dir}'
+            mes = 'gro or top file not created in {}'.format(ac_dir)
             log.error(mes)
             raise FileNotFoundError(mes)
         self._gro = gro
@@ -91,9 +97,9 @@ class Molecule(object):
         self._ptop = ptop
         for res in ptop.residues:
             res.name = self.resname
-        ptop.write(str(self._directory / f'{self._name}.top'))
-        ptop.save(str(self._directory / f'{self._name}.gro'))
-        log.info(f'Wrote top and gro files in {self._directory}')
+        ptop.write(str(self._directory / '{}.top'.format(self._name)))
+        ptop.save(str(self._directory / '{}.gro'.format(self._name)))
+        log.info('Wrote top and gro files in {}'.format(self._directory))
 
     @property
     def topology(self):
