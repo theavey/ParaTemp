@@ -77,6 +77,8 @@ class System(object):
         if include_gbsa:
             self._add_gbsa_include(top_path)
         ptop.save(str(self._directory / 'rough_{}.gro'.format(self._name)))
+        log.info('Wrote combined topology and geometry files in {}'.format(
+            self._directory))
 
     @staticmethod
     def _get_res_max_z(res: ParmedRes) -> float:
@@ -91,6 +93,7 @@ class System(object):
         return {res: System._get_res_max_z(res) for res in ptop.residues}
 
     def _shift_to_nonoverlapping(self, spacing: float = 2.0):
+        log.info('Shifting molecules in z direction to prevent overlap')
         z_maxes = self._get_all_res_max_x(self._ptop)
         shifts, shift = dict(), 0
         for res in z_maxes:
@@ -101,6 +104,7 @@ class System(object):
 
     @staticmethod
     def _add_gbsa_include(path: Path):
+        log.info('Adding lines to include implicit solvation parameters')
         to_add = ('; Include parameters for implicit solvation\n'
                   '#include '
                   '/projectnb/nonadmd/theavey/GROMACS-basics/gbsa_all.itp\n\n')
