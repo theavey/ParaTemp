@@ -23,16 +23,31 @@
 ########################################################################
 
 from collections import OrderedDict
-import gromacs
+import logging
 import pathlib
 import re
 import sys
 import typing
 
+import gromacs
+
+from . import Molecule, System
 from ..tools import cd
 
 
-__all__ = ['Simulation']
+__all__ = ['Simulation', 'SimpleSimulation']
+
+
+log = logging.getLogger(__name__)
+if not log.hasHandlers():
+    level = logging.INFO
+    log.setLevel(level)
+    handler = logging.StreamHandler()
+    handler.setLevel(level)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - '
+                                  '%(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
 
 
 GenPath = typing.Union[pathlib.Path, str]
@@ -174,3 +189,42 @@ class Simulation(object):
         gro = p_deffnm.with_suffix('.gro')
         self.geometries[step_name] = gro
         return gro
+
+
+class SimpleSimulation(object):
+
+    def __init__(self, name: str,
+                 mol_inputs:
+                 typing.Union[str,
+                              typing.List[typing.Union[dict,
+                                                       Molecule]]] = 'ask'):
+        log.info('Instantiating a SimpleSimulation named {}'.format(name))
+        self.name = name
+        self.molecules = list()  # type: typing.List[Molecule]
+        self._process_mol_inputs(mol_inputs)
+
+    def _process_mol_inputs(self, mol_inputs):
+        if mol_inputs == 'ask':
+            more = True
+            while more:
+                self.molecules.append(Molecule.assisted())
+                more = (True if 'y' in input('Any more molecules? [yn]').lower()
+                        else False)
+        elif isinstance(mol_inputs, typing.Sequence):
+            if isinstance(mol_inputs[0], Molecule):
+                self.molecules = mol_inputs
+            else:
+                for mol in mol_inputs:
+                    self.molecules.append(Molecule.from_make_mol_inputs(mol))
+        elif isinstance(mol_inputs, Molecule):
+            self.molecules = [mol_inputs]
+        else:
+            try:
+                self.molecules = Molecule.from_make_mol_inputs(mol_inputs)
+            except KeyError:  # maybe other Errors?
+                raise ValueError('Unrecognized input: {}'.format(mol_inputs))
+
+    def parameterize(self):
+        log.info('Parameterizing the {} Molecules'.format(len(self.molecules)))
+        for mol in self.molecules:
+            mol.parameterize()
