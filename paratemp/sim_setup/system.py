@@ -24,10 +24,18 @@
 
 import logging
 from pathlib import Path
+from typing import Dict
 
 import parmed
 
 from . import Molecule
+
+
+__all__ = ['System']
+
+
+GroTopFile = parmed.gromacs.GromacsTopologyFile
+ParmedRes = parmed.topologyobjects.Residue
 
 
 log = logging.getLogger(__name__)
@@ -45,7 +53,10 @@ if not log.hasHandlers():
 class System(object):
 
     def __init__(self, *args: Molecule,
-                 name: str = 'default'):
+                 name: str = 'default',
+                 shift: bool = True,
+                 spacing: float = 2.0,
+                 include_gbsa: bool = True,):
         log.debug(f'Initializing System with {len(args)} Molecules')
         self._name = name
         for arg in args:
@@ -55,12 +66,61 @@ class System(object):
                     f'{type(arg)}')
         self._directory = Path(self._name).resolve()
         self._directory.mkdir()
-        ptop: parmed.gromacs.GromacsTopologyFile = args[0].topology.copy()
+        ptop = args[0].topology.copy()  # type: GroTopFile
         for mol in args[1:]:
             ptop += mol.topology
         self._ptop = ptop
-        ptop.write(str(self._directory / f'{self._name}.top'))
+        if shift:
+            self._shift_to_nonoverlapping(spacing)
+        top_path = self._directory / f'{self._name}.top'
+        ptop.write(str(top_path))
+        if include_gbsa:
+            self._add_gbsa_include(top_path)
         ptop.save(str(self._directory / f'rough_{self._name}.gro'))
 
-    # TODO make non-overlapping
-    # TODO add GBSA atomic parameters
+    @staticmethod
+    def _get_res_max_z(res: ParmedRes) -> float:
+        """Return the max z coordinate for any atom in the given residue
+
+        Picked the z-axis because if aligned along moments of inertia,
+        z is likely to be the shortest, keeping the box required smaller."""
+        return max((a.xz for a in res.atoms))
+
+    @staticmethod
+    def _get_all_res_max_x(ptop: GroTopFile) -> Dict[ParmedRes, float]:
+        return {res: System._get_res_max_z(res) for res in ptop.residues}
+
+    def _shift_to_nonoverlapping(self, spacing: float = 2.0):
+        z_maxes = self._get_all_res_max_x(self._ptop)
+        shifts, shift = dict(), 0
+        for res in z_maxes:
+            shifts[res] = shift
+            shift += spacing + z_maxes[res]
+        for atom in self._ptop.atoms:
+            atom.xz += shifts[atom.residue]
+
+    @staticmethod
+    def _add_gbsa_include(path: Path):
+        to_add = ('; Include parameters for implicit solvation\n'
+                  '#include '
+                  '/projectnb/nonadmd/theavey/GROMACS-basics/gbsa_all.itp\n\n')
+        temp_path = path.with_suffix(path.suffix + '.temp')
+        lines = path.read_text().splitlines(keepends=True)
+        with temp_path.open('w') as temp_file:
+            post_defaults, done = False, False
+            for line in lines:
+                if done:
+                    pass
+                elif post_defaults:
+                    if not line.strip():
+                        line += to_add
+                        done = True
+                elif line == '[ defaults ]\n':
+                    post_defaults = True
+                temp_file.write(line)
+        bak_path = path.with_suffix(path.suffix + '.bak0')
+        if bak_path.exists():
+            bak_path = bak_path.with_suffix('.bak' +
+                                            str(int(str(bak_path)[-1])+1))
+        path.rename(bak_path)
+        temp_path.rename(path)
