@@ -56,7 +56,7 @@ class System(object):
                  name: str = 'default',
                  shift: bool = True,
                  spacing: float = 2.0,
-                 include_gbsa: bool = True,):
+                 include_gbsa: bool = True):
         log.debug('Initializing System with {} Molecules'.format(len(args)))
         self._name = name
         for arg in args:
