@@ -202,6 +202,9 @@ class SimpleSimulation(object):
         self.name = name
         self.molecules = list()  # type: typing.List[Molecule]
         self._process_mol_inputs(mol_inputs)
+        self.system = None  # type: System
+        self._SimClass = Simulation
+        self.simulation = None  # type: Simulation
 
     def _process_mol_inputs(self, mol_inputs):
         if mol_inputs == 'ask':
@@ -228,3 +231,21 @@ class SimpleSimulation(object):
         log.info('Parameterizing the {} Molecules'.format(len(self.molecules)))
         for mol in self.molecules:
             mol.parameterize()
+
+    def combine(self):
+        self.system = System(*self.molecules,
+                             name=self.name,
+                             shift=True,
+                             spacing=2.0,
+                             include_gbsa=True)
+
+    def make_simulation(self, mdps=None):
+        _mdps = {'minimize': 'path/to/mdp',
+                 'equilibrate': 'path/to/mdp'}
+        if mdps is not None:
+            _mdps.update(mdps)
+        self.simulation = self._SimClass(
+            name=self.name,
+            gro=self.system.gro_path,
+            top=self.system.top_path,
+        )

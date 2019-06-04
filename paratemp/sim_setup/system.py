@@ -85,7 +85,10 @@ class System(object):
         ptop.write(str(top_path))
         if include_gbsa:
             self._add_gbsa_include(top_path)
-        ptop.save(str(self._directory / 'rough_{}.gro'.format(self._name)))
+        self.top_path = top_path
+        gro_path = self._directory / 'rough_{}.gro'.format(self._name)
+        ptop.save(str(gro_path))
+        self.gro_path = gro_path
         log.info('Wrote combined topology and geometry files in {}'.format(
             self._directory))
 
