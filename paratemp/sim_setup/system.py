@@ -73,6 +73,7 @@ class System(object):
                 raise TypeError(
                     'positional arguments must of type Molecule; given '
                     '{}'.format(type(arg)))
+        self.n_molecules = len(args)
         self._directory = Path(self._name).resolve()
         self._directory.mkdir()
         ptop = args[0].topology.copy(GroTopFile)  # type: GroTopFile
@@ -149,3 +150,7 @@ class System(object):
                                             str(int(str(bak_path)[-1])+1))
         path.rename(bak_path)
         temp_path.rename(path)
+
+    def __repr__(self):
+        return '<{} System from {} Molecules>'.format(self.name,
+                                                      self.n_molecules)

@@ -98,6 +98,7 @@ class Molecule(object):
         self._directory.mkdir(exist_ok=True)
         shutil.copy(self._input_geo_path, self._directory)
         self.charge = int(charge)
+        self._parameterized = False
         self._gro = None
         self._top = None
         self._ptop = None
@@ -144,6 +145,7 @@ class Molecule(object):
         ptop.write(str(self._directory / '{}.top'.format(self._name)))
         ptop.save(str(self._directory / '{}.gro'.format(self._name)))
         log.info('Wrote top and gro files in {}'.format(self._directory))
+        self._parameterized = True
 
     @staticmethod
     def _get_amber_env() -> Dict[str, str]:
@@ -175,3 +177,7 @@ class Molecule(object):
                                   universal_newlines=True,
                                   **kwargs)
         return proc
+
+    def __repr__(self):
+        return '<{} Molecule; parameterized: {}>'.format(self.name,
+                                                          self._parameterized)

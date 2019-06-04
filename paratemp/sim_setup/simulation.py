@@ -216,7 +216,11 @@ class SimpleSimulation(object):
         self.molecules = list()  # type: typing.List[Molecule]
         self.directories = dict()  # type: typing.Dict[str, pathlib.Path]
         self._process_mol_inputs(mol_inputs)
+        self.n_molecules = len(self.molecules)
         self._dielectric = solvent_dielectric
+        self._steps = dict(parameterized=False,
+                           combined=False,
+                           simulation_created=False)
         self.system = None  # type: System
         self._SimClass = Simulation
         self.simulation = None  # type: Simulation
@@ -246,6 +250,11 @@ class SimpleSimulation(object):
         self.directories.update(dirs)
 
     def parameterize(self):
+        """
+        Parameterize all Molecules in this SimpleSimulation
+
+        :return: None
+        """
         log.info('Parameterizing the {} Molecules'.format(len(self.molecules)))
         # TODO optionally include position restraints?
         # was necessary before otherwise they just flew apart
@@ -253,10 +262,11 @@ class SimpleSimulation(object):
         # especially if they're oppositely charged, but not regularly the case
         for mol in self.molecules:
             mol.parameterize()
+        self._steps['parameterized'] = True
 
     def combine(self):
         """
-        Combining all molecules into a given System
+        Combine all molecules into a given System
 
         :return: None
         """
@@ -268,10 +278,11 @@ class SimpleSimulation(object):
                              spacing=2.0,
                              include_gbsa=True)
         self.directories['system'] = self.system.directory
+        self._steps['combined'] = True
 
     def make_simulation(self, mdps: dict = None):
         """
-        Making a Simulation object from the System
+        Make a Simulation object from the System
 
         :param dict mdps: dict of step names to strings of path to existing
             mdp files
@@ -291,10 +302,11 @@ class SimpleSimulation(object):
             base_folder=self.system.directory,
             mdps=_mdps
         )
+        self._steps['simulation_created'] = True
 
     def _insert_dielectric(self, mdps: dict) -> typing.Dict[str, str]:
         """
-        Use Python format ({}) to dielectric constant into given mdp files
+        Use Python format ({}) to put dielectric constant into given mdp files
 
         :param dict mdps: dict of step names to strings of path to existing
             mdp files
@@ -313,3 +325,13 @@ class SimpleSimulation(object):
                 key, new_path))
             d_out[key] = str(new_path)
         return d_out
+
+    def __repr__(self):
+        return ('<{} SimpleSimulation with {} Molecules; params: {}; '
+                'combined: {}, sim made: '
+                '{}>'.format(self.name,
+                             self.n_molecules,
+                             self._steps['parameterized'],
+                             self._steps['combined'],
+                             self._steps['simulation_created']))
+
