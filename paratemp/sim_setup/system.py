@@ -51,6 +51,15 @@ if not log.hasHandlers():
 
 
 class System(object):
+    """
+    The System class is intended to combine several Molecules.
+
+    It will add the molecules together into one box and optionally shift the
+    molecules in the z direction to make sure the molecules are no longer
+    overlapping.
+    It can also optionally add GBSA implicit solvation parameters based on
+    Amber03.
+    """
 
     def __init__(self, *args: Molecule,
                  name: str = 'default',
