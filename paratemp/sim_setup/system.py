@@ -96,6 +96,10 @@ class System(object):
     def directory(self) -> Path:
         return self._directory
 
+    @property
+    def name(self) -> str:
+        return self._name
+
     @staticmethod
     def _get_res_max_z(res: ParmedRes) -> float:
         """Return the max z coordinate for any atom in the given residue

@@ -245,6 +245,13 @@ class SimpleSimulation(object):
             mol.parameterize()
 
     def combine(self):
+        """
+        Combining all molecules into a given System
+
+        :return: None
+        """
+        log.info('Combining the {} Molecules into a single System'.format(
+            len(self.molecules)))
         self.system = System(*self.molecules,
                              name=self.name,
                              shift=True,
@@ -252,7 +259,16 @@ class SimpleSimulation(object):
                              include_gbsa=True)
         self.directories['system'] = self.system.directory
 
-    def make_simulation(self, mdps=None):
+    def make_simulation(self, mdps: dict = None):
+        """
+        Making a Simulation object from the System
+
+        :param dict mdps: dict of step names to strings of path to existing
+            mdp files
+        :return: None
+        """
+        log.info('Creating a Simulation object from the {} '
+                 'System object'.format(self.system.name))
         self.directories['simulation_base'] = self.system.directory
         _mdps = {'minimize': 'path/to/mdp',
                  'equilibrate': 'path/to/mdp'}
