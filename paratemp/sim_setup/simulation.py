@@ -31,7 +31,8 @@ import typing
 
 import gromacs
 
-from . import Molecule, System
+from .molecule import Molecule
+from .system import System
 from ..tools import cd
 
 
