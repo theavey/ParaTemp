@@ -22,6 +22,7 @@
 #                                                                      #
 ########################################################################
 
+import json
 import logging
 from pathlib import Path
 import shlex
@@ -113,6 +114,10 @@ class Molecule(object):
         # could use charges from QM calc
         # TODO convert from whatever to PDB, MDL, or MOL2
         log.debug('Parameterizing {} with acpype'.format(self._name))
+        amber_env_path = Path(
+            '/projectnb/nonadmd/theavey/GROMACS-basics/SimpleSim/amber_env'
+            '.json')
+        amber_env = json.load(amber_env_path.open('r'))
         cl = shlex.split('acpype.py -i {} '
                          '-o gmx '
                          '-n {} '
@@ -121,7 +126,7 @@ class Molecule(object):
                             self.charge,
                             self._name))
         log.warning('Running acpype.py; this may take a few minutes')
-        proc = self._run_in_dir(cl)
+        proc = self._run_in_dir(cl, env=amber_env)
         log.info('acpype said:\n {}'.format(proc.stdout))
         proc.check_returncode()
         ac_dir = self._directory / '{}.acpype'.format(self._name)
@@ -154,9 +159,10 @@ class Molecule(object):
     def name(self) -> str:
         return self._name
 
-    def _run_in_dir(self, cl) -> subprocess.CompletedProcess:
+    def _run_in_dir(self, cl, **kwargs) -> subprocess.CompletedProcess:
         with cd(self._directory):
             proc = subprocess.run(cl, stdout=subprocess.PIPE,
                                   stderr=subprocess.STDOUT,
-                                  universal_newlines=True)
+                                  universal_newlines=True,
+                                  **kwargs)
         return proc
