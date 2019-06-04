@@ -127,7 +127,8 @@ class System(object):
         log.info('Adding lines to include implicit solvation parameters')
         to_add = ('; Include parameters for implicit solvation\n'
                   '#include '
-                  '/projectnb/nonadmd/theavey/GROMACS-basics/gbsa_all.itp\n\n')
+                  '/projectnb/nonadmd/theavey/GROMACS-basics/SimpleSim/'
+                  'gbsa_all.itp\n\n')
         temp_path = path.with_suffix(path.suffix + '.temp')
         lines = path.read_text().splitlines(keepends=True)
         with temp_path.open('w') as temp_file:

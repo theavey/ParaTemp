@@ -201,6 +201,12 @@ class SimpleSimulation(object):
     SimpleSimulation can be used to easily setup a Simulation with many defaults
     """
 
+    _gmxbss = pathlib.Path('/projectnb/nonadmd/theavey/GROMACS-basics'
+                           '/SimpleSim')
+    _default_mdps = {'minimize': str(_gmxbss / 'minim-gbsa.mdp'),
+                     'equilibrate': str(_gmxbss / 'equil-gbsa.mdp'),
+                     'production': str(_gmxbss / 'production-gbsa.mdp')}
+
     def __init__(self, name: str,
                  mol_inputs: _type_mol_inputs = 'ask',
                  solvent_dielectric: float = 9.1  # DCM
@@ -241,6 +247,10 @@ class SimpleSimulation(object):
 
     def parameterize(self):
         log.info('Parameterizing the {} Molecules'.format(len(self.molecules)))
+        # TODO optionally include position restraints?
+        # was necessary before otherwise they just flew apart
+        # low dielectric might make it less necessary
+        # especially if they're oppositely charged, but not regularly the case
         for mol in self.molecules:
             mol.parameterize()
 
@@ -270,8 +280,7 @@ class SimpleSimulation(object):
         log.info('Creating a Simulation object from the {} '
                  'System object'.format(self.system.name))
         self.directories['simulation_base'] = self.system.directory
-        _mdps = {'minimize': 'path/to/mdp',
-                 'equilibrate': 'path/to/mdp'}
+        _mdps = self._default_mdps.copy()
         if mdps is not None:
             _mdps.update(mdps)
         _mdps = self._insert_dielectric(_mdps)
