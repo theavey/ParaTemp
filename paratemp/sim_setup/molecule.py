@@ -24,6 +24,7 @@
 
 import json
 import logging
+import os
 from pathlib import Path
 import shlex
 import shutil
@@ -114,10 +115,7 @@ class Molecule(object):
         # could use charges from QM calc
         # TODO convert from whatever to PDB, MDL, or MOL2
         log.debug('Parameterizing {} with acpype'.format(self._name))
-        amber_env_path = Path(
-            '/projectnb/nonadmd/theavey/GROMACS-basics/SimpleSim/amber_env'
-            '.json')
-        amber_env = json.load(amber_env_path.open('r'))
+        env_to_load = self._get_amber_env()
         cl = shlex.split('acpype.py -i {} '
                          '-o gmx '
                          '-n {} '
@@ -126,7 +124,7 @@ class Molecule(object):
                             self.charge,
                             self._name))
         log.warning('Running acpype.py; this may take a few minutes')
-        proc = self._run_in_dir(cl, env=amber_env)
+        proc = self._run_in_dir(cl, env=env_to_load)
         log.info('acpype said:\n {}'.format(proc.stdout))
         proc.check_returncode()
         ac_dir = self._directory / '{}.acpype'.format(self._name)
@@ -146,6 +144,16 @@ class Molecule(object):
         ptop.write(str(self._directory / '{}.top'.format(self._name)))
         ptop.save(str(self._directory / '{}.gro'.format(self._name)))
         log.info('Wrote top and gro files in {}'.format(self._directory))
+
+    @staticmethod
+    def _get_amber_env() -> Dict[str, str]:
+        amber_env_path = Path(
+            '/projectnb/nonadmd/theavey/GROMACS-basics/SimpleSim/amber_env'
+            '.json')
+        amber_env = json.load(amber_env_path.open('r'))
+        curr_env = dict(os.environ)
+        curr_env.update(amber_env)
+        return curr_env
 
     @property
     def topology(self) -> parmed.Structure:
