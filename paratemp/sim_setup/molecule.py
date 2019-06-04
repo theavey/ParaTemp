@@ -147,6 +147,7 @@ class Molecule(object):
 
     @staticmethod
     def _get_amber_env() -> Dict[str, str]:
+        log.info('Using special environment variables for Amber executables')
         amber_env_path = Path(
             '/projectnb/nonadmd/theavey/GROMACS-basics/SimpleSim/amber_env'
             '.json')
