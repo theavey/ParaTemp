@@ -75,7 +75,7 @@ class System(object):
                     '{}'.format(type(arg)))
         self._directory = Path(self._name).resolve()
         self._directory.mkdir()
-        ptop = args[0].topology.copy()  # type: GroTopFile
+        ptop = args[0].topology.copy(GroTopFile)  # type: GroTopFile
         for mol in args[1:]:
             ptop += mol.topology
         self._ptop = ptop
