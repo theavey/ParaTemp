@@ -70,7 +70,7 @@ class TestSimulation(object):
              'deffnms': dict,
              'outputs': dict,
              'geometries': dict,
-             'folders': dict,
+             'directories': dict,
              }
 
     @pytest.mark.parametrize('attr', list(attrs.keys()))
