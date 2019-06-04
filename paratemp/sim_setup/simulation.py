@@ -83,7 +83,7 @@ class Simulation(object):
         self.top = self._fp(top)
         self.geometries = OrderedDict(initial=self._fp(gro))
         self.base_folder = self._fp(base_folder)
-        self.folders = dict(base=self.base_folder)
+        self.directories = dict(base=self.base_folder)
         self.mdps = dict() if mdps is None else mdps
         self.tprs = dict()
         self.deffnms = dict()
@@ -133,7 +133,7 @@ class Simulation(object):
                                                               step_name,
                                                               self.name)
             folder.mkdir()
-            self.folders[step_name] = folder
+            self.directories[step_name] = folder
             with cd(folder):
                 tpr = self._compile_tpr(step_name, geometry)
                 self._run_mdrun(step_name, tpr)
@@ -274,11 +274,13 @@ class SimpleSimulation(object):
                  'equilibrate': 'path/to/mdp'}
         if mdps is not None:
             _mdps.update(mdps)
+        _mdps = self._insert_dielectric(_mdps)
         self.simulation = self._SimClass(
             name=self.name,
             gro=self.system.gro_path,
             top=self.system.top_path,
-            base_folder=self.system.directory
+            base_folder=self.system.directory,
+            mdps=_mdps
         )
 
     def _insert_dielectric(self, mdps: dict) -> typing.Dict[str, str]:

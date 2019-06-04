@@ -168,6 +168,6 @@ class TestSimulation(object):
         assert step in step_dir.name
         assert step_dir.exists()
         assert step_dir.is_dir()
-        d_step_dir = sim.folders[step]
+        d_step_dir = sim.directories[step]
         assert isinstance(d_step_dir, pathlib.Path)
         assert step_dir.samefile(d_step_dir)
