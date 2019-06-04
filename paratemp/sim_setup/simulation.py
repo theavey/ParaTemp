@@ -248,4 +248,5 @@ class SimpleSimulation(object):
             name=self.name,
             gro=self.system.gro_path,
             top=self.system.top_path,
+            base_folder=self.system.directory
         )

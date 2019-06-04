@@ -92,6 +92,10 @@ class System(object):
         log.info('Wrote combined topology and geometry files in {}'.format(
             self._directory))
 
+    @property
+    def directory(self):
+        return self._directory
+
     @staticmethod
     def _get_res_max_z(res: ParmedRes) -> float:
         """Return the max z coordinate for any atom in the given residue
