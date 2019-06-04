@@ -143,8 +143,16 @@ class Molecule(object):
         log.info('Wrote top and gro files in {}'.format(self._directory))
 
     @property
-    def topology(self):
+    def topology(self) -> parmed.Structure:
         return self._ptop
+
+    @property
+    def directory(self) -> Path:
+        return self._directory
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     def _run_in_dir(self, cl) -> subprocess.CompletedProcess:
         with cd(self._directory):

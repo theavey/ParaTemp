@@ -192,20 +192,25 @@ class Simulation(object):
         return gro
 
 
+_type_mol_inputs = typing.Union[str, typing.List[typing.Union[dict,
+                                                              Molecule]]]
+
+
 class SimpleSimulation(object):
     """
     SimpleSimulation can be used to easily setup a Simulation with many defaults
     """
 
     def __init__(self, name: str,
-                 mol_inputs:
-                 typing.Union[str,
-                              typing.List[typing.Union[dict,
-                                                       Molecule]]] = 'ask'):
+                 mol_inputs: _type_mol_inputs = 'ask',
+                 solvent_dielectric: float = 9.1  # DCM
+                 ):
         log.info('Instantiating a SimpleSimulation named {}'.format(name))
         self.name = name
         self.molecules = list()  # type: typing.List[Molecule]
         self._process_mol_inputs(mol_inputs)
+        self._dielectric = solvent_dielectric
+        self.directories = dict()  # type: typing.Dict[str, pathlib.Path]
         self.system = None  # type: System
         self._SimClass = Simulation
         self.simulation = None  # type: Simulation
@@ -230,6 +235,9 @@ class SimpleSimulation(object):
                 self.molecules = Molecule.from_make_mol_inputs(mol_inputs)
             except KeyError:  # maybe other Errors?
                 raise ValueError('Unrecognized input: {}'.format(mol_inputs))
+        dirs = {'molecule_{}'.format(mol.name): mol.directory for mol
+                in self.molecules}
+        self.directories.update(dirs)
 
     def parameterize(self):
         log.info('Parameterizing the {} Molecules'.format(len(self.molecules)))
@@ -242,8 +250,10 @@ class SimpleSimulation(object):
                              shift=True,
                              spacing=2.0,
                              include_gbsa=True)
+        self.directories['system'] = self.system.directory
 
     def make_simulation(self, mdps=None):
+        self.directories['simulation_base'] = self.system.directory
         _mdps = {'minimize': 'path/to/mdp',
                  'equilibrate': 'path/to/mdp'}
         if mdps is not None:
@@ -254,3 +264,25 @@ class SimpleSimulation(object):
             top=self.system.top_path,
             base_folder=self.system.directory
         )
+
+    def _insert_dielectric(self, mdps: dict) -> typing.Dict[str, str]:
+        """
+        Use Python format ({}) to dielectric constant into given mdp files
+
+        :param dict mdps: dict of step names to strings of path to existing
+            mdp files
+        :return: dict of step names to strings ot paths to edited mdp files
+            (now in a folder specific to this simulation)
+        """
+        _dir = self.directories['simulation_base']
+        d_out = dict()
+        for key in mdps:
+            old_path = pathlib.Path(mdps[key])
+            new_path = _dir / old_path.name
+            text = old_path.read_text()
+            text = text.format(dielectric=self._dielectric)
+            new_path.write_text(text)
+            log.info('wrote {} mdp with dielectric replaced to {}'.format(
+                key, new_path))
+            d_out[key] = str(new_path)
+        return d_out

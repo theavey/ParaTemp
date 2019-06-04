@@ -93,7 +93,7 @@ class System(object):
             self._directory))
 
     @property
-    def directory(self):
+    def directory(self) -> Path:
         return self._directory
 
     @staticmethod
