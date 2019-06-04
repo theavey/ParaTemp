@@ -192,6 +192,9 @@ class Simulation(object):
 
 
 class SimpleSimulation(object):
+    """
+    SimpleSimulation can be used to easily setup a Simulation with many defaults
+    """
 
     def __init__(self, name: str,
                  mol_inputs:

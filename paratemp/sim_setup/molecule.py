@@ -80,6 +80,9 @@ def make_mol_inputs() -> Dict[str, Any]:
 
 
 class Molecule(object):
+    """
+    Molecule class will make a GAFF-parameterized Structure from an input
+    """
 
     def __init__(self, geometry: Union[str, Path],
                  charge: int = 0,
