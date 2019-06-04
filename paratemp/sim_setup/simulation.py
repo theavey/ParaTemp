@@ -214,9 +214,9 @@ class SimpleSimulation(object):
         log.info('Instantiating a SimpleSimulation named {}'.format(name))
         self.name = name
         self.molecules = list()  # type: typing.List[Molecule]
+        self.directories = dict()  # type: typing.Dict[str, pathlib.Path]
         self._process_mol_inputs(mol_inputs)
         self._dielectric = solvent_dielectric
-        self.directories = dict()  # type: typing.Dict[str, pathlib.Path]
         self.system = None  # type: System
         self._SimClass = Simulation
         self.simulation = None  # type: Simulation
