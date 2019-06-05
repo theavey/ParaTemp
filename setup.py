@@ -7,6 +7,7 @@ setup(
     cmdclass=versioneer.get_cmdclass(),
     packages=['paratemp'],
     scripts=['scripts/check-convergence.py'],
+    package_data={'paratemp': ['sim_setup/SimpleSim_data/*']},
     url='https://github.com/theavey/ParaTemp',
     license='Apache License 2.0',
     author='Thomas Heavey',

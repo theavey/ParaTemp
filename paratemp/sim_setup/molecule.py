@@ -22,6 +22,7 @@
 #                                                                      #
 ########################################################################
 
+from io import TextIOBase
 import json
 import logging
 import os
@@ -32,6 +33,7 @@ import subprocess
 from typing import Union, Dict, Any
 
 import parmed
+import pkg_resources
 
 from ..tools import cd
 
@@ -150,10 +152,9 @@ class Molecule(object):
     @staticmethod
     def _get_amber_env() -> Dict[str, str]:
         log.info('Using special environment variables for Amber executables')
-        amber_env_path = Path(
-            '/projectnb/nonadmd/theavey/GROMACS-basics/SimpleSim/amber_env'
-            '.json')
-        amber_env = json.load(amber_env_path.open('r'))
+        amber_env_stream = pkg_resources.resource_stream(
+            __name__, 'SimpleSim_data/amber_env.json')  # type: TextIOBase
+        amber_env = json.load(amber_env_stream)
         curr_env = dict(os.environ)
         curr_env.update(amber_env)
         return curr_env

@@ -27,15 +27,12 @@ from pathlib import Path
 from typing import Dict
 
 import parmed
+import pkg_resources
 
 from . import Molecule
 
 
 __all__ = ['System']
-
-
-GroTopFile = parmed.gromacs.GromacsTopologyFile
-ParmedRes = parmed.topologyobjects.Residue
 
 
 log = logging.getLogger(__name__)
@@ -48,6 +45,18 @@ if not log.hasHandlers():
                                   '%(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     log.addHandler(handler)
+
+
+GroTopFile = parmed.gromacs.GromacsTopologyFile
+ParmedRes = parmed.topologyobjects.Residue
+
+
+def get_gbsa_itp(directory: Path):
+    gbsa_itp = pkg_resources.resource_string(__name__,
+                                             'SimpleSim_data/gbsa_all.itp')
+    to_path = directory / 'gbsa_all.itp'
+    to_path.write_bytes(gbsa_itp)
+    return to_path.resolve()
 
 
 class System(object):
@@ -126,10 +135,12 @@ class System(object):
     @staticmethod
     def _add_gbsa_include(path: Path):
         log.info('Adding lines to include implicit solvation parameters')
+        directory = path.parent
+        path_gbsa_itp = get_gbsa_itp(directory)
+        if not path_gbsa_itp.is_file():
+            raise FileNotFoundError('Could not create or find "gbsa_all.itp"')
         to_add = ('; Include parameters for implicit solvation\n'
-                  '#include '
-                  '/projectnb/nonadmd/theavey/GROMACS-basics/SimpleSim/'
-                  'gbsa_all.itp\n\n')
+                  '#include {}\n\n'.format(path_gbsa_itp))
         temp_path = path.with_suffix(path.suffix + '.temp')
         lines = path.read_text().splitlines(keepends=True)
         with temp_path.open('w') as temp_file:

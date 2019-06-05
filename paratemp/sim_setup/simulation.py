@@ -30,6 +30,7 @@ import sys
 import typing
 
 import gromacs
+import pkg_resources
 
 from .molecule import Molecule
 from .system import System
@@ -196,16 +197,21 @@ _type_mol_inputs = typing.Union[str, typing.List[typing.Union[dict,
                                                               Molecule]]]
 
 
+def get_mdps_folder() -> pathlib.Path:
+    directory = pkg_resources.resource_filename(
+        __name__, 'SimpleSim_data/mdps')
+    return pathlib.Path(directory)
+
+
 class SimpleSimulation(object):
     """
     SimpleSimulation can be used to easily setup a Simulation with many defaults
     """
 
-    _gmxbss = pathlib.Path('/projectnb/nonadmd/theavey/GROMACS-basics'
-                           '/SimpleSim')
-    _default_mdps = {'minimize': str(_gmxbss / 'minim-gbsa.mdp'),
-                     'equilibrate': str(_gmxbss / 'equil-gbsa.mdp'),
-                     'production': str(_gmxbss / 'production-gbsa.mdp')}
+    _path_mdps_dir = get_mdps_folder()
+    _default_mdps = {'minimize': str(_path_mdps_dir / 'minim-gbsa.mdp'),
+                     'equilibrate': str(_path_mdps_dir / 'equil-gbsa.mdp'),
+                     'production': str(_path_mdps_dir / 'production-gbsa.mdp')}
 
     def __init__(self, name: str,
                  mol_inputs: _type_mol_inputs = 'ask',
