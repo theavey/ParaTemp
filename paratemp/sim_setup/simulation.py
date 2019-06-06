@@ -25,6 +25,7 @@
 from collections import OrderedDict
 import logging
 import pathlib
+import pickle
 import re
 import sys
 import typing
@@ -331,6 +332,28 @@ class SimpleSimulation(object):
                 key, new_path))
             d_out[key] = str(new_path)
         return d_out
+
+    def save(self):
+        path = pathlib.Path('{}.pkl'.format(self.name))
+        if self._steps['simulation_created']:
+            # This doesn't work...
+            # TODO find a way around this (just don't save Sim?)
+            raise AttributeError('Cannot save SimpleSimulation after making '
+                                 'simulation')
+        pickle.dump(self, path.open('wb'))
+        log.info('Saved SimpleSimulation to {}'.format(path))
+
+    @classmethod
+    def load(cls, name: str):
+        path = pathlib.Path('{}.pkl'.format(name))
+        if not path.exists():
+            raise FileNotFoundError('Could not find save file for this name: '
+                                    '{}'.format(path))
+        ssim = pickle.load(path.open('rb'))
+        if not isinstance(ssim, cls):
+            raise TypeError('The loaded pickle file ({}) is not of the '
+                            'correct type: {}'.format(path, cls))
+        return ssim
 
     def __repr__(self):
         return ('<{} SimpleSimulation with {} Molecules; params: {}; '
