@@ -119,14 +119,14 @@ class Molecule(object):
         # TODO convert from whatever to PDB, MDL, or MOL2
         log.debug('Parameterizing {} with acpype'.format(self._name))
         env_to_load = self._get_amber_env()
-        cl = shlex.split('acpype.py -i {} '
+        cl = shlex.split('acpype -i {} '
                          '-o gmx '
                          '-n {} '
                          '-b {} '.format(
                             self._input_geo_path.resolve(),
                             self.charge,
                             self._name))
-        log.warning('Running acpype.py; this may take a few minutes')
+        log.warning('Running acpype; this may take a few minutes')
         proc = self._run_in_dir(cl, env=env_to_load)
         log.info('acpype said:\n {}'.format(proc.stdout))
         proc.check_returncode()
