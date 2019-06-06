@@ -157,6 +157,9 @@ class Molecule(object):
         amber_env = json.load(amber_env_stream)
         curr_env = dict(os.environ)
         curr_env.update(amber_env)
+        conda_prefix = Path(curr_env['CONDA_PREFIX'])
+        conda_bin = conda_prefix / 'bin'
+        curr_env['PATH'] += os.pathsep + str(conda_bin)
         return curr_env
 
     @property
