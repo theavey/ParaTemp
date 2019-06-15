@@ -140,7 +140,7 @@ class System(object):
         if not path_gbsa_itp.is_file():
             raise FileNotFoundError('Could not create or find "gbsa_all.itp"')
         to_add = ('; Include parameters for implicit solvation\n'
-                  '#include {}\n\n'.format(path_gbsa_itp))
+                  '#include "{}"\n\n'.format(path_gbsa_itp))
         temp_path = path.with_suffix(path.suffix + '.temp')
         lines = path.read_text().splitlines(keepends=True)
         with temp_path.open('w') as temp_file:
