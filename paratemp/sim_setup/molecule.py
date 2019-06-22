@@ -104,6 +104,7 @@ class Molecule(object):
         self._gro = None
         self._top = None
         self._ptop = None
+        self.atom_types = None
 
     @classmethod
     def from_make_mol_inputs(cls, mol_inputs):
@@ -144,6 +145,7 @@ class Molecule(object):
         self._ptop = ptop
         for res in ptop.residues:
             res.name = self.resname
+        self.atom_types = set(a.type for a in ptop.atoms)
         ptop.write(str(self._directory / '{}.top'.format(self._name)))
         ptop.save(str(self._directory / '{}.gro'.format(self._name)))
         log.info('Wrote top and gro files in {}'.format(self._directory))

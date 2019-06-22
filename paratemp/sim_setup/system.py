@@ -24,6 +24,7 @@
 
 import logging
 from pathlib import Path
+import re
 from typing import Dict
 
 import parmed
@@ -51,9 +52,11 @@ GroTopFile = parmed.gromacs.GromacsTopologyFile
 ParmedRes = parmed.topologyobjects.Residue
 
 
+gbsa_itp = pkg_resources.resource_string(__name__,
+                                         'SimpleSim_data/gbsa_all.itp')
+
+
 def get_gbsa_itp(directory: Path):
-    gbsa_itp = pkg_resources.resource_string(__name__,
-                                             'SimpleSim_data/gbsa_all.itp')
     to_path = directory / 'gbsa_all.itp'
     to_path.write_bytes(gbsa_itp)
     return to_path.resolve()
@@ -91,6 +94,7 @@ class System(object):
         self._ptop = ptop
         if shift:
             self._shift_to_nonoverlapping(spacing)
+        self.atom_types = set(a.type for a in ptop.atoms)
         top_path = self._directory / '{}.top'.format(self._name)
         ptop.write(str(top_path))
         if include_gbsa:
@@ -132,13 +136,18 @@ class System(object):
         for atom in self._ptop.atoms:
             atom.xz += shifts[atom.residue]
 
-    @staticmethod
-    def _add_gbsa_include(path: Path):
+    def _add_gbsa_include(self, path: Path):
         log.info('Adding lines to include implicit solvation parameters')
         directory = path.parent
-        path_gbsa_itp = get_gbsa_itp(directory)
-        if not path_gbsa_itp.is_file():
+        path_gbsa_all_itp = get_gbsa_itp(directory)
+        if not path_gbsa_all_itp.is_file():
             raise FileNotFoundError('Could not create or find "gbsa_all.itp"')
+        path_gbsa_itp = path_gbsa_all_itp.with_name('gbsa.itp')
+        lines = ['[ implicit_genborn_params ]\n',
+                 '; atype      sar      st     pi       gbr       hct\n']
+        param_dict = self._make_gbsa_dict()
+        lines += [param_dict[at] for at in self.atom_types]
+        path_gbsa_itp.write_text(''.join(lines))
         to_add = ('; Include parameters for implicit solvation\n'
                   '#include "{}"\n\n'.format(path_gbsa_itp))
         temp_path = path.with_suffix(path.suffix + '.temp')
@@ -161,6 +170,38 @@ class System(object):
                                             str(int(str(bak_path)[-1])+1))
         path.rename(bak_path)
         temp_path.rename(path)
+
+    @staticmethod
+    def _make_gbsa_dict() -> dict:
+        """
+        get dict of atom types to GBSA parameter lines
+
+        Uses :variable:`gbsa_itp` as the input file path to search for
+        parameters.
+
+        :return: dict of atom types to GBSA parameter lines
+        """
+        log.info('Finding implicit solvation parameters '
+                 'from gbsa_all.itp')
+        in_gbsa_params_sec = False
+        param_dict = dict()
+        for line in str(gbsa_itp, 'utf-8').splitlines(keepends=True):
+            _line = line.split(sep=';', maxsplit=1)[0].strip()
+            if not _line:
+                continue
+            match = re.search(r'\[\s+(\w+)\s+\]', _line)
+            if match:
+                if in_gbsa_params_sec:
+                    break  # reached next section
+                if match.group(1) == 'implicit_genborn_params':
+                    in_gbsa_params_sec = True
+                continue
+            elif not in_gbsa_params_sec:
+                continue
+            param_dict[_line.split()[0]] = line
+        if not param_dict:
+            raise ValueError('No GBSA parameters found in gbsa_all.itp')
+        return param_dict
 
     def __repr__(self):
         return '<{} System from {} Molecules>'.format(self.name,
