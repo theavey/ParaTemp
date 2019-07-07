@@ -146,7 +146,13 @@ class System(object):
         lines = ['[ implicit_genborn_params ]\n',
                  '; atype      sar      st     pi       gbr       hct\n']
         param_dict = self._make_gbsa_dict()
-        lines += [param_dict[at] for at in self.atom_types]
+        try:
+            lines += [param_dict[at] for at in self.atom_types]
+        except KeyError as e:
+            message = 'No GBSA parameters for atomtype "{}"'.format(
+                e.args[0])
+            log.error(message)
+            raise KeyError(e.args[0], message)
         path_gbsa_itp.write_text(''.join(lines))
         to_add = ('; Include parameters for implicit solvation\n'
                   '#include "{}"\n\n'.format(path_gbsa_itp))
