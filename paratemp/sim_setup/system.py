@@ -159,16 +159,16 @@ class System(object):
         temp_path = path.with_suffix(path.suffix + '.temp')
         lines = path.read_text().splitlines(keepends=True)
         with temp_path.open('w') as temp_file:
-            post_defaults, done = False, False
+            post_atomtypes, done = False, False
             for line in lines:
                 if done:
                     pass
-                elif post_defaults:
+                elif post_atomtypes:
                     if not line.strip():
                         line += to_add
                         done = True
-                elif line == '[ defaults ]\n':
-                    post_defaults = True
+                elif line.strip() == '[ atomtypes ]':
+                    post_atomtypes = True
                 temp_file.write(line)
         bak_path = path.with_suffix(path.suffix + '.bak0')
         if bak_path.exists():
