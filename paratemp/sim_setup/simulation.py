@@ -23,6 +23,7 @@
 ########################################################################
 
 from collections import OrderedDict
+import errno
 import logging
 import pathlib
 import pickle
@@ -162,12 +163,19 @@ class Simulation(object):
         tpr = '{}-{}.tpr'.format(self.name, step_name)
         p_tpr = self._fp(tpr)
         self.tprs[step_name] = p_tpr
-        rc, output, junk = gromacs.grompp(c=geometry,
-                                          p=self.top,
-                                          f=self.mdps[step_name],
-                                          o=tpr,
-                                          t=trajectory,
-                                          stdout=False)
+        if hasattr(gromacs, 'grompp'):
+            grompp_func = gromacs.grompp
+        elif hasattr(gromacs, 'grompp_mpi'):
+            grompp_func = gromacs.grompp_mpi
+        else:
+            raise OSError(errno.ENOENT, 'Could not find grompp executable '
+                                        'using gromacswrapper package')
+        rc, output, junk = grompp_func(c=geometry,
+                                       p=self.top,
+                                       f=self.mdps[step_name],
+                                       o=tpr,
+                                       t=trajectory,
+                                       stdout=False)
         # Doesn't capture output if failed?
         self.outputs['compile_{}'.format(step_name)] = output
         return p_tpr
@@ -186,7 +194,14 @@ class Simulation(object):
         deffnm = '{}-{}-out'.format(self.name, step_name)
         p_deffnm = self._fp(deffnm)
         self.deffnms[step_name] = p_deffnm
-        rc, output, junk = gromacs.mdrun(s=tpr, deffnm=deffnm, stdout=False)
+        if hasattr(gromacs, 'mdrun'):
+            mdrun_func = gromacs.mdrun
+        elif hasattr(gromacs, 'mdrun_mpi'):
+            mdrun_func = gromacs.mdrun_mpi
+        else:
+            raise OSError(errno.ENOENT, 'Could not find mdrun executable '
+                                        'using gromacswrapper package')
+        rc, output, junk = mdrun_func(s=tpr, deffnm=deffnm, stdout=False)
         # Doesn't capture output if failed?
         self.outputs['run_{}'.format(step_name)] = output
         gro = p_deffnm.with_suffix('.gro')
