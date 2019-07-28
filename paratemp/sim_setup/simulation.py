@@ -129,7 +129,7 @@ class Simulation(object):
         :return: A function to run the step specified by the mdp
         :rtype: typing.Callable
         """
-        def func(geometry=None):
+        def func(geometry=None, max_warn=0):
             geometry = self.last_geometry if geometry is None else geometry
             folder_index = self._next_folder_index
             folder = self.base_folder / '{:0>2}-{}-{}'.format(folder_index,
@@ -138,14 +138,15 @@ class Simulation(object):
             folder.mkdir()
             self.directories[step_name] = folder
             with cd(folder):
-                tpr = self._compile_tpr(step_name, geometry)
+                tpr = self._compile_tpr(step_name, geometry, max_warn=max_warn)
                 self._run_mdrun(step_name, tpr)
             return folder
         return func
 
     def _compile_tpr(self, step_name: str,
                      geometry: GenPath = None,
-                     trajectory: GenPath = None
+                     trajectory: GenPath = None,
+                     max_warn: int = 0,
                      ) -> pathlib.Path:
         """
         Make a tpr file for the chosen step_name and associated mdp file
@@ -157,6 +158,11 @@ class Simulation(object):
             input geometry. This is useful when a full precision geometry is
             needed as input and a trr file can be used. If None,
             no trajectory will be given to grompp.
+        :param max_warn: Number of warnings allowed when compiling the TPR file.
+            In general, this should be 0, but there are cases where GROMACS can
+            be warning about things you agree with and understand (e.g.,
+            removing angular motions for a cluster of molecules when using
+            PBCs).
         :return: The Path to the tpr file
         """
         geometry = self.last_geometry if geometry is None else geometry
@@ -175,7 +181,8 @@ class Simulation(object):
                                        f=self.mdps[step_name],
                                        o=tpr,
                                        t=trajectory,
-                                       stdout=False)
+                                       stdout=False,
+                                       max_warn=max_warn)
         # Doesn't capture output if failed?
         self.outputs['compile_{}'.format(step_name)] = output
         return p_tpr
