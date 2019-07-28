@@ -71,13 +71,22 @@ class System(object):
     overlapping.
     It can also optionally add GBSA implicit solvation parameters based on
     Amber03.
+
+    :param args: molecules to combine into this object
+    :param name: name of the system
+    :param shift: If True, the molecules will be moved to be non-overlapping
+    :param spacing: distance to put between the molecules (in angstroms)
+    :param include_gbsa: If True, GBSA parameters for implicit solvation will
+        be included in the topology file
+    :param box_length: Length of cubic box (in angstroms)
     """
 
     def __init__(self, *args: Molecule,
                  name: str = 'default',
                  shift: bool = True,
                  spacing: float = 2.0,
-                 include_gbsa: bool = True):
+                 include_gbsa: bool = True,
+                 box_length: float = 25.0):
         log.debug('Initializing System with {} Molecules'.format(len(args)))
         self._name = name
         for arg in args:
@@ -94,6 +103,8 @@ class System(object):
         self._ptop = ptop
         if shift:
             self._shift_to_nonoverlapping(spacing)
+        if box_length:
+            ptop.box = [box_length, box_length, box_length, 90.0, 90.0, 90.0]
         self.atom_types = set(a.type for a in ptop.atoms)
         top_path = self._directory / '{}.top'.format(self._name)
         ptop.write(str(top_path))

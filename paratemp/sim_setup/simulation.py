@@ -225,9 +225,18 @@ class SimpleSimulation(object):
     """
 
     _path_mdps_dir = get_mdps_folder()
-    _default_mdps = {'minimize': str(_path_mdps_dir / 'minim-gbsa.mdp'),
-                     'equilibrate': str(_path_mdps_dir / 'equil-gbsa.mdp'),
-                     'production': str(_path_mdps_dir / 'production-gbsa.mdp')}
+    _default_mdps_gbsa = {'minimize':
+                              str(_path_mdps_dir / 'minim-gbsa.mdp'),
+                          'equilibrate':
+                              str(_path_mdps_dir / 'equil-gbsa.mdp'),
+                          'production':
+                              str(_path_mdps_dir / 'production-gbsa.mdp')}
+    _default_mdps_rf = {'minimize':
+                            str(_path_mdps_dir / 'minim-rf.mdp'),
+                        'equilibrate':
+                            str(_path_mdps_dir / 'equil-rf.mdp'),
+                        'production':
+                            str(_path_mdps_dir / 'production-rf.mdp')}
 
     def __init__(self, name: str,
                  mol_inputs: _type_mol_inputs = 'ask',
@@ -286,26 +295,40 @@ class SimpleSimulation(object):
             mol.parameterize()
         self._steps['parameterized'] = True
 
-    def combine(self):
+    def combine(self, box_length: float = None, include_gbsa: bool = False):
         """
         Combine all molecules into a given System
 
+        :param box_length: side length of the periodic cube to use
+        :param include_gbsa: If True, GBSA parameters will be added to the
+        topology file
         :return: None
         """
         log.info('Combining the {} Molecules into a single System'.format(
             len(self.molecules)))
+        if box_length is not None:
+            d_box_length = {'box_length': box_length}
+        else:
+            d_box_length = dict()
         self.system = System(*self.molecules,
                              name=self.name,
                              shift=True,
                              spacing=2.0,
-                             include_gbsa=True)
+                             include_gbsa=include_gbsa,
+                             **d_box_length)
         self.directories['system'] = self.system.directory
         self._steps['combined'] = True
 
-    def make_simulation(self, mdps: dict = None):
+    def make_simulation(self, solvent_model: str = 'rf',
+                        mdps: dict = None):
         """
         Make a Simulation object from the System
 
+        :param str solvent_model: type of solvent model to use. This currently
+            knows how to handle 'rf' for reaction field or 'gbsa' for the
+            Generalized Born Solvent model (crashes tested versions of
+            GROMACS > ~5.0).
+            This will determine which default set of mdp files to use.
         :param dict mdps: dict of step names to strings of path to existing
             mdp files
         :return: None
@@ -313,7 +336,9 @@ class SimpleSimulation(object):
         log.info('Creating a Simulation object from the {} '
                  'System object'.format(self.system.name))
         self.directories['simulation_base'] = self.system.directory
-        _mdps = self._default_mdps.copy()
+        solvent_model_dict = {'rf': self._default_mdps_rf,
+                              'gbsa': self._default_mdps_gbsa}
+        _mdps = solvent_model_dict[solvent_model.lower()].copy()
         if mdps is not None:
             _mdps.update(mdps)
         _mdps = self._insert_dielectric(_mdps)
