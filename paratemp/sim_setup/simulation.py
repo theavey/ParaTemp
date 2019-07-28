@@ -30,6 +30,7 @@ import pickle
 import re
 import sys
 import typing
+import warnings
 
 import gromacs
 import pkg_resources
@@ -169,22 +170,25 @@ class Simulation(object):
         tpr = '{}-{}.tpr'.format(self.name, step_name)
         p_tpr = self._fp(tpr)
         self.tprs[step_name] = p_tpr
-        if hasattr(gromacs, 'grompp'):
-            grompp_func = gromacs.grompp
-        elif hasattr(gromacs, 'grompp_mpi'):
-            grompp_func = gromacs.grompp_mpi
+        g_tools = gromacs.tools
+        if hasattr(g_tools, 'Grompp'):
+            grompp_cls = g_tools.Grompp
+        elif hasattr(g_tools, 'Grompp_mpi'):
+            grompp_cls = g_tools.Grompp_mpi
         else:
             raise OSError(errno.ENOENT, 'Could not find grompp executable '
                                         'using gromacswrapper package')
-        rc, output, junk = grompp_func(c=geometry,
-                                       p=self.top,
-                                       f=self.mdps[step_name],
-                                       o=tpr,
-                                       t=trajectory,
-                                       stdout=False,
-                                       max_warn=max_warn)
-        # Doesn't capture output if failed?
-        self.outputs['compile_{}'.format(step_name)] = output
+        grompp_func = grompp_cls(failure='warn')
+        rc, output, err = grompp_func(c=geometry,
+                                      p=self.top,
+                                      f=self.mdps[step_name],
+                                      o=tpr,
+                                      t=trajectory,
+                                      maxwarn=max_warn,
+                                      stdout=False,
+                                      stderr=False)
+        self.outputs['compile_{}_out'.format(step_name)] = output
+        self.outputs['compile_{}_err'.format(step_name)] = err
         return p_tpr
 
     def _run_mdrun(self, step_name: str, tpr: GenPath = None
@@ -201,16 +205,19 @@ class Simulation(object):
         deffnm = '{}-{}-out'.format(self.name, step_name)
         p_deffnm = self._fp(deffnm)
         self.deffnms[step_name] = p_deffnm
-        if hasattr(gromacs, 'mdrun'):
-            mdrun_func = gromacs.mdrun
-        elif hasattr(gromacs, 'mdrun_mpi'):
-            mdrun_func = gromacs.mdrun_mpi
+        g_tools = gromacs.tools
+        if hasattr(g_tools, 'Mdrun'):
+            mdrun_cls = g_tools.Mdrun
+        elif hasattr(g_tools, 'Mdrun_mpi'):
+            mdrun_cls = g_tools.Mdrun_mpi
         else:
             raise OSError(errno.ENOENT, 'Could not find mdrun executable '
                                         'using gromacswrapper package')
-        rc, output, junk = mdrun_func(s=tpr, deffnm=deffnm, stdout=False)
-        # Doesn't capture output if failed?
-        self.outputs['run_{}'.format(step_name)] = output
+        mdrun_func = mdrun_cls(failure='warn')
+        rc, output, err = mdrun_func(s=tpr, deffnm=deffnm,
+                                     stdout=False, stderr=False)
+        self.outputs['run_{}_out'.format(step_name)] = output
+        self.outputs['run_{}_err'.format(step_name)] = err
         gro = p_deffnm.with_suffix('.gro')
         self.geometries[step_name] = gro
         return gro
@@ -357,6 +364,7 @@ class SimpleSimulation(object):
             mdps=_mdps
         )
         self._steps['simulation_created'] = True
+        gromacs.start_logging()
 
     def _insert_dielectric(self, mdps: dict) -> typing.Dict[str, str]:
         """
