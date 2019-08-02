@@ -130,7 +130,7 @@ class Simulation(object):
         :return: A function to run the step specified by the mdp
         :rtype: typing.Callable
         """
-        def func(_self, geometry=None, max_warn=0):
+        def func(geometry=None, max_warn=0):
             folder, geometry = self._setup_for_step(geometry, step_name)
             with cd(folder):
                 tpr = self._compile_tpr(step_name, geometry, max_warn=max_warn)
