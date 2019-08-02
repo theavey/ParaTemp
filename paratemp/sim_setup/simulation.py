@@ -130,19 +130,24 @@ class Simulation(object):
         :return: A function to run the step specified by the mdp
         :rtype: typing.Callable
         """
-        def func(geometry=None, max_warn=0):
-            geometry = self.last_geometry if geometry is None else geometry
-            folder_index = self._next_folder_index
-            folder = self.base_folder / '{:0>2}-{}-{}'.format(folder_index,
-                                                              step_name,
-                                                              self.name)
-            folder.mkdir()
-            self.directories[step_name] = folder
+        def func(_self, geometry=None, max_warn=0):
+            folder, geometry = self._setup_for_step(geometry, step_name)
             with cd(folder):
                 tpr = self._compile_tpr(step_name, geometry, max_warn=max_warn)
                 self._run_mdrun(step_name, tpr)
             return folder
+
         return func
+
+    def _setup_for_step(self, geometry, step_name):
+        geometry = self.last_geometry if geometry is None else geometry
+        folder_index = self._next_folder_index
+        folder = self.base_folder / '{:0>2}-{}-{}'.format(folder_index,
+                                                          step_name,
+                                                          self.name)
+        folder.mkdir()
+        self.directories[step_name] = folder
+        return folder, geometry
 
     def _compile_tpr(self, step_name: str,
                      geometry: GenPath = None,
@@ -334,7 +339,7 @@ class SimpleSimulation(object):
         self._steps['combined'] = True
 
     def make_simulation(self, solvent_model: str = 'rf',
-                        mdps: dict = None):
+                        mdps: dict = None, **kwargs):
         """
         Make a Simulation object from the System
 
@@ -361,7 +366,8 @@ class SimpleSimulation(object):
             gro=self.system.gro_path,
             top=self.system.top_path,
             base_folder=self.system.directory,
-            mdps=_mdps
+            mdps=_mdps,
+            **kwargs
         )
         self._steps['simulation_created'] = True
         gromacs.start_logging()
