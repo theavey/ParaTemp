@@ -503,7 +503,7 @@ def make_gromacs_sub_script(filename, name=None,
 
 def _get_mdrun_line(checkpoint, deffnm, multi, nsims, other_mdrun, plumed,
                     replex, tpr):
-    line = 'mpirun -n $NSIMS -loadbalance -x OMP_NUM_THREADS mdrun_mpi '
+    line = 'mpirun -n $NSIMS --map-by node -x OMP_NUM_THREADS mdrun_mpi '
     if tpr is not None:
         line += '-s {} '.format(tpr)
     if deffnm is not None:
