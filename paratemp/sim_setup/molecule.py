@@ -123,7 +123,7 @@ class Molecule(object):
         cl = shlex.split('acpype -i {} '
                          '-o gmx '
                          '-n {} '
-                         '-c user'
+                         '-c user '
                          '-b {} '.format(
                             self._input_geo_path.resolve(),
                             self.charge,
