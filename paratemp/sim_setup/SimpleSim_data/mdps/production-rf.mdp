@@ -13,7 +13,7 @@
 integrator               = md
 ; Start time and timestep in ps
 dt                       = 0.002
-nsteps                   = 100000000    ; 200 ns
+nsteps                   = 25000000    ; 50 ns
 
 ; OUTPUT CONTROL OPTIONS
 ; Output frequency for coords (x), velocities (v) and forces (f)
