@@ -7,23 +7,19 @@ addons:
     - gromacs
 
 python:
-  - "3.5"
   - "3.6"
-# Enable 3.7 without globally enabling sudo and dist: xenial for
-# other build jobs
-matrix:
-  include:
-    - python: 3.7
-      dist: xenial
-      sudo: true
-      addons:
-        apt:
-          packages:
-            - gromacs
-            - libhdf5-dev
+  - "3.7"
 
 # command to install dependencies and package
 install:
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+    -O miniconda.sh
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION acpype
+  - conda activate test-environment
   - pip install -e .[tests]
 
 # command to run tests
