@@ -1,11 +1,11 @@
-"""This module has functions and classes useful for setting up simulations"""
+"""This contains a set of tests for setting up parallel tempering calcs"""
 
 ########################################################################
 #                                                                      #
-# This test was written by Thomas Heavey in 2019.                      #
+# This script was written by Thomas Heavey in 2019.                    #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
-# Copyright 2017-19 Thomas J. Heavey IV                                #
+# Copyright 2019 Thomas J. Heavey IV                                   #
 #                                                                      #
 # Licensed under the Apache License, Version 2.0 (the "License");      #
 # you may not use this file except in compliance with the License.     #
@@ -22,11 +22,20 @@
 #                                                                      #
 ########################################################################
 
-from __future__ import absolute_import
+import pytest
 
-from .para_temp_setup import *
-from .sim_setup import *
-from .molecule import Molecule
-from .system import System
-from .simulation import Simulation, SimpleSimulation
-from .pt_simulation import PTSimulation
+from .test_simulation import TestSimulation
+
+
+class TestPTSimulation(TestSimulation):
+
+    @pytest.fixture
+    def sim_with_dir(self, pt_blank_dir):
+        from paratemp.sim_setup import PTSimulation
+        gro = pt_blank_dir / 'PT-out0.gro'
+        top = pt_blank_dir / 'spc-and-methanol.top'
+        sim = PTSimulation(name='sim_fixture',
+                           gro=str(gro), top=str(top),
+                           base_folder=str(pt_blank_dir),
+                           mdps=self.mdps)
+        return sim, pt_blank_dir

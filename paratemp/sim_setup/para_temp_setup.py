@@ -29,6 +29,7 @@ import errno
 import glob
 from math import exp
 import os
+import pathlib
 import re
 import shlex
 import shutil
@@ -84,7 +85,8 @@ def compile_tprs(start_temp, scaling_exponent,
         (uses glob expansion on the input structure base name by adding
         '*.gro' to the ``structure`` keyword argument)
     :param str structure: (base) name of structure file(s)
-    :param str index: name of index file
+    :param index: name of index file
+    :type index: str or None
     :param str temps_file: name of file in which to store temperatures
     :type maxwarn: int or str
     :param maxwarn: maximum number of warnings to ignore. str is applied to
@@ -93,7 +95,8 @@ def compile_tprs(start_temp, scaling_exponent,
         just `gmx grompp`, but on some systems the MPI-compiled version may be
         `gmx_mpi grompp`, as is true on my system.
         On older versions of GROMACS, it may be something like `grompp` alone.
-    :return: None
+    :return: The path to the base name of the tprs
+    :rtype: pathlib.Path
     :raises OSError: If structure or topology files not found (or not enough
         found if ``multi_structure=True``).
     """
@@ -121,6 +124,7 @@ def compile_tprs(start_temp, scaling_exponent,
         _topology = glob.glob(topology)[0]
     except IndexError:
         raise OSError(errno.ENOENT, 'No topology file found.')
+    index_line = [] if index is None else ['-n', index]
     temps = []
     error = False
     for i in range(number):
@@ -139,7 +143,7 @@ def compile_tprs(start_temp, scaling_exponent,
         command_line += ['-f', mdp_name,
                          '-p', _topology,
                          '-c', _structure,
-                         '-n', index,
+                         *index_line,
                          '-o', mdp_name.replace('mdp', 'tpr'),
                          '-maxwarn', str(maxwarn)]
         with open('gromacs_compile_output.log', 'a') as log_file:
@@ -149,20 +153,21 @@ def compile_tprs(start_temp, scaling_exponent,
                          universal_newlines=True)
             stdout = proc.communicate()[0]
             for line in stdout.splitlines():
+                log_file.write(line+'\n')
                 if error is True:  # Catch the next line after the error
                     error = line
                 elif error:  # If error is not True but is set to string
-                    pass
+                    continue
                 elif ('Fatal error' in line or
                         'File input/output error' in line or
                         'Error in user input' in line):
                     error = True  # Deal with this after writing log file
-                log_file.write(line+'\n')
         if error or proc.returncode != 0:
             error = error if error else 'Unknown error. Check log file.'
             raise RuntimeError(error, 'returncode: {}'.format(proc.returncode))
     with open(temps_file, 'w') as t_out:
         [t_out.write(str(t)+'\n') for t in temps]
+    return pathlib.Path(base_name).absolute()
 
 
 if __name__ == "__main__":

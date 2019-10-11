@@ -7,23 +7,20 @@ addons:
     - gromacs
 
 python:
-  - "3.5"
   - "3.6"
-# Enable 3.7 without globally enabling sudo and dist: xenial for
-# other build jobs
-matrix:
-  include:
-    - python: 3.7
-      dist: xenial
-      sudo: true
-      addons:
-        apt:
-          packages:
-            - gromacs
-            - libhdf5-dev
+  - "3.7"
 
 # command to install dependencies and package
 install:
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    -O miniconda.sh
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda create -q -n test-environment -c conda-forge
+    python=$TRAVIS_PYTHON_VERSION acpype
+  - conda activate test-environment
   - pip install -e .[tests]
 
 # command to run tests
@@ -35,5 +32,5 @@ after_success:
 
 notifications:
   slack:
-    secure: pgmfRW729dA7JaulBmcVQkEaMdSpVtErckerNPGX78oA8tmL7sMHBqP7XAiX56t8HX95s8EtmxOITdtrlSFZZVQgxckuDk0NCjA7jIfDJyv4VpROAlq546JBQveW1qPqBDGsXUPN3J+vuRG+sWL/yXkLtm6ih9RQveRCwPd7++fsAclI1YmbFiaTsNkHWmXDTHYWV2RZdfK9t1I8FUqTzAcYimrNbSoS/9UPvo8Hiyv5yGylM5ctQebcVCprpjjI2NWfN29RIsKYGEEKqKcRWiZdFjd2bro3mgiE3ctwRthNV6N3iSO0HVOaXOoCK9Nw7o4S0pzrzWOfhHOgtJN0jHw+owW0a5bElNwh1N4ci8JuqcIeBzVJGs/QwzUMS+pHVurVlrKzyTn6k0Z/tJKRtI6HO0pSaRHdR5HePSS2RZuUWom3ZC+LE/XvznDjsL6krZP3sWzcT63A8iVL8sc3+NT7iybna+5JFSChzhK0o6UuSA0sVbF36qFAD5rIxC2CXfSjfF/gMF3WWIfUkLOpza1hgjdbZoY4yQxsJuZv27tMhvaDRxkqlRkpvD9gOw3sVktHZjzSBkrz7Zzu1Uwl2+lC6rS4SIL6uJ9lpXoH76dT5BDnHJ8nntrHJ3WF00Bz/fu3z3pDAIjJsXJ2yre3//bs0utry+6FSEZTJ23FOyA=
+    secure: "ju/C2pgfqgoxMBtItRziF5gLnd31XvY/6+DcccX+l1y6Mn32hvkSDKBcupRbtrVbqq5/m5jPUu6Uz3WMP7mL129rLNuYfMEaXVLw3NR+TmDGiNPLBThJcfAdzVP1GOSTr97lG763f97ruzxfbvpxWa28/q/JEj3eIkqDrhRbqT49+Bj6dFB5T1MW6IGPiwTIEqa3+QNP4nh+YCPSUdE3bO+ks5C2wXn0NQmc5aEBs5RNhFTVHI2I37oe6RfZyFDc78KiHtDRzIs/b6yQOoa3LO17TxQoTvlXKOeBojcj2HX75Rjxs+gnKHy4UM3A16b85ba2KiUJ1ZJxMce22TN3tPD9+iur3Lk2ZEhlyxtgvRWfGMA++MSmlmI/+T6Z4rMbvXQpqqPzBMptkcaXha7hfla8XHD2jeiqiy8iqlIz7R9xXv8H5Pdb4r77LXaNESQehLbTFBo+pji0awiy3j/I0QsDykuU6FGB8168sq23KVX8yp0mZ4D/azU9S64e5VGiKtpntqJG3XlnFowMrVofQRjI7x4BFjshkRv6nBsfp5QYIa8+QLb+FrYS4KOF2qdhfoCHy6igwpHUlP8ZodF781sfmmm4opGHNEn8excBjwu6ZdQLbPNVMPQ3HvuUl2llpvIk1HkDS0DTJqlMnLwAggzP4n/pO1z0u01U9Yy6GHA="
 

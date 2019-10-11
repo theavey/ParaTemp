@@ -70,14 +70,14 @@ class TestSimulation(object):
              'deffnms': dict,
              'outputs': dict,
              'geometries': dict,
-             'folders': dict,
+             'directories': dict,
              }
 
     @pytest.mark.parametrize('attr', list(attrs.keys()))
     def test_attrs_exist_and_type(self, sim, attr):
         assert hasattr(sim, attr)
-        dtype = self.attrs[attr]
-        assert isinstance(getattr(sim, attr), dtype)
+        d_type = self.attrs[attr]
+        assert isinstance(getattr(sim, attr), d_type)
 
     @pytest.mark.parametrize('step', list(mdps.keys()))
     def test_methods_exist_and_callable(self, sim, step):
@@ -135,7 +135,8 @@ class TestSimulation(object):
         assert mdout.exists()
         d_tpr = sim.tprs[step]
         assert tpr.samefile(d_tpr)
-        assert isinstance(sim.outputs['compile_{}'.format(step)], str)
+        assert isinstance(sim.outputs['compile_{}_out'.format(step)], str)
+        assert isinstance(sim.outputs['compile_{}_err'.format(step)], str)
 
     @pytest.fixture
     def sim_with_tpr(self, sim_with_dir):
@@ -159,7 +160,8 @@ class TestSimulation(object):
         assert gro.samefile(sim.last_geometry)
         assert gro.samefile(sim.geometries[step])
         assert isinstance(sim.deffnms[step], pathlib.Path)
-        assert isinstance(sim.outputs['run_{}'.format(step)], str)
+        assert isinstance(sim.outputs['run_{}_out'.format(step)], str)
+        assert isinstance(sim.outputs['run_{}_err'.format(step)], str)
 
     @pytest.mark.parametrize('step', list(mdps.keys()))
     def test_step_methods(self, sim, step):
@@ -168,6 +170,6 @@ class TestSimulation(object):
         assert step in step_dir.name
         assert step_dir.exists()
         assert step_dir.is_dir()
-        d_step_dir = sim.folders[step]
+        d_step_dir = sim.directories[step]
         assert isinstance(d_step_dir, pathlib.Path)
         assert step_dir.samefile(d_step_dir)

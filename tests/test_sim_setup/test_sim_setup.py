@@ -274,7 +274,7 @@ class TestMakeGROMACSSubScript(object):
                       other_mdrun=None,
                       plumed='plumed.dat', replex=1000, tpr='TOPO/npt')
         line = _get_mdrun_line(**kwargs)
-        ref_line = ('mpirun -n $NSIMS -loadbalance -x OMP_NUM_THREADS ' 
+        ref_line = ('mpirun -n $NSIMS --map-by node -x OMP_NUM_THREADS ' 
                     'mdrun_mpi -s TOPO/npt -deffnm PT-out -plumed ' 
                     'plumed.dat -multi 4 -replex 1000 -cpi PT-out ')
         assert line == ref_line

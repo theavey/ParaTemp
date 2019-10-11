@@ -1,0 +1,70 @@
+; Put together by Thomas Heavey
+; This file is intended to have parameters for GBSA simulations using
+; GAFF. The parameters were taken from or adapted from the Amber03 force
+; field. 
+; 
+; To add the GBSA parameters, all the included atomtypes must first be
+; defined, so I thought it would be easiest to include them here.
+; It shouldn't be an issue if the atomtypes get declared more than once,
+; as I recall (maybe wrong).
+[ atomtypes ]
+; name    bond_type mass    charge ptype  sigma      epsilon
+os      os         0.000000  0.00000000  A       0.300001        0.71128
+na      na         0.000000  0.00000000  A          0.325        0.71128
+cc      cc         0.000000  0.00000000  A       0.339967       0.359824
+cd      cd         0.000000  0.00000000  A       0.339967       0.359824
+ca      ca         0.000000  0.00000000  A       0.339967       0.359824
+s6      s6         0.000000  0.00000000  A       0.356359          1.046
+o       o          0.000000  0.00000000  A       0.295992        0.87864
+h4      h4         0.000000  0.00000000  A       0.251055        0.06276
+ha      ha         0.000000  0.00000000  A       0.259964        0.06276
+hn      hn         0.000000  0.00000000  A       0.106908      0.0656888
+c       c          0.000000  0.00000000  A       0.339967       0.359824
+c3      c3         0.000000  0.00000000  A       0.339967        0.45773
+oh      oh         0.000000  0.00000000  A       0.306647       0.880314
+cp      cp         0.000000  0.00000000  A       0.339967       0.359824
+h1      h1         0.000000  0.00000000  A       0.247135      0.0656888
+hc      hc         0.000000  0.00000000  A       0.264953      0.0656888
+ho      ho         0.000000  0.00000000  A              0              0
+ss      ss         0.000000  0.00000000  A       0.356359          1.046
+n       n          0.000000  0.00000000  A          0.325        0.71128
+;name   bond_type     mass     charge   ptype   sigma         epsilon       Amb
+ n3       n3          0.00000  0.00000   A     3.25000e-01   7.11280e-01 ; 1.82  0.1700
+ sh       sh          0.00000  0.00000   A     3.56359e-01   1.04600e+00 ; 2.00  0.2500
+ nd       nd          0.00000  0.00000   A     3.25000e-01   7.11280e-01 ; 1.82  0.1700
+ ce       ce          0.00000  0.00000   A     3.39967e-01   3.59824e-01 ; 1.91  0.0860
+ hs       hs          0.00000  0.00000   A     1.06908e-01   6.56888e-02 ; 0.60  0.0157
+ cl       cl          0.00000  0.00000   A     3.47094e-01   1.10876e+00
+ h2       h2          0.00000  0.00000   A     2.29317e-01   6.56888e-02
+ cf       cf          0.00000  0.00000   A     3.39967e-01   3.59824e-01 ; 1.91  0.0860
+
+[ implicit_genborn_params ]
+; atype      sar      st     pi       gbr       hct
+;Br           0.1      1      1        0.125     0.85 ; H
+c            0.172    1      1.554    0.17    0.72 ; C
+ca           0.18     1      1.037    0.17    0.72 ; C
+c3           0.18     1      1.276    0.17     0.72 ; C
+cc           0.172    0.012  1.554    0.17    0.72 ; C
+cd           0.172    0.012  1.554    0.17    0.72 ; C
+ce           0.172    1      1.554    0.17    0.72 ; C
+cf           0.172    1      1.554    0.17    0.72 ; C
+cp           0.172    0.012  1.554    0.17    0.72 ; C, TH edits
+c2           0.172    0.012  1.554    0.17    0.72 ; C, TH edits
+;h            0.1      1      1        0.13     0.85 ; H
+hc           0.1      1      1        0.12     0.85 ; H
+h1           0.1      1      1        0.12     0.85 ; H
+ha           0.1      1      1        0.12     0.85 ; H
+h4           0.1      1      1        0.12     0.85 ; H
+ho           0.1      1      1        0.12     0.85 ; H
+hn           0.1      1      1        0.12     0.85 ; H, TH edits
+hs           0.1      1      1        0.12     0.85 ; H
+o            0.15     1      0.926    0.15     0.85 ; O
+oh           0.152    1      1.080    0.15    0.85 ; O
+os           0.16     1      0.98     0.15     0.85 ; O, TH edits
+s6           0.18     1      1.121    0.18    0.96 ; S, TH edits
+ss           0.18     1      1.121    0.18    0.96 ; S, TH edits
+n            0.155    1      1.028    0.155   0.79 ; N
+na           0.155    1      1.028    0.155   0.79 ; NA
+; masscenters for vsites do not have gbsa parameters
+;MNH3         0        0      0        0         0
+;MCH3         0        0      0        0         0
