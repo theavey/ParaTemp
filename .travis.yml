@@ -18,7 +18,8 @@ install:
   - source "$HOME/miniconda/etc/profile.d/conda.sh"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION acpype
+  - conda create -q -n test-environment -c conda-forge
+    python=$TRAVIS_PYTHON_VERSION acpype
   - conda activate test-environment
   - pip install -e .[tests]
 
