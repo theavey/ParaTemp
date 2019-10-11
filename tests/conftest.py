@@ -22,55 +22,66 @@
 #                                                                      #
 ########################################################################
 
-import gromacs
-import numpy as np
 import pathlib
-import pytest
 import shutil
 
+import gromacs
+import numpy as np
+import pkg_resources
+import pytest
 
 gromacs.config.setup()
 
 
 @pytest.fixture
-def ref_a_dists():
+def path_ref_data():
+    return pathlib.Path(pkg_resources.resource_filename(__name__, 'ref-data'))
+
+
+@pytest.fixture
+def path_test_data():
+    return pathlib.Path(pkg_resources.resource_filename(__name__, 'test-data'))
+
+
+@pytest.fixture
+def ref_a_dists(path_ref_data):
     import pandas
-    return pandas.read_csv('tests/ref-data/spc2-a-dists.csv',
+    return pandas.read_csv(path_ref_data / 'spc2-a-dists.csv',
                            names=['a'], index_col=0)
 
 
 @pytest.fixture
-def ref_g_dists():
+def ref_g_dists(path_ref_data):
     import numpy
-    return numpy.load('tests/ref-data/spc2-g-dists.npy')
+    return numpy.load(path_ref_data / 'spc2-g-dists.npy')
 
 
 @pytest.fixture
-def ref_delta_g():
-    return np.load('tests/ref-data/spc2-fes1d-delta-gs.npy')
+def ref_delta_g(path_ref_data):
+    return np.load(path_ref_data / 'spc2-fes1d-delta-gs.npy')
 
 
 @pytest.fixture
-def ref_bins():
-    return np.load('tests/ref-data/spc2-fes1d-bins.npy')
+def ref_bins(path_ref_data):
+    return np.load(path_ref_data / 'spc2-fes1d-bins.npy')
 
 
 @pytest.fixture
-def ref_delta_g_20():
+def ref_delta_g_20(path_ref_data):
     """Created using calc_fes_1d with temp=205. and bins=20.
     Saved with np.save('spc2-fes1d-delta-gs-20.npy', dg20,
     allow_pickle=False)."""
-    return np.load('tests/ref-data/spc2-fes1d-delta-gs-20.npy')
+    return np.load(path_ref_data / 'spc2-fes1d-delta-gs-20.npy')
 
 
 @pytest.fixture
-def ref_bins_20():
-    return np.load('tests/ref-data/spc2-fes1d-bins-20.npy')
+def ref_bins_20(path_ref_data):
+    return np.load(path_ref_data / 'spc2-fes1d-bins-20.npy')
 
 
 @pytest.fixture
-def pt_blank_dir(tmp_path: pathlib.PosixPath):
-    dir_from = pathlib.Path('tests/test-data/spc-and-methanol')
+def pt_blank_dir(tmp_path: pathlib.PosixPath, path_test_data):
+    dir_from = path_test_data / 'spc-and-methanol'
     tmp_path = tmp_path.joinpath('spc-and-methanol')
     # str needed for Python 3.5
     shutil.copytree(str(dir_from), str(tmp_path))
@@ -78,8 +89,8 @@ def pt_blank_dir(tmp_path: pathlib.PosixPath):
 
 
 @pytest.fixture
-def pt_run_dir(tmp_path: pathlib.PosixPath):
-    dir_from = pathlib.Path('tests/test-data/spc-and-methanol-run')
+def pt_run_dir(tmp_path: pathlib.PosixPath, path_test_data):
+    dir_from = path_test_data / 'spc-and-methanol-run'
     tmp_path = tmp_path.joinpath('spc-and-methanol-run')
     # str needed for Python 3.5
     shutil.copytree(str(dir_from), str(tmp_path))
