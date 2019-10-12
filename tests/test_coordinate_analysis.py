@@ -24,11 +24,14 @@
 
 from __future__ import absolute_import
 
+import shutil
+
 import matplotlib
 import numpy as np
 import pandas as pd
-import py
 import pytest
+
+from paratemp import cd
 
 
 matplotlib.use('agg')
@@ -42,17 +45,29 @@ def test_matplotlib_testing_backend():
 
 class TestXTCUniverse(object):
 
-    @pytest.fixture
-    def univ(self, tmpdir):
+    def test_import(self):
         from paratemp import coordinate_analysis as ca
-        gro = py.path.local('tests/test-data/spc2.gro')
-        traj = py.path.local('tests/test-data/t-spc2-traj.xtc')
-        gro.copy(tmpdir)
-        traj.copy(tmpdir)
-        with tmpdir.as_cwd():
-            _univ = ca.Universe(gro.basename,
-                                traj.basename,
-                                temp=205.)
+        from paratemp import Universe
+        assert ca.Universe == Universe
+        from MDAnalysis import Universe as MdUniverse
+        assert issubclass(Universe, MdUniverse)
+        assert issubclass(ca.Universe, MdUniverse)
+
+    @pytest.fixture
+    def universe_class(self) -> type:
+        from paratemp import Universe
+        return Universe
+
+    @pytest.fixture
+    def univ(self, tmp_path, path_test_data, universe_class):
+        gro = path_test_data / 'spc2.gro'
+        traj = path_test_data / 't-spc2-traj.xtc'
+        shutil.copy(gro, tmp_path)
+        shutil.copy(traj, tmp_path)
+        with cd(tmp_path):
+            _univ = universe_class(gro.name,
+                                   traj.name,
+                                   temp=205.)
         return _univ
 
     @pytest.fixture
@@ -62,22 +77,21 @@ class TestXTCUniverse(object):
         return univ
 
     @pytest.fixture
-    def univ_pbc(self, tmpdir):
-        from paratemp import coordinate_analysis as ca
-        gro = py.path.local('tests/test-data/spc2.gro')
-        traj = py.path.local('tests/test-data/spc2-traj-pbc.xtc')
-        gro.copy(tmpdir)
-        traj.copy(tmpdir)
-        with tmpdir.as_cwd():
-            _univ = ca.Universe(gro.basename,
-                                traj.basename,
-                                temp=205.)
+    def univ_pbc(self, tmp_path, path_test_data, universe_class):
+        gro = path_test_data / 'spc2.gro'
+        traj = path_test_data / 'spc2-traj-pbc.xtc'
+        shutil.copy(gro, tmp_path)
+        shutil.copy(traj, tmp_path)
+        with cd(tmp_path):
+            _univ = universe_class(gro.name,
+                                   traj.name,
+                                   temp=205.)
         return _univ
 
     @pytest.fixture
-    def ref_a_pbc_dists(self):
+    def ref_a_pbc_dists(self, path_ref_data):
         import pandas
-        return pandas.read_csv('tests/ref-data/spc2-a-pbc-dists.csv',
+        return pandas.read_csv(path_ref_data / 'spc2-a-pbc-dists.csv',
                                index_col=0)
 
     def test_distance_str(self, univ, ref_a_dists):
@@ -169,38 +183,38 @@ class TestXTCUniverse(object):
         univ._last_time = 5.1e12
         assert univ.final_time_str == '5100ms'
 
-    def test_save_data(self, univ_w_a, tmpdir, capsys):
+    def test_save_data(self, univ_w_a, tmp_path, capsys):
         time = 'time_' + str(int(univ_w_a._last_time / 1000)) + 'ns'
         f_name = univ_w_a.trajectory.filename.replace('xtc', 'h5')
-        with tmpdir.as_cwd():
+        with cd(tmp_path):
             univ_w_a.save_data()
             out, err = capsys.readouterr()
-            assert tmpdir.join(f_name).exists()
+            assert (tmp_path / f_name).exists()
             with pd.HDFStore(f_name) as store:
                 df = store[time]
         assert out == 'Saved data to {f_name}[{time}]\n'.format(
             f_name=f_name, time=time)
         assert np.allclose(df, univ_w_a.data)
 
-    def test_save_data_no_new(self, univ_w_a, tmpdir, capsys):
+    def test_save_data_no_new(self, univ_w_a, tmp_path, capsys):
         time = 'time_' + str(int(univ_w_a._last_time / 1000)) + 'ns'
         f_name = univ_w_a.trajectory.filename.replace('xtc', 'h5')
-        with tmpdir.as_cwd():
+        with cd(tmp_path):
             univ_w_a.save_data()
             capsys.readouterr()
             univ_w_a.save_data()
             out, err = capsys.readouterr()
-            assert tmpdir.join(f_name).exists()
+            assert (tmp_path / f_name).exists()
             with pd.HDFStore(f_name) as store:
                 df = store[time]
         assert out == 'No data added to {f_name}[{time}]\n'.format(
             f_name=f_name, time=time)
         assert np.allclose(df, univ_w_a.data)
 
-    def test_save_data_add_new(self, univ, univ_w_a, tmpdir, capsys):
+    def test_save_data_add_new(self, univ, univ_w_a, tmp_path, capsys):
         time = 'time_' + str(int(univ_w_a._last_time / 1000)) + 'ns'
         f_name = univ_w_a.trajectory.filename.replace('xtc', 'h5')
-        with tmpdir.as_cwd():
+        with cd(tmp_path):
             univ_w_a.save_data()
             capsys.readouterr()
             univ.calculate_distances(b='4 5', save_data=False)
@@ -209,24 +223,24 @@ class TestXTCUniverse(object):
         assert out == 'Saved data to {f_name}[{time}]\n'.format(
             f_name=f_name, time=time)
 
-    def test_read_data(self, univ, univ_w_a, tmpdir, capsys):
+    def test_read_data(self, univ, univ_w_a, tmp_path, capsys):
         """
         :type univ_w_a: paratemp.Universe
         :type univ: paratemp.Universe
         """
-        with tmpdir.as_cwd():
+        with cd(tmp_path):
             univ_w_a.save_data()
             capsys.readouterr()  # just so it doesn't print
             univ.read_data()
         assert (univ_w_a.data == univ.data).all().all()
 
-    def test_read_data_no_data(self, univ, tmpdir, capsys):
+    def test_read_data_no_data(self, univ, tmp_path, capsys):
         """
         :type univ: paratemp.Universe
         """
         time = 'time_' + str(int(univ._last_time / 1000)) + 'ns'
         f_name = univ.trajectory.filename.replace('xtc', 'h5')
-        with tmpdir.as_cwd():
+        with cd(tmp_path):
             with pytest.raises(IOError, match=r'This data does not exist!\n'
                                               r'{}\[{}\]'.format(f_name,
                                                                  time)):
@@ -235,27 +249,27 @@ class TestXTCUniverse(object):
             out, err = capsys.readouterr()
         assert out == 'No data to read in {}[{}]\n'.format(f_name, time)
 
-    def test_calculate_distances_save(self, univ, tmpdir, capsys):
+    def test_calculate_distances_save(self, univ, tmp_path, capsys):
         """
         :type univ: paratemp.Universe
         """
         time = 'time_' + str(int(univ._last_time / 1000)) + 'ns'
         f_name = univ.trajectory.filename.replace('xtc', 'h5')
-        with tmpdir.as_cwd():
+        with cd(tmp_path):
             univ.calculate_distances(a='4 5')
             out, err = capsys.readouterr()
-            assert tmpdir.join(f_name).exists()
+            assert (tmp_path / f_name).exists()
             with pd.HDFStore(f_name) as store:
                 df = store[time]
         assert out == 'Saved data to {f_name}[{time}]\n'.format(
             f_name=f_name, time=time)
         assert np.allclose(df, univ.data)
 
-    def test_calculate_distances_read(self, univ_w_a, tmpdir, capsys):
+    def test_calculate_distances_read(self, univ_w_a, tmp_path, capsys):
         """
         :type univ_w_a: paratemp.Universe
         """
-        with tmpdir.as_cwd():
+        with cd(tmp_path):
             univ_w_a.save_data()
             capsys.readouterr()
             univ_w_a._data = univ_w_a._init_dataframe()
@@ -273,10 +287,10 @@ class TestXTCUniverse(object):
         assert (u.data['short'] == [False, True]).all()
         assert (frames == [1]).all()
 
-    def test_update_num_frames(self, univ, capsys):
+    def test_update_num_frames(self, univ, capsys, path_test_data):
         old_lt, old_nf = univ._last_time, univ._num_frames
-        univ.load_new(['tests/test-data/t-spc2-traj.xtc',
-                       'tests/test-data/spc2-traj-pbc.xtc'])
+        univ.load_new([str(path_test_data / 't-spc2-traj.xtc'),
+                       str(path_test_data / 'spc2-traj-pbc.xtc')])
         univ.update_num_frames()
         out, err = capsys.readouterr()
         assert old_lt != univ._last_time
@@ -288,30 +302,9 @@ class TestXTCUniverse(object):
 class TestXTCTaddol(TestXTCUniverse):
 
     @pytest.fixture
-    def univ(self, tmpdir):
-        from paratemp import coordinate_analysis as ca
-        gro = py.path.local('tests/test-data/spc2.gro')
-        traj = py.path.local('tests/test-data/t-spc2-traj.xtc')
-        gro.copy(tmpdir)
-        traj.copy(tmpdir)
-        with tmpdir.as_cwd():
-            _univ = ca.Taddol(gro.basename,
-                              traj.basename,
-                              temp=205.)
-        return _univ
-
-    @pytest.fixture
-    def univ_pbc(self, tmpdir):
-        from paratemp import coordinate_analysis as ca
-        gro = py.path.local('tests/test-data/spc2.gro')
-        traj = py.path.local('tests/test-data/spc2-traj-pbc.xtc')
-        gro.copy(tmpdir)
-        traj.copy(tmpdir)
-        with tmpdir.as_cwd():
-            _univ = ca.Taddol(gro.basename,
-                              traj.basename,
-                              temp=205.)
-        return _univ
+    def universe_class(self) -> type:
+        from paratemp.coordinate_analysis import Taddol
+        return Taddol
 
 
 # TODO add further Universe tests
