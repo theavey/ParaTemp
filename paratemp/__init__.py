@@ -38,4 +38,5 @@ del absolute_import
 __version__ = get_versions()['version']
 del get_versions
 
-__author__ = 'Thomas Heavey'
+__author__ = ['Thomas Heavey',
+              'Jacob Marasco']

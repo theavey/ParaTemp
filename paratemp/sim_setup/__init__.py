@@ -2,7 +2,7 @@
 
 ########################################################################
 #                                                                      #
-# This test was written by Thomas Heavey in 2019.                      #
+# This was written by Thomas Heavey in 2019.                           #
 #        theavey@bu.edu     thomasjheavey@gmail.com                    #
 #                                                                      #
 # Copyright 2017-19 Thomas J. Heavey IV                                #
