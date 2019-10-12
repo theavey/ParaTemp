@@ -30,7 +30,6 @@ import pickle
 import re
 import sys
 import typing
-import warnings
 
 import gromacs
 import pkg_resources
@@ -44,15 +43,6 @@ __all__ = ['Simulation', 'SimpleSimulation']
 
 
 log = logging.getLogger(__name__)
-if not log.hasHandlers():
-    level = logging.INFO
-    log.setLevel(level)
-    handler = logging.StreamHandler()
-    handler.setLevel(level)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - '
-                                  '%(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    log.addHandler(handler)
 
 
 GenPath = typing.Union[pathlib.Path, str]

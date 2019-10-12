@@ -37,15 +37,6 @@ __all__ = ['System']
 
 
 log = logging.getLogger(__name__)
-if not log.hasHandlers():
-    level = logging.INFO
-    log.setLevel(level)
-    handler = logging.StreamHandler()
-    handler.setLevel(level)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - '
-                                  '%(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    log.addHandler(handler)
 
 
 GroTopFile = parmed.gromacs.GromacsTopologyFile

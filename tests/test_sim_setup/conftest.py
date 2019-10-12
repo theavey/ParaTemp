@@ -6,7 +6,7 @@ fixtures and setup for testing the sim_setup subpackage
 import pytest
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='function')  # the created directories should be unique
 def molecule(path_test_data, tmp_path):
     from paratemp import cd
     from paratemp.sim_setup import Molecule

@@ -24,9 +24,22 @@
 
 from __future__ import absolute_import
 
+import logging
+
 from .para_temp_setup import *
 from .sim_setup import *
 from .molecule import Molecule
 from .system import System
 from .simulation import Simulation, SimpleSimulation
 from .pt_simulation import PTSimulation
+
+log = logging.getLogger(__name__)
+if not log.hasHandlers():
+    level = logging.INFO
+    log.setLevel(level)
+    handler = logging.StreamHandler()
+    handler.setLevel(level)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - '
+                                  '%(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
