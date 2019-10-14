@@ -264,8 +264,8 @@ class TestMakeGROMACSSubScript(object):
         from paratemp.sim_setup import make_gromacs_sub_script
         ts1 = make_gromacs_sub_script(temp_path)
         ts2 = make_gromacs_sub_script(temp_path_str)
-        assert ts1.readlines()  # ensure it's not empty
-        assert ts1.readlines() == ts2.readlines()
+        assert ts1.read_text()  # ensure it's not empty
+        assert ts1.read_text() == ts2.read_text()
 
     def test_get_mdrun_line(self):
         from paratemp.sim_setup.sim_setup import _get_mdrun_line
@@ -315,5 +315,5 @@ class TestMakeGROMACSSubScript(object):
                       time='12:00:00', tpn=16)
         ref_file = path_ref_data / 'sub-script-ref.sub'
         test_file = make_gromacs_sub_script(temp_path, **kwargs)
-        assert (ref_file.read_text().splitlines(keepends=True) ==
-                test_file.readlines())
+        assert (ref_file.read_text().splitlines() ==
+                test_file.read_text().splitlines())

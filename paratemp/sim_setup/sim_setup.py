@@ -28,6 +28,7 @@ A set of functions for setuping up GROMACS simulations
 import errno
 import glob
 import os
+import pathlib
 import py
 import re
 import subprocess
@@ -478,13 +479,14 @@ def make_gromacs_sub_script(filename, name=None,
         file will be overwritten. Otherwise, OSError will be raised if the file
         already exists.
     :return: The path object of the written submission script
-    :rtype: py.path.local
+    :rtype: pathlib.Path
     :raises OSError: If the file already exists and ``overwrite`` is not
         ``True``.
     :raises ValueError: If ``cores`` is not a multiple of ``tpn``.
     """
-    ppl_file = py.path.local(filename)  # should work even if it's already one
-    if not (overwrite or not ppl_file.check()):
+    # should work even if it's already a Path (on Python 3.6+)
+    path_file: pathlib.Path = pathlib.Path(filename)
+    if path_file.exists() and not overwrite:
         raise OSError(errno.EEXIST, '{} already exists'.format(filename))
     # line separators will be added later
     lines = _get_sge_basic_lines(cores, log, name, time, tpn)
@@ -496,9 +498,9 @@ def make_gromacs_sub_script(filename, name=None,
     lines.append(line)
     lines.append('\n')
     lines = [l+'\n' for l in lines]
-    with ppl_file.open('w') as f_out:
+    with path_file.open('w') as f_out:
         f_out.writelines(lines)
-    return ppl_file
+    return path_file
 
 
 def _get_mdrun_line(checkpoint, deffnm, multi, nsims, other_mdrun, plumed,
