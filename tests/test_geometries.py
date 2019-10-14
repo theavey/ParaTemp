@@ -31,9 +31,9 @@ import numpy as np
 class TestXYZ(object):
 
     @pytest.fixture
-    def xyz(self):
+    def xyz(self, path_test_data):
         from paratemp.geometries import XYZ
-        return XYZ('tests/test-data/stil-3htmf.xyz')
+        return XYZ(path_test_data / 'stil-3htmf.xyz')
 
     def test_n_atoms(self, xyz):
         assert xyz.n_atoms == 66
@@ -50,24 +50,24 @@ class TestXYZ(object):
     def test_distance(self, xyz):
         assert xyz.distance_between(41, 40) == pytest.approx(3.891653)
 
-    def test_bad_lines(self):
+    def test_bad_lines(self, path_test_data):
         from paratemp.geometries import XYZ
         with pytest.raises(ValueError):
-            XYZ('tests/test-data/stil-3htmf-bad.xyz')
+            XYZ(path_test_data / 'stil-3htmf-bad.xyz')
         with pytest.raises(ValueError):
-            XYZ('tests/test-data/stil-3htmf-bad-2.xyz')
+            XYZ(path_test_data / 'stil-3htmf-bad-2.xyz')
         with pytest.raises(TypeError):
-            XYZ('tests/test-data/empty.txt')
+            XYZ(path_test_data / 'empty.txt')
         with pytest.raises(TypeError):
-            XYZ('tests/test-data/empty_line.txt')
+            XYZ(path_test_data / 'empty_line.txt')
 
 
 class TestXYZNewline(object):
 
     @pytest.fixture
-    def xyz(self):
+    def xyz(self, path_test_data):
         from paratemp.geometries import XYZ
-        return XYZ('tests/test-data/stil-3htmf-newline.xyz')
+        return XYZ(path_test_data / 'stil-3htmf-newline.xyz')
 
     def test_n_atoms(self, xyz):
         assert xyz.n_atoms == 66
@@ -79,9 +79,9 @@ class TestXYZNewline(object):
 class TestXYZIndexed(object):
 
     @pytest.fixture
-    def xyz(self):
+    def xyz(self, path_test_data):
         from paratemp.geometries import XYZ
-        return XYZ('tests/test-data/stil-3htmf-indexed.xyz')
+        return XYZ(path_test_data / 'stil-3htmf-indexed.xyz')
 
     def test_n_atoms(self, xyz):
         assert xyz.n_atoms == 66

@@ -174,8 +174,8 @@ class TestCompileTPRs(object):
 class TestAddCptToSubScript(object):
 
     @pytest.fixture
-    def sub_script_path(self):
-        path = 'tests/test-data/gromacs-start-job.sub'
+    def sub_script_path(self, path_test_data):
+        path = str(path_test_data / 'gromacs-start-job.sub')
         b_path = os.path.join(os.path.dirname(path),
                               'temp-submission-script.bak')
         b2_path = os.path.join(os.path.dirname(path),
@@ -190,8 +190,8 @@ class TestAddCptToSubScript(object):
             os.rename(b2_path, path)
 
     @pytest.fixture
-    def sub_script_path_cpt(self):
-        path = 'tests/test-data/gromacs-start-job-cpt.sub'
+    def sub_script_path_cpt(self, path_test_data):
+        path = str(path_test_data / 'gromacs-start-job-cpt.sub')
         b_path = os.path.join(os.path.dirname(path),
                               'temp-submission-script.bak')
         b2_path = os.path.join(os.path.dirname(path),
@@ -265,8 +265,8 @@ class TestAddCptToSubScript(object):
 
 class TestFindCPTBase(object):
 
-    def test_dir(self):
-        pp = pathlib.Path('tests/test-data/spc-and-methanol-run')
+    def test_dir(self, path_test_data):
+        pp = path_test_data / 'spc-and-methanol-run'
         if pp.exists():
             return pp
         else:

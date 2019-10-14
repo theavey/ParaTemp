@@ -24,17 +24,18 @@
 
 from __future__ import absolute_import
 
-import py
 import pytest
+
+from paratemp import cd
 
 
 class TestREUniverse(object):
 
     @pytest.fixture
-    def reu(self):
+    def reu(self, path_test_data):
         from paratemp.re_universe import REUniverse
-        dir = py.path.local('tests/test-data/spc-and-methanol-run')
-        with dir.as_cwd():
+        path = path_test_data / 'spc-and-methanol-run'
+        with cd(path):
             reu = REUniverse('TOPO/nvt0.tpr',
                              base_folder='.', traj_glob='PT-out*.trr')
         return reu

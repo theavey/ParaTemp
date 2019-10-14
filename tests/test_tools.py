@@ -29,15 +29,15 @@ import numpy as np
 
 
 @pytest.fixture
-def ref_temps():
-    return np.load('tests/ref-data/temperatures.npy')
+def ref_temps(path_ref_data):
+    return np.load(path_ref_data / 'temperatures.npy')
 
 
-def test_get_temps(ref_temps):
+def test_get_temps(ref_temps, path_test_data):
     from paratemp import get_temperatures
-    assert (get_temperatures('tests/test-data/temperatures.dat')
+    assert (get_temperatures(path_test_data / 'temperatures.dat')
             == ref_temps).all()
-    assert (get_temperatures('tests/test-data/temperatures-new.dat')
+    assert (get_temperatures(path_test_data / 'temperatures-new.dat')
             == ref_temps).all()
 
 

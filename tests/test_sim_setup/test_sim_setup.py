@@ -114,8 +114,8 @@ class TestUpdateNum(object):
 
 
 @pytest.fixture
-def n_top_dc():
-    path = 'tests/test-data/ptad-cin-cg.top'
+def n_top_dc(path_test_data):
+    path = path_test_data / 'ptad-cin-cg.top'
     b_path = os.path.join(os.path.dirname(path),
                           'unequal-'+os.path.basename(path))
     yield os.path.abspath(path)
@@ -306,13 +306,14 @@ class TestMakeGROMACSSubScript(object):
         with pytest.raises(ValueError):
             _get_sge_basic_lines(**kwargs)
 
-    def test_make_gromacs_sub_script(self, temp_path):
+    def test_make_gromacs_sub_script(self, temp_path, path_ref_data):
         from paratemp.sim_setup import make_gromacs_sub_script
         kwargs = dict(checkpoint='PT-out', deffnm='PT-out',
                       multi=True, nsims=4, other_mdrun=None,
                       plumed='plumed.dat', replex=1000, tpr='TOPO/npt',
                       cores=32, log='error.log', name='job_name',
                       time='12:00:00', tpn=16)
-        ref_file = py.path.local('tests/ref-data/sub-script-ref.sub')
+        ref_file = path_ref_data / 'sub-script-ref.sub'
         test_file = make_gromacs_sub_script(temp_path, **kwargs)
-        assert ref_file.readlines() == test_file.readlines()
+        assert (ref_file.read_text().splitlines(keepends=True) ==
+                test_file.readlines())
