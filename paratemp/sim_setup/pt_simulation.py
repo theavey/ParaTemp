@@ -93,3 +93,4 @@ class SimplePTSimulation(SimpleSimulation):
                              'template-mdp-{}.txt'.format(solvent_model)),
             **kwargs
         )
+
