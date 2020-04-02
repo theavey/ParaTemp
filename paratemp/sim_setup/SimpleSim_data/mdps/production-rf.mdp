@@ -49,9 +49,9 @@ rgbradii                = 0
 
 ; OPTIONS FOR ELECTROSTATICS AND VDW
 ; Method for doing electrostatics
-coulombtype              = reaction-field
-rcoulomb                 = 1.0
-epsilon-rf               = {dielectric}          ; Approx. dielectric constant for solvent
+coulombtype              = Reaction-Field
+Rcoulomb                 = 1.0
+Epsilon-Rf               = {dielectric}          ; Approx. dielectric constant for solvent
 ; Method for doing Van der Waals
 vdw-type                 = Cut-off
 ; cut-off lengths       

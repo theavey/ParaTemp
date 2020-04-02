@@ -13,7 +13,7 @@
 integrator               = md
 ; Start time and timestep in ps
 dt                       = 0.002
-nsteps                   = 250000      ; 0.5 ns = 500 ps
+nsteps                   = 25000000    ; 50 ns
 
 ; OUTPUT CONTROL OPTIONS
 ; Output frequency for coords (x), velocities (v) and forces (f)
@@ -28,34 +28,35 @@ compressed-x-precision            = 1000
 nstxout-compressed       = 500
 ; This selects the subset of atoms for the xtc file. You can
 ; select multiple groups. By default all atoms will be written.
-xtc-grps                 = 
+xtc-grps                 = System
 ; Selection of energy groups
 energygrps               = 
 
 ; NEIGHBORSEARCHING PARAMETERS
 ; nblist update frequency
-nstlist                  = 0
+nstlist                  = 10
 ; ns algorithm (simple or grid)
 ns-type                  = simple
 ; Periodic boundary conditions: xyz (default), no (vacuum)
 ; or full (infinite systems only)
-pbc                      = no
+pbc                      = xyz
 ; nblist cut-off        
 rlist                    = 0
 ;domain-decomposition     = no
 
-cutoff-scheme           = group
+cutoff-scheme           = Verlet
 rgbradii                = 0
 
 ; OPTIONS FOR ELECTROSTATICS AND VDW
 ; Method for doing electrostatics
-coulombtype              = cut-off
-rcoulomb                 = 0
+coulombtype              = generalized-reaction-Field
+Rcoulomb                 = 1.0
+Epsilon-Rf               = {dielectric}          ; Approx. dielectric constant for solvent
 ; Method for doing Van der Waals
 vdw-type                 = Cut-off
 ; cut-off lengths       
 rvdw-switch              = 0
-rvdw                     = 0
+rvdw                     = 1.0
 ; Apply long range dispersion corrections for Energy and Pressure
 DispCorr                 = no
 ; Spacing for the PME/PPPM FFT grid
@@ -99,10 +100,4 @@ lincs-order              = 4
 ; For energy minimization with constraints it should be 4 to 8.
 lincs-iter               = 1
 
-; Implicit Solvation
-implicit-solvent        = GBSA                  ; Generalized Born, solvent accessible surface area
-gb-algorithm            = OBC                 	; HCT for convergence, Still fails 
-gb-epsilon_solvent      = {dielectric}          ; Approx. dielectric constant for solvent
-
-comm-mode               = Angular
-
+comm-mode               = linear

@@ -101,7 +101,7 @@ lincs-iter               = 1
 
 ; Implicit Solvation
 implicit-solvent        = GBSA                  ; Generalized Born, solvent accessible surface area
-gb-algorithm            = Still                 ; Use Still method to calculate Born radii
+gb-algorithm            = OBC                 	; HCT -- Still blows up. Maybe see about OBC too.
 gb-epsilon-solvent      = {dielectric}          ; Approx. dielectric constant for solvent
 
 comm-mode               = Angular

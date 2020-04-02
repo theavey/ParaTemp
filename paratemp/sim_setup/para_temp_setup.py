@@ -53,7 +53,7 @@ def compile_tprs(start_temp, scaling_exponent,
                  topology='../*top', multi_structure=False,
                  structure='../*gro', index='../index.ndx',
                  temps_file='temperatures.dat', maxwarn='0',
-                 grompp_exe='gmx grompp'):
+                 grompp_exe='gmx grompp', dielectric=80.0):
     """
     Compile TPR files for multi-temperature run with GROMACS
 
@@ -95,6 +95,7 @@ def compile_tprs(start_temp, scaling_exponent,
         just `gmx grompp`, but on some systems the MPI-compiled version may be
         `gmx_mpi grompp`, as is true on my system.
         On older versions of GROMACS, it may be something like `grompp` alone.
+    :param float dielectric: dielectric constant for desired solvent
     :return: The path to the base name of the tprs
     :rtype: pathlib.Path
     :raises OSError: If structure or topology files not found (or not enough
@@ -138,6 +139,9 @@ def compile_tprs(start_temp, scaling_exponent,
             for line in f_template:
                 if 'TempGoesHere' in line:
                     line = line.replace('TempGoesHere', str(temp))
+#                out_file.write(line)
+                if 'DielectricHere' in line:
+                    line = line.replace('DielectricHere', str(dielectric))
                 out_file.write(line)
         command_line = shlex.split(grompp_exe)
         command_line += ['-f', mdp_name,

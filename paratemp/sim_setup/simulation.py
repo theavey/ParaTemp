@@ -246,6 +246,12 @@ class SimpleSimulation(object):
                             str(_path_mdps_dir / 'equil-rf.mdp'),
                         'production':
                             str(_path_mdps_dir / 'production-rf.mdp')}
+    _default_mdps_grf = {'minimize':
+                            str(_path_mdps_dir / 'minim-grf.mdp'),
+                         'equilibrate':
+                            str(_path_mdps_dir / 'equil-grf.mdp'),
+                         'production':
+                            str(_path_mdps_dir / 'production-grf.mdp')}
 
     def __init__(self, name: str,
                  mol_inputs: _type_mol_inputs = 'ask',
@@ -346,7 +352,9 @@ class SimpleSimulation(object):
                  'System object'.format(self.system.name))
         self.directories['simulation_base'] = self.system.directory
         solvent_model_dict = {'rf': self._default_mdps_rf,
-                              'gbsa': self._default_mdps_gbsa}
+                              'gbsa': self._default_mdps_gbsa,
+                              'grf' : self._default_mdps_grf
+        }
         _mdps = solvent_model_dict[solvent_model.lower()].copy()
         if mdps is not None:
             _mdps.update(mdps)
