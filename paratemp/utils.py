@@ -35,7 +35,7 @@ from .constants import r
 from .tools import running_mean
 
 
-__all__ = ['calc_fes_2d', 'calc_fes_1d']
+__all__ = ["calc_fes_2d", "calc_fes_1d"]
 
 
 def _parse_bin_input(bins):
@@ -47,8 +47,7 @@ def _parse_bin_input(bins):
 def calc_fes_2d(x, y, temp, bins=None):
     d_bins = _parse_bin_input(bins)
     counts, xedges, yedges = np.histogram2d(x, y, **d_bins)
-    probs = np.array([[i / counts.max() for i in j] for j in counts]) \
-        + 1e-40
+    probs = np.array([[i / counts.max() for i in j] for j in counts]) + 1e-40
     delta_g = np.array([[-r * temp * np.log(p) for p in j] for j in probs])
     xmids, ymids = running_mean(xedges), running_mean(yedges)
     return delta_g, xmids, ymids
@@ -80,8 +79,7 @@ def _parse_z_bin_input(bins, zfinal, zrange):
             float(zrange)
             _zrange = [0, zrange, 11]
         except TypeError:
-            dict_zrange = {1: [0, zrange[0], 11],
-                           2: list(zrange) + [11]}
+            dict_zrange = {1: [0, zrange[0], 11], 2: list(zrange) + [11]}
             _zrange = dict_zrange.get(len(zrange), zrange)
         _bins = np.append(np.linspace(*_zrange), [zfinal])
         vmax = _zrange[1]

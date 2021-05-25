@@ -30,18 +30,19 @@ from ..tools import cd
 
 
 class PTSimulation(Simulation):
-
-    def __init__(self, *args, template_mdp: str = 'templatemdp.txt', **kwargs):
+    def __init__(self, *args, template_mdp: str = "templatemdp.txt", **kwargs):
         super(PTSimulation, self).__init__(*args, **kwargs)
         self.template_mdp = template_mdp
 
-    def production_pt(self,
-                      start_temp: float, scaling_exponent: float,
-                      number: int = 16,
-                      temps_file: str = 'temperatures.dat',
-                      geometry: GenPath = None,
-                      max_warn: int = 0,
-                      ) -> pathlib.Path:
+    def production_pt(
+        self,
+        start_temp: float,
+        scaling_exponent: float,
+        number: int = 16,
+        temps_file: str = "temperatures.dat",
+        geometry: GenPath = None,
+        max_warn: int = 0,
+    ) -> pathlib.Path:
         """
         Compile TPRs and run a parallel tempering calculation
 
@@ -60,36 +61,42 @@ class PTSimulation(Simulation):
         :return: The Path to the output geometry
         """
         # TODO make this (and compile_tprs) use gromacswrapper
-        step_name = 'production_pt'
+        step_name = "production_pt"
         folder, geometry = self._setup_for_step(geometry, step_name)
         with cd(folder):
-            with cd('tprs'):
+            with cd("tprs"):
                 tpr_base = para_temp_setup.compile_tprs(
-                    start_temp, scaling_exponent, self.template_mdp,
-                    number=number, base_name='{}-pt'.format(self.name),
-                    topology=str(self.top), structure=str(geometry),
+                    start_temp,
+                    scaling_exponent,
+                    self.template_mdp,
+                    number=number,
+                    base_name="{}-pt".format(self.name),
+                    topology=str(self.top),
+                    structure=str(geometry),
                     index=None,  # TODO allow using an index file
-                    temps_file=temps_file, maxwarn=max_warn,
-                    grompp_exe='gmx_mpi grompp')
+                    temps_file=temps_file,
+                    maxwarn=max_warn,
+                    grompp_exe="gmx_mpi grompp",
+                )
                 # TODO capture stdout/stderr in a consistent manner
-                output = open('gromacs_compile_output.log', 'r').read()
-                self.outputs['compile_{}'.format(step_name)] = output
+                output = open("gromacs_compile_output.log", "r").read()
+                self.outputs["compile_{}".format(step_name)] = output
             self.tprs[step_name] = tpr_base
             self._run_mdrun(step_name, tpr_base)
         return folder
 
 
 class SimplePTSimulation(SimpleSimulation):
-
     def __init__(self, *args, **kwargs):
         super(SimplePTSimulation, self).__init__(*args, **kwargs)
         self._SimClass = PTSimulation
 
-    def make_simulation(self, solvent_model: str = 'rf',
-                        mdps: dict = None, **kwargs):
+    def make_simulation(self, solvent_model: str = "rf", mdps: dict = None, **kwargs):
         super(SimplePTSimulation, self).make_simulation(
-            solvent_model, mdps,
-            template_mdp=str(self._path_mdps_dir /
-                             'template-mdp-{}.txt'.format(solvent_model)),
+            solvent_model,
+            mdps,
+            template_mdp=str(
+                self._path_mdps_dir / "template-mdp-{}.txt".format(solvent_model)
+            ),
             **kwargs
         )

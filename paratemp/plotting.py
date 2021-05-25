@@ -38,12 +38,18 @@ from .utils import calc_fes_1d, _parse_ax_input
 from .exceptions import InputError
 
 
-__all__ = ['fes_array_3_legend', 'plot_dist_array', 'fes_1d']
+__all__ = ["fes_array_3_legend", "plot_dist_array", "fes_1d"]
 
 
-def fes_1d(x, temp, ax=None, bins=None,
-           xlabel=r'distance / $\mathrm{\AA}$',
-           data=None, **kwargs):
+def fes_1d(
+    x,
+    temp,
+    ax=None,
+    bins=None,
+    xlabel=r"distance / $\mathrm{\AA}$",
+    data=None,
+    **kwargs
+):
     """
     Make FES of some time series data
 
@@ -91,7 +97,7 @@ def fes_1d(x, temp, ax=None, bins=None,
     _fig, _ax = _parse_ax_input(ax)
     delta_g, bin_mids = calc_fes_1d(_x, temp=temp, bins=bins)
     lines = _ax.plot(bin_mids, delta_g, **kwargs)
-    _ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
+    _ax.set_ylabel(r"$\Delta G$ / (kcal / mol)")
     _ax.set_xlabel(xlabel)
     return delta_g, bin_mids, lines, _fig, _ax
 
@@ -126,49 +132,52 @@ def fes_array_3_legend(data, temp, labels=None, axes=None, bins=None, **kwargs):
         figure and the axes
     """
     if axes is None:
-        fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True,
-                                 sharex=True)
+        fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True, sharex=True)
     else:
         try:
             fig = axes.flat[3].figure
         except (IndexError, TypeError):
-            raise InputError('axes={}'.format(axes), 'Input axes must be '
-                             'able to plot at least four things')
+            raise InputError(
+                "axes={}".format(axes),
+                "Input axes must be " "able to plot at least four things",
+            )
         except AttributeError:
             try:
                 fig = axes[3].figure
             except IndexError:
-                raise InputError('axes={}'.format(axes), 'Input axes must '
-                                 'be able to plot at least four things')
+                raise InputError(
+                    "axes={}".format(axes),
+                    "Input axes must " "be able to plot at least four things",
+                )
     if labels is None:
         _labels = data.columns[:3]
     elif len(labels) >= 3:
         _labels = labels[:3]
     else:
-        raise InputError(labels, 'len(labels) must be >= 3 if not None')
+        raise InputError(labels, "len(labels) must be >= 3 if not None")
     delta_gs = []
     bin_data = []
     handles = []
     # Use whatever the default colors for the system are
     # TODO find a more elegant way to do this
-    colors = mpl.rcParams['axes.prop_cycle'].by_key()['color']
+    colors = mpl.rcParams["axes.prop_cycle"].by_key()["color"]
     for i, key in enumerate(_labels):
         delta_g, bin_mids = calc_fes_1d(data[key], temp=temp, bins=bins)
         delta_gs.append(delta_g)
         bin_data.append(bin_mids)
         ax = axes.flat[i]
-        line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
+        (line,) = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
         handles.append(line)
-        ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
-        ax.set_xlabel(r'distance / $\mathrm{\AA}$')
-    axes.flat[3].axis('off')
-    axes.flat[3].legend(handles, _labels,
-                        loc='center')
+        ax.set_ylabel(r"$\Delta G$ / (kcal / mol)")
+        ax.set_xlabel(r"distance / $\mathrm{\AA}$")
+    axes.flat[3].axis("off")
+    axes.flat[3].legend(handles, _labels, loc="center")
     return delta_gs, bin_data, handles, fig, axes
 
 
-def plot_dist_array(array, index_offset=1, num_data_rows=None,
-                    n_rows=None, n_cols=None):
+def plot_dist_array(
+    array, index_offset=1, num_data_rows=None, n_rows=None, n_cols=None
+):
     """
     Puts each row of array in a different axes of a figure. Return figure.
 
@@ -187,5 +196,5 @@ def plot_dist_array(array, index_offset=1, num_data_rows=None,
     fig, axes = plt.subplots(n_rows, n_cols, sharex=True, sharey=True)
     for i in range(num_data_rows):
         ax = axes.flat[i]
-        ax.plot(array[:, 0], array[:, i+index_offset])
+        ax.plot(array[:, 0], array[:, i + index_offset])
     return fig

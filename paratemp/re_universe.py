@@ -46,7 +46,7 @@ from .coordinate_analysis import Universe
 from . import get_temperatures, exceptions
 
 
-__all__ = ['REUniverse']
+__all__ = ["REUniverse"]
 
 
 class REUniverse(Sequence):
@@ -83,9 +83,14 @@ class REUniverse(Sequence):
 
     """
 
-    def __init__(self, topology, base_folder,
-                 trajs=None, traj_glob='*.xtc',
-                 temps='TOPO/temperatures.dat'):
+    def __init__(
+        self,
+        topology,
+        base_folder,
+        trajs=None,
+        traj_glob="*.xtc",
+        temps="TOPO/temperatures.dat",
+    ):
         """
         Instatiate a replica exchange universe for a set of replica trajectories
 
@@ -120,14 +125,18 @@ class REUniverse(Sequence):
         self._temps = self._get_temps(temps)
         if len(self._temps) != len(self._trajs):
             raise ValueError(
-                'len of temps ({}) not same'.format(len(self._temps)) +
-                ' as len of trajs ({})'.format(len(self._trajs)))
+                "len of temps ({}) not same".format(len(self._temps))
+                + " as len of trajs ({})".format(len(self._trajs))
+            )
         self._trajs.sort()
         self._trajs.sort(key=len)
         # TODO find more sure way to match temp to trajectory
         self.universes = np.array(
-            [Universe(self._top, t, temp=self._temps[i])
-             for i, t in enumerate(self._trajs)])
+            [
+                Universe(self._top, t, temp=self._temps[i])
+                for i, t in enumerate(self._trajs)
+            ]
+        )
 
     def _fn(self, path):
         """
@@ -150,8 +159,9 @@ class REUniverse(Sequence):
         elif os.path.isfile(os.path.join(self.base_folder, path)):
             return os.path.abspath(os.path.join(self.base_folder, path))
         else:
-            raise OSError(errno.ENOENT,
-                          '{} not found here or under base_folder'.format(path))
+            raise OSError(
+                errno.ENOENT, "{} not found here or under base_folder".format(path)
+            )
 
     def _get_temps(self, temps):
         """
@@ -211,13 +221,15 @@ class REUniverse(Sequence):
             elif g2:
                 return [self._fn(t) for t in g2]
             else:
-                raise OSError(errno.ENOENT,
-                              '{} did not seem to lead'.format(traj_glob) +
-                              ' to any files here or under base_folder')
+                raise OSError(
+                    errno.ENOENT,
+                    "{} did not seem to lead".format(traj_glob)
+                    + " to any files here or under base_folder",
+                )
         else:
-            raise exceptions.InputError((trajs, traj_glob),
-                                        'use trajs or traj_glob '
-                                        'to find trajectory files')
+            raise exceptions.InputError(
+                (trajs, traj_glob), "use trajs or traj_glob " "to find trajectory files"
+            )
 
     def __getitem__(self, i):
         """
@@ -238,8 +250,9 @@ class REUniverse(Sequence):
         if isinstance(i, int):
             if i > len(self) - 1:
                 raise IndexError(
-                    'index {} is '.format(i) +
-                    'larger than the number of replicas present')
+                    "index {} is ".format(i)
+                    + "larger than the number of replicas present"
+                )
             return self.universes[i]
         if isinstance(i, six.string_types) or isinstance(i, float):
             return self.universes[find_nearest_idx(self._temps, float(i))]
@@ -254,7 +267,7 @@ class REUniverse(Sequence):
         return len(self.universes)
 
     def __repr__(self):
-        return '<REUniverse with {} replicas>'.format(len(self))
+        return "<REUniverse with {} replicas>".format(len(self))
 
     def keys(self):
         """
@@ -268,7 +281,7 @@ class REUniverse(Sequence):
         """
         # TODO possibly change precision based on spread of temperatures
         # (tenths might not always be precise enough for large systems)
-        return ('{:.1f}'.format(t) for t in self._temps)
+        return ("{:.1f}".format(t) for t in self._temps)
 
     def values(self):
         """

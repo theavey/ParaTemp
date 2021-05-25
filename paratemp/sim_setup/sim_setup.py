@@ -40,13 +40,18 @@ from paratemp.exceptions import InputError
 from paratemp.tools import cd, copy_no_overwrite
 
 
-__all__ = ['get_gro_files', 'get_n_solvent', 'get_solv_count_top',
-           'set_solv_count_top', 'copy_topology', 'update_plumed_input',
-           'make_gromacs_sub_script']
+__all__ = [
+    "get_gro_files",
+    "get_n_solvent",
+    "get_solv_count_top",
+    "set_solv_count_top",
+    "copy_topology",
+    "update_plumed_input",
+    "make_gromacs_sub_script",
+]
 
 
-def get_gro_files(trr_base='npt_PT_out', tpr_base='TOPO/npt',
-                  time=200000):
+def get_gro_files(trr_base="npt_PT_out", tpr_base="TOPO/npt", time=200000):
     """
     Get a single frame from TRR as GRO file for several trajectories
 
@@ -58,26 +63,29 @@ def get_gro_files(trr_base='npt_PT_out', tpr_base='TOPO/npt',
     :return: List of the names of the generated .gro files
     """
     from glob import glob
-    trr_files = glob(trr_base+'*.trr')
+
+    trr_files = glob(trr_base + "*.trr")
     trr_files.sort()
     trr_files.sort(key=len)
-    tpr_files = glob(tpr_base + '*.tpr')
+    tpr_files = glob(tpr_base + "*.tpr")
     tpr_files.sort()
     tpr_files.sort(key=len)
     if len(trr_files) != len(tpr_files):
-        raise ValueError('Number of trr and tpr files not equal: '
-                         '{} != {}'.format(len(trr_files), len(tpr_files)))
+        raise ValueError(
+            "Number of trr and tpr files not equal: "
+            "{} != {}".format(len(trr_files), len(tpr_files))
+        )
     out_files = list()
     from gromacs.tools import Trjconv
+
     for tpr_file, trr_file in zip(tpr_files, trr_files):
-        out_file = trr_file.replace('trr', 'gro')
-        Trjconv(s=tpr_file, f=trr_file, o=out_file, dump=time,
-                input='0')()
+        out_file = trr_file.replace("trr", "gro")
+        Trjconv(s=tpr_file, f=trr_file, o=out_file, dump=time, input="0")()
         out_files.append(out_file)
     return out_files
 
 
-def get_n_solvent(folder, solvent='DCM'):
+def get_n_solvent(folder, solvent="DCM"):
     """
     Find the number of solvent molecules of given type in topology file.
 
@@ -90,17 +98,21 @@ def get_n_solvent(folder, solvent='DCM'):
     :return: The number of solvent molecules.
     :rtype: int
     """
-    warnings.warn('This function is deprecated. Please use '
-                  'get_solv_count_top', DeprecationWarning)
-    re_n_solv = re.compile(r'(?:^\s*{}\s+)(\d+)'.format(solvent))
+    warnings.warn(
+        "This function is deprecated. Please use " "get_solv_count_top",
+        DeprecationWarning,
+    )
+    re_n_solv = re.compile(r"(?:^\s*{}\s+)(\d+)".format(solvent))
     with cd(folder):
-        f_top = glob.glob('*.top')
+        f_top = glob.glob("*.top")
         if len(f_top) != 1:
-            raise ValueError('Found {} .top files in {}\nOnly can deal with '
-                             '1'.format(len(f_top), folder))
+            raise ValueError(
+                "Found {} .top files in {}\nOnly can deal with "
+                "1".format(len(f_top), folder)
+            )
         else:
             f_top = f_top[0]
-        with open(f_top, 'r') as file_top:
+        with open(f_top, "r") as file_top:
             for line in file_top:
                 solv_match = re_n_solv.search(line)
                 if solv_match:
@@ -109,7 +121,7 @@ def get_n_solvent(folder, solvent='DCM'):
             raise ValueError("Didn't find n_solv in {}".format(folder))
 
 
-def get_solv_count_top(n_top=None, folder=None, res_name='DCM'):
+def get_solv_count_top(n_top=None, folder=None, res_name="DCM"):
     """
     Find the number of solvent molecules of given residue in topology file.
 
@@ -132,25 +144,24 @@ def get_solv_count_top(n_top=None, folder=None, res_name='DCM'):
         line with the solvent count. This could also be raised if it cannot find
         the molecules section.
     """
-    re_n_solv = re.compile(r'(?:^\s*{}\s+)(\d+)'.format(res_name),
-                           flags=re.IGNORECASE)
+    re_n_solv = re.compile(r"(?:^\s*{}\s+)(\d+)".format(res_name), flags=re.IGNORECASE)
     n_top = _get_n_top(n_top, folder)
-    with open(n_top, 'r') as in_top:
+    with open(n_top, "r") as in_top:
         mol_section = False
         for line in in_top:
-            if line.strip().startswith(';'):
+            if line.strip().startswith(";"):
                 pass
             elif not mol_section:
-                if re.search(r'\[\s*molecules\s*\]', line,
-                             flags=re.IGNORECASE):
+                if re.search(r"\[\s*molecules\s*\]", line, flags=re.IGNORECASE):
                     mol_section = True
             else:
                 solv_match = re_n_solv.search(line)
                 if solv_match:
                     return int(solv_match.group(1))
         # Not the right error, but fine for now
-        raise RuntimeError('Did not find a line with the solvent count in '
-                           '{}'.format(n_top))
+        raise RuntimeError(
+            "Did not find a line with the solvent count in " "{}".format(n_top)
+        )
 
 
 def _get_n_top(n_top, folder):
@@ -166,21 +177,22 @@ def _get_n_top(n_top, folder):
     """
     if n_top is None:
         if folder is None:
-            raise InputError('None', 'Either folder or n_top must be '
-                             'specified')
+            raise InputError("None", "Either folder or n_top must be " "specified")
         with cd(folder):
-            n_top = glob.glob('*.top')
+            n_top = glob.glob("*.top")
             if len(n_top) != 1:
                 raise ValueError(
-                    'Found {} .top files in {}\n'.format(len(n_top), folder) +
-                    'Only can deal with 1')
+                    "Found {} .top files in {}\n".format(len(n_top), folder)
+                    + "Only can deal with 1"
+                )
             else:
                 n_top = os.path.abspath(n_top[0])
     return n_top
 
 
-def set_solv_count_top(n_top=None, folder=None, s_count=0,
-                       res_name='DCM', prepend='unequal-', verbose=True):
+def set_solv_count_top(
+    n_top=None, folder=None, s_count=0, res_name="DCM", prepend="unequal-", verbose=True
+):
     """
     Set the number of solvent molecules for a given residue in topology file.
 
@@ -213,41 +225,42 @@ def set_solv_count_top(n_top=None, folder=None, s_count=0,
     n_top = _get_n_top(n_top, folder)
     if s_count == get_solv_count_top(n_top=n_top, res_name=res_name):
         if verbose:
-            print('Solvent count in {} already set at {}'.format(
-                        os.path.relpath(n_top), str(s_count)) +
-                  '\nNot copying or changing file.')
+            print(
+                "Solvent count in {} already set at {}".format(
+                    os.path.relpath(n_top), str(s_count)
+                )
+                + "\nNot copying or changing file."
+            )
         return None
-    bak_name = os.path.join(os.path.dirname(n_top),
-                            prepend+os.path.basename(n_top))
+    bak_name = os.path.join(os.path.dirname(n_top), prepend + os.path.basename(n_top))
     copy_no_overwrite(n_top, bak_name)
-    with open(n_top, 'r') as in_top:
+    with open(n_top, "r") as in_top:
         lines = in_top.readlines()
-    with open(n_top, 'w') as out_top:
+    with open(n_top, "w") as out_top:
         mol_section = False
         done = False
         for line in lines:
-            if line.strip().startswith(';'):
+            if line.strip().startswith(";"):
                 pass
             elif not mol_section:
-                if re.search(r'\[\s*molecules\s*\]', line,
-                             flags=re.IGNORECASE):
+                if re.search(r"\[\s*molecules\s*\]", line, flags=re.IGNORECASE):
                     mol_section = True
             elif not done and res_name.lower() in line.lower():
-                line = re.sub(r'\d+', str(s_count), line)
+                line = re.sub(r"\d+", str(s_count), line)
                 done = True
             out_top.write(line)
     if not done:
         # Not the right error, but fine for now
         # Also, this should not be accessible: if anything, get_solv_count_top
         # will fail with a RuntimeError first for any issue.
-        raise RuntimeError('Did not find a line with the solvent count'
-                           ' in {}'.format(n_top))
+        raise RuntimeError(
+            "Did not find a line with the solvent count" " in {}".format(n_top)
+        )
     elif verbose:
-        print('Solvent count in {} set at {}'.format(
-                    os.path.relpath(n_top), str(s_count)) +
-              '\nOriginal copied to {}.'.format(
-                    os.path.relpath(bak_name)
-              ))
+        print(
+            "Solvent count in {} set at {}".format(os.path.relpath(n_top), str(s_count))
+            + "\nOriginal copied to {}.".format(os.path.relpath(bak_name))
+        )
     return None
 
 
@@ -259,8 +272,8 @@ def copy_topology(f_from, f_to, overwrite=False):
             pass  # Ignore FileExistsError
         else:
             raise
-    to_copy = glob.glob(f_from+'/*.top')
-    to_copy += glob.glob(f_from+'/*.itp')
+    to_copy = glob.glob(f_from + "/*.top")
+    to_copy += glob.glob(f_from + "/*.itp")
     for path in to_copy:
         copy_no_overwrite(path, f_to, silent=overwrite)
 
@@ -275,15 +288,16 @@ def _submit_script(script_name, log_stream=_BlankStream()):
     :type log_stream: _BlankStream or BinaryIO
     :return: the job information as output by _job_info_from_qsub
     """
-    cl = ['qsub', script_name]
-    proc = subprocess.Popen(cl, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, universal_newlines=True)
+    cl = ["qsub", script_name]
+    proc = subprocess.Popen(
+        cl, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True
+    )
     output = proc.communicate()[0]
     log_stream.write(output)
     log_stream.flush()
     if proc.returncode != 0:
         print(output)
-        raise subprocess.CalledProcessError(proc.returncode, ' '.join(cl))
+        raise subprocess.CalledProcessError(proc.returncode, " ".join(cl))
     return _job_info_from_qsub(output)
 
 
@@ -298,16 +312,16 @@ def _job_info_from_qsub(output):
     """
     match = re.search(r'(\d+)\s\("(\w.*)"\)', output)
     if not match:
-        raise ValueError('Output from qsub was not able to be parsed: \n'
-                         '    {}'.format(output))
+        raise ValueError(
+            "Output from qsub was not able to be parsed: \n" "    {}".format(output)
+        )
     return match.group(1), match.group(2), match.group(0)
 
 
 d_cgenff_ptad_repls = {1: 63, 9: 69, 8: 72, 120: 182}
 
 
-def _update_num(match, shift=120,
-                cat_repl_dict=None):
+def _update_num(match, shift=120, cat_repl_dict=None):
     """
     Return a string with an updated number based on atom-index changes
 
@@ -331,34 +345,36 @@ def _update_num(match, shift=120,
     :return: pre-string combined with the new atom index
     """
     if cat_repl_dict is None:
-        raise InputError('None', 'cat_repl_dict must be defined')
+        raise InputError("None", "cat_repl_dict must be defined")
     pre, s = match.groups()
     try:
         n = int(s)
     except ValueError:
         raise ValueError('"{}" cannot be converted to a valid int'.format(s))
-    if n < shift+1:
+    if n < shift + 1:
         out = cat_repl_dict[n]
     else:
         out = n - shift
     return pre + str(out)
 
 
-c_line_keywords = frozenset({'WHOLEMOLECULES', 'c1:', 'c2:',
-                             'g1:', 'g2:', 'g3:', 'g4:',
-                             'dm1:', 'dm2:'})
-d_line_keywords = frozenset({'tr5:', 'tr6:', 'FILE=COLVAR'})
-d_equil_repls = {'dm2:': ['72', '71'],
-                 'dm1:': ['40', '12']}
+c_line_keywords = frozenset(
+    {"WHOLEMOLECULES", "c1:", "c2:", "g1:", "g2:", "g3:", "g4:", "dm1:", "dm2:"}
+)
+d_line_keywords = frozenset({"tr5:", "tr6:", "FILE=COLVAR"})
+d_equil_repls = {"dm2:": ["72", "71"], "dm1:": ["40", "12"]}
 
 
-def update_plumed_input(n_plu_in, n_plu_out,
-                        change_keys=c_line_keywords,
-                        num_updater=_update_num,
-                        num_updater_kwargs=None,
-                        delete_keys=d_line_keywords,
-                        equil=False,
-                        equil_changes=None):
+def update_plumed_input(
+    n_plu_in,
+    n_plu_out,
+    change_keys=c_line_keywords,
+    num_updater=_update_num,
+    num_updater_kwargs=None,
+    delete_keys=d_line_keywords,
+    equil=False,
+    equil_changes=None,
+):
     """
     Write a changed PLUMED input based on a previous PLUMED input
 
@@ -393,47 +409,56 @@ def update_plumed_input(n_plu_in, n_plu_out,
     :return: None
     """
     if equil and equil_changes is None:
-        raise InputError('None', 'equil_changes must be defined when equil is '
-                                 'True')
+        raise InputError("None", "equil_changes must be defined when equil is " "True")
     if num_updater_kwargs is None:
         _num_updater = num_updater
     else:
+
         def _num_updater(n):
             num_updater(n, **num_updater_kwargs)
-    with open(n_plu_in, 'r') as from_file, \
-            open(n_plu_out, 'w') as to_file:
+
+    with open(n_plu_in, "r") as from_file, open(n_plu_out, "w") as to_file:
         for line in from_file:
             c_key_match = set(line.split()) & set(change_keys)
             if c_key_match:
-                line = re.sub(r'([=,-])(\d+)', _num_updater, line)
+                line = re.sub(r"([=,-])(\d+)", _num_updater, line)
                 if equil:
                     if len(c_key_match) > 1:
-                        raise KeyError('More than one keyword matched in '
-                                       'line: {}'.format(c_key_match))
+                        raise KeyError(
+                            "More than one keyword matched in "
+                            "line: {}".format(c_key_match)
+                        )
                     key = c_key_match.pop()
                     if key in equil_changes.keys():
                         line = line.replace(*equil_changes[key])
             elif set(line.split()) & set(delete_keys):
-                line = ''
-            elif equil and line.startswith('UPPER_WALLS'):
+                line = ""
+            elif equil and line.startswith("UPPER_WALLS"):
                 # soften the upper walls
-                line = line.replace('150.0,150.0 EXP=2,2', '75.0,75.0 EXP=1,1')
+                line = line.replace("150.0,150.0 EXP=2,2", "75.0,75.0 EXP=1,1")
                 # pull them a little closer to make sure they're within the
                 # walls for the production simulation
-                line = line.replace('AT=12.0,12.0', 'AT=10.5,10.5')
+                line = line.replace("AT=12.0,12.0", "AT=10.5,10.5")
             to_file.write(line)
 
 
-def make_gromacs_sub_script(filename, name=None,
-                            time='24:00:00',
-                            tpn=16, cores=16, nsims=1,
-                            tpr=None, deffnm=None,
-                            plumed=None,
-                            multi=None, replex=None,
-                            checkpoint=None,
-                            other_mdrun=None,
-                            log='error.log',
-                            overwrite=False):
+def make_gromacs_sub_script(
+    filename,
+    name=None,
+    time="24:00:00",
+    tpn=16,
+    cores=16,
+    nsims=1,
+    tpr=None,
+    deffnm=None,
+    plumed=None,
+    multi=None,
+    replex=None,
+    checkpoint=None,
+    other_mdrun=None,
+    log="error.log",
+    overwrite=False,
+):
     """
     Write SGE submission script for a GROMACS mdrun job.
 
@@ -487,40 +512,40 @@ def make_gromacs_sub_script(filename, name=None,
     # should work even if it's already a Path (on Python 3.6+)
     path_file: pathlib.Path = pathlib.Path(filename)
     if path_file.exists() and not overwrite:
-        raise OSError(errno.EEXIST, '{} already exists'.format(filename))
+        raise OSError(errno.EEXIST, "{} already exists".format(filename))
     # line separators will be added later
     lines = _get_sge_basic_lines(cores, log, name, time, tpn)
     lines.append("\nexport MPI_COMPILER='pgi'\n")
-    lines.append('export NSIMS={}\n'.format(nsims))
-    lines.append('export OMP_NUM_THREADS=$(($NSLOTS/$NSIMS))\n')
-    line = _get_mdrun_line(checkpoint, deffnm, multi, nsims, other_mdrun,
-                           plumed, replex, tpr)
+    lines.append("export NSIMS={}\n".format(nsims))
+    lines.append("export OMP_NUM_THREADS=$(($NSLOTS/$NSIMS))\n")
+    line = _get_mdrun_line(
+        checkpoint, deffnm, multi, nsims, other_mdrun, plumed, replex, tpr
+    )
     lines.append(line)
-    lines.append('\n')
-    lines = [l+'\n' for l in lines]
-    with path_file.open('w') as f_out:
+    lines.append("\n")
+    lines = [l + "\n" for l in lines]
+    with path_file.open("w") as f_out:
         f_out.writelines(lines)
     return path_file
 
 
-def _get_mdrun_line(checkpoint, deffnm, multi, nsims, other_mdrun, plumed,
-                    replex, tpr):
-    line = 'mpirun -n $NSIMS --map-by node -x OMP_NUM_THREADS mdrun_mpi '
+def _get_mdrun_line(checkpoint, deffnm, multi, nsims, other_mdrun, plumed, replex, tpr):
+    line = "mpirun -n $NSIMS --map-by node -x OMP_NUM_THREADS mdrun_mpi "
     if tpr is not None:
-        line += '-s {} '.format(tpr)
+        line += "-s {} ".format(tpr)
     if deffnm is not None:
-        line += '-deffnm {} '.format(deffnm)
+        line += "-deffnm {} ".format(deffnm)
     if plumed is not None:
-        line += '-plumed {} '.format(plumed)
+        line += "-plumed {} ".format(plumed)
     if multi is not None:
         if multi is True:
-            line += '-multi {} '.format(nsims)
+            line += "-multi {} ".format(nsims)
         else:
-            line += '-multi {} '.format(multi)
+            line += "-multi {} ".format(multi)
     if replex is not None:
-        line += '-replex {} '.format(replex)
+        line += "-replex {} ".format(replex)
     if checkpoint is not None:
-        line += '-cpi {} '.format(checkpoint)
+        line += "-cpi {} ".format(checkpoint)
     if other_mdrun is not None:
         line += other_mdrun
     return line
@@ -528,22 +553,22 @@ def _get_mdrun_line(checkpoint, deffnm, multi, nsims, other_mdrun, plumed,
 
 def _get_sge_basic_lines(cores, log, name, time, tpn):
     lines = list()  # line separators will be added later
-    lines.append('#!/bin/bash -l\n')  # want an extra line break here
+    lines.append("#!/bin/bash -l\n")  # want an extra line break here
     if time is not None:
-        lines.append(_make_sge_line('l', 'h_rt={}'.format(time)))
+        lines.append(_make_sge_line("l", "h_rt={}".format(time)))
     if name is not None:
-        lines.append(_make_sge_line('N', name))
+        lines.append(_make_sge_line("N", name))
     if log is not None:
-        lines.append(_make_sge_line('o', log))
+        lines.append(_make_sge_line("o", log))
     if tpn is not None and cores is not None:
         if int(cores) % int(tpn) != 0:
-            raise ValueError('cores must be a multiple of tpn')
-        lines.append(_make_sge_line(
-            'pe',
-            'mpi_{}_tasks_per_node {}'.format(tpn, cores)))
+            raise ValueError("cores must be a multiple of tpn")
+        lines.append(
+            _make_sge_line("pe", "mpi_{}_tasks_per_node {}".format(tpn, cores))
+        )
     return lines
 
 
 def _make_sge_line(key, arg):
     """Return a line of an option for SGE submission scripts"""
-    return '#$ -{} {}'.format(key, arg)
+    return "#$ -{} {}".format(key, arg)

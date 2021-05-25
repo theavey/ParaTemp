@@ -34,10 +34,17 @@ import shutil
 import sys
 
 
-__all__ = ['cd', 'copy_no_overwrite', 'get_temperatures', 'all_elements_same',
-           'find_nearest_idx', 'running_mean']
+__all__ = [
+    "cd",
+    "copy_no_overwrite",
+    "get_temperatures",
+    "all_elements_same",
+    "find_nearest_idx",
+    "running_mean",
+]
 
 if sys.version_info >= (3, 6):
+
     @contextmanager
     def cd(new_dir):
         prev_dir = os.getcwd()
@@ -46,7 +53,10 @@ if sys.version_info >= (3, 6):
             yield
         finally:
             os.chdir(prev_dir)
+
+
 else:
+
     @contextmanager
     def cd(new_dir):
         new_dir = str(new_dir)
@@ -61,7 +71,7 @@ else:
 def copy_no_overwrite(src, dst, silent=False):
     exists = False
     if os.path.isdir(src):
-        raise OSError(errno.EISDIR, 'Is a directory: {}'.format(src))
+        raise OSError(errno.EISDIR, "Is a directory: {}".format(src))
     elif os.path.isdir(dst):
         if os.path.isfile(os.path.join(dst, os.path.basename(src))):
             exists = True
@@ -71,12 +81,12 @@ def copy_no_overwrite(src, dst, silent=False):
         if silent:
             return dst
         else:
-            raise OSError(errno.EEXIST, 'File already exists', dst)
+            raise OSError(errno.EEXIST, "File already exists", dst)
     else:
         return shutil.copy(src, dst)
 
 
-def get_temperatures(filename='TOPO/temperatures.dat'):
+def get_temperatures(filename="TOPO/temperatures.dat"):
     """
     Get temperatures of replicas from sim. setup with para_temp_setup
 
@@ -88,8 +98,8 @@ def get_temperatures(filename='TOPO/temperatures.dat'):
         return np.loadtxt(filename)
     except ValueError:
         pass
-    with open(filename, 'r') as t_file:
-        temps = list(t_file.read()[1:-2].split(', '))
+    with open(filename, "r") as t_file:
+        temps = list(t_file.read()[1:-2].split(", "))
     return np.array([float(temp) for temp in temps])
 
 
@@ -110,6 +120,7 @@ class _BlankStream(object):
     """
     A class for use when not actually wanting to write to a file.
     """
+
     def write(self, string):
         pass
 
@@ -120,8 +131,7 @@ class _BlankStream(object):
         pass
 
 
-def _replace_string_in_file(old_str, new_str, file_name,
-                            log_stream=_BlankStream()):
+def _replace_string_in_file(old_str, new_str, file_name, log_stream=_BlankStream()):
     """
     Replace a specified string possibly in each line of a file.
 
@@ -139,14 +149,11 @@ def _replace_string_in_file(old_str, new_str, file_name,
     :type log_stream: _BlankStream or BinaryIO
     :return: None
     """
-    log_stream.write('Editing '
-                     '{} for new string "{}"\n'.format(file_name,
-                                                       new_str))
-    log_stream.write('Copying file as backup to '
-                     '{}\n'.format(file_name + '.bak'))
+    log_stream.write("Editing " '{} for new string "{}"\n'.format(file_name, new_str))
+    log_stream.write("Copying file as backup to " "{}\n".format(file_name + ".bak"))
     log_stream.flush()
-    copy_no_overwrite(file_name, file_name + '.bak')
-    with open(file_name + '.bak', 'r') as old_f, open(file_name, 'w') as new_f:
+    copy_no_overwrite(file_name, file_name + ".bak")
+    with open(file_name + ".bak", "r") as old_f, open(file_name, "w") as new_f:
         for line in old_f:
             line = line.replace(old_str, new_str)
             new_f.write(line)
@@ -177,6 +184,6 @@ def running_mean(x, n=2):
     :rtype: np.ndarray
     """
     if len(x) != 0:
-        return np.convolve(x, np.ones((n,)) / n, mode='valid')
+        return np.convolve(x, np.ones((n,)) / n, mode="valid")
     else:
-        raise ValueError('x cannot be empty')
+        raise ValueError("x cannot be empty")

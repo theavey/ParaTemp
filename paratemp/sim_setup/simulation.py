@@ -39,7 +39,7 @@ from .system import System
 from ..tools import cd
 
 
-__all__ = ['Simulation', 'SimpleSimulation']
+__all__ = ["Simulation", "SimpleSimulation"]
 
 
 log = logging.getLogger(__name__)
@@ -49,9 +49,13 @@ GenPath = typing.Union[pathlib.Path, str]
 
 
 if sys.version_info >= (3, 6):
+
     def resolve_path(path):
         return pathlib.Path(path).resolve()
+
+
 else:
+
     def resolve_path(path):
         try:
             return pathlib.Path(path).resolve()
@@ -70,9 +74,14 @@ class Simulation(object):
 
     _fp = staticmethod(resolve_path)
 
-    def __init__(self, name: str, gro: GenPath,
-                 top: GenPath, base_folder: GenPath = '.',
-                 mdps: dict = None):
+    def __init__(
+        self,
+        name: str,
+        gro: GenPath,
+        top: GenPath,
+        base_folder: GenPath = ".",
+        mdps: dict = None,
+    ):
         self.name = name
         self.top = self._fp(top)
         self.geometries = OrderedDict(initial=self._fp(gro))
@@ -106,9 +115,9 @@ class Simulation(object):
         :rtype: int
         """
         folders = [d.name for d in self.base_folder.iterdir() if d.is_dir()]
-        nums = [int(d[:2]) for d in folders if re.match(r'\d{2}-\w+-\w+', d)]
+        nums = [int(d[:2]) for d in folders if re.match(r"\d{2}-\w+-\w+", d)]
         nums.sort()
-        return nums[-1]+1 if nums else 1
+        return nums[-1] + 1 if nums else 1
 
     def _make_step_method(self, step_name: str) -> typing.Callable:
         """
@@ -120,6 +129,7 @@ class Simulation(object):
         :return: A function to run the step specified by the mdp
         :rtype: typing.Callable
         """
+
         def func(geometry=None, max_warn=0):
             folder, geometry = self._setup_for_step(geometry, step_name)
             with cd(folder):
@@ -132,18 +142,20 @@ class Simulation(object):
     def _setup_for_step(self, geometry, step_name):
         geometry = self.last_geometry if geometry is None else geometry
         folder_index = self._next_folder_index
-        folder = self.base_folder / '{:0>2}-{}-{}'.format(folder_index,
-                                                          step_name,
-                                                          self.name)
+        folder = self.base_folder / "{:0>2}-{}-{}".format(
+            folder_index, step_name, self.name
+        )
         folder.mkdir()
         self.directories[step_name] = folder
         return folder, geometry
 
-    def _compile_tpr(self, step_name: str,
-                     geometry: GenPath = None,
-                     trajectory: GenPath = None,
-                     max_warn: int = 0,
-                     ) -> pathlib.Path:
+    def _compile_tpr(
+        self,
+        step_name: str,
+        geometry: GenPath = None,
+        trajectory: GenPath = None,
+        max_warn: int = 0,
+    ) -> pathlib.Path:
         """
         Make a tpr file for the chosen step_name and associated mdp file
 
@@ -162,32 +174,35 @@ class Simulation(object):
         :return: The Path to the tpr file
         """
         geometry = self.last_geometry if geometry is None else geometry
-        tpr = '{}-{}.tpr'.format(self.name, step_name)
+        tpr = "{}-{}.tpr".format(self.name, step_name)
         p_tpr = self._fp(tpr)
         self.tprs[step_name] = p_tpr
         g_tools = gromacs.tools
-        if hasattr(g_tools, 'Grompp'):
+        if hasattr(g_tools, "Grompp"):
             grompp_cls = g_tools.Grompp
-        elif hasattr(g_tools, 'Grompp_mpi'):
+        elif hasattr(g_tools, "Grompp_mpi"):
             grompp_cls = g_tools.Grompp_mpi
         else:
-            raise OSError(errno.ENOENT, 'Could not find grompp executable '
-                                        'using gromacswrapper package')
-        grompp_func = grompp_cls(failure='warn')
-        rc, output, err = grompp_func(c=geometry,
-                                      p=self.top,
-                                      f=self.mdps[step_name],
-                                      o=tpr,
-                                      t=trajectory,
-                                      maxwarn=max_warn,
-                                      stdout=False,
-                                      stderr=False)
-        self.outputs['compile_{}_out'.format(step_name)] = output
-        self.outputs['compile_{}_err'.format(step_name)] = err
+            raise OSError(
+                errno.ENOENT,
+                "Could not find grompp executable using gromacswrapper package",
+            )
+        grompp_func = grompp_cls(failure="warn")
+        rc, output, err = grompp_func(
+            c=geometry,
+            p=self.top,
+            f=self.mdps[step_name],
+            o=tpr,
+            t=trajectory,
+            maxwarn=max_warn,
+            stdout=False,
+            stderr=False,
+        )
+        self.outputs["compile_{}_out".format(step_name)] = output
+        self.outputs["compile_{}_err".format(step_name)] = err
         return p_tpr
 
-    def _run_mdrun(self, step_name: str, tpr: GenPath = None
-                   ) -> pathlib.Path:
+    def _run_mdrun(self, step_name: str, tpr: GenPath = None) -> pathlib.Path:
         """
         Run mdrun with the given step_name or explicitly given tpr file.
 
@@ -197,34 +212,33 @@ class Simulation(object):
         :return: The Path to the output geometry
         """
         tpr = self.tprs[step_name] if tpr is None else tpr
-        deffnm = '{}-{}-out'.format(self.name, step_name)
+        deffnm = "{}-{}-out".format(self.name, step_name)
         p_deffnm = self._fp(deffnm)
         self.deffnms[step_name] = p_deffnm
         g_tools = gromacs.tools
-        if hasattr(g_tools, 'Mdrun'):
+        if hasattr(g_tools, "Mdrun"):
             mdrun_cls = g_tools.Mdrun
-        elif hasattr(g_tools, 'Mdrun_mpi'):
+        elif hasattr(g_tools, "Mdrun_mpi"):
             mdrun_cls = g_tools.Mdrun_mpi
         else:
-            raise OSError(errno.ENOENT, 'Could not find mdrun executable '
-                                        'using gromacswrapper package')
-        mdrun_func = mdrun_cls(failure='warn')
-        rc, output, err = mdrun_func(s=tpr, deffnm=deffnm,
-                                     stdout=False, stderr=False)
-        self.outputs['run_{}_out'.format(step_name)] = output
-        self.outputs['run_{}_err'.format(step_name)] = err
-        gro = p_deffnm.with_suffix('.gro')
+            raise OSError(
+                errno.ENOENT,
+                "Could not find mdrun executable " "using gromacswrapper package",
+            )
+        mdrun_func = mdrun_cls(failure="warn")
+        rc, output, err = mdrun_func(s=tpr, deffnm=deffnm, stdout=False, stderr=False)
+        self.outputs["run_{}_out".format(step_name)] = output
+        self.outputs["run_{}_err".format(step_name)] = err
+        gro = p_deffnm.with_suffix(".gro")
         self.geometries[step_name] = gro
         return gro
 
 
-_type_mol_inputs = typing.Union[str, typing.List[typing.Union[dict,
-                                                              Molecule]]]
+_type_mol_inputs = typing.Union[str, typing.List[typing.Union[dict, Molecule]]]
 
 
 def get_mdps_folder() -> pathlib.Path:
-    directory = pkg_resources.resource_filename(
-        __name__, 'SimpleSim_data/mdps')
+    directory = pkg_resources.resource_filename(__name__, "SimpleSim_data/mdps")
     return pathlib.Path(directory)
 
 
@@ -234,44 +248,45 @@ class SimpleSimulation(object):
     """
 
     _path_mdps_dir = get_mdps_folder()
-    _default_mdps_gbsa = {'minimize':
-                              str(_path_mdps_dir / 'minim-gbsa.mdp'),
-                          'equilibrate':
-                              str(_path_mdps_dir / 'equil-gbsa.mdp'),
-                          'production':
-                              str(_path_mdps_dir / 'production-gbsa.mdp')}
-    _default_mdps_rf = {'minimize':
-                            str(_path_mdps_dir / 'minim-rf.mdp'),
-                        'equilibrate':
-                            str(_path_mdps_dir / 'equil-rf.mdp'),
-                        'production':
-                            str(_path_mdps_dir / 'production-rf.mdp')}
+    _default_mdps_gbsa = {
+        "minimize": str(_path_mdps_dir / "minim-gbsa.mdp"),
+        "equilibrate": str(_path_mdps_dir / "equil-gbsa.mdp"),
+        "production": str(_path_mdps_dir / "production-gbsa.mdp"),
+    }
+    _default_mdps_rf = {
+        "minimize": str(_path_mdps_dir / "minim-rf.mdp"),
+        "equilibrate": str(_path_mdps_dir / "equil-rf.mdp"),
+        "production": str(_path_mdps_dir / "production-rf.mdp"),
+    }
 
-    def __init__(self, name: str,
-                 mol_inputs: _type_mol_inputs = 'ask',
-                 solvent_dielectric: float = 9.1  # DCM
-                 ):
-        log.info('Instantiating a SimpleSimulation named {}'.format(name))
+    def __init__(
+        self,
+        name: str,
+        mol_inputs: _type_mol_inputs = "ask",
+        solvent_dielectric: float = 9.1,  # DCM
+    ):
+        log.info("Instantiating a SimpleSimulation named {}".format(name))
         self.name = name
         self.molecules = list()  # type: typing.List[Molecule]
         self.directories = dict()  # type: typing.Dict[str, pathlib.Path]
         self._process_mol_inputs(mol_inputs)
         self.n_molecules = len(self.molecules)
         self._dielectric = solvent_dielectric
-        self._steps = dict(parameterized=False,
-                           combined=False,
-                           simulation_created=False)
+        self._steps = dict(
+            parameterized=False, combined=False, simulation_created=False
+        )
         self.system = None  # type: System
         self._SimClass = Simulation
         self.simulation = None  # type: Simulation
 
     def _process_mol_inputs(self, mol_inputs):
-        if mol_inputs == 'ask':
+        if mol_inputs == "ask":
             more = True
             while more:
                 self.molecules.append(Molecule.assisted())
-                more = (True if 'y' in input('Any more molecules? [yn]').lower()
-                        else False)
+                more = (
+                    True if "y" in input("Any more molecules? [yn]").lower() else False
+                )
         elif isinstance(mol_inputs, typing.Sequence):
             if isinstance(mol_inputs[0], Molecule):
                 self.molecules = mol_inputs
@@ -284,9 +299,8 @@ class SimpleSimulation(object):
             try:
                 self.molecules = Molecule.from_make_mol_inputs(mol_inputs)
             except KeyError:  # maybe other Errors?
-                raise ValueError('Unrecognized input: {}'.format(mol_inputs))
-        dirs = {'molecule_{}'.format(mol.name): mol.directory for mol
-                in self.molecules}
+                raise ValueError("Unrecognized input: {}".format(mol_inputs))
+        dirs = {"molecule_{}".format(mol.name): mol.directory for mol in self.molecules}
         self.directories.update(dirs)
 
     def parameterize(self):
@@ -295,14 +309,14 @@ class SimpleSimulation(object):
 
         :return: None
         """
-        log.info('Parameterizing the {} Molecules'.format(len(self.molecules)))
+        log.info("Parameterizing the {} Molecules".format(len(self.molecules)))
         # TODO optionally include position restraints?
         # was necessary before otherwise they just flew apart
         # low dielectric might make it less necessary
         # especially if they're oppositely charged, but not regularly the case
         for mol in self.molecules:
             mol.parameterize()
-        self._steps['parameterized'] = True
+        self._steps["parameterized"] = True
 
     def combine(self, box_length: float = None, include_gbsa: bool = False):
         """
@@ -313,23 +327,27 @@ class SimpleSimulation(object):
         topology file
         :return: None
         """
-        log.info('Combining the {} Molecules into a single System'.format(
-            len(self.molecules)))
+        log.info(
+            "Combining the {} Molecules into a single System".format(
+                len(self.molecules)
+            )
+        )
         if box_length is not None:
-            d_box_length = {'box_length': box_length}
+            d_box_length = {"box_length": box_length}
         else:
             d_box_length = dict()
-        self.system = System(*self.molecules,
-                             name=self.name,
-                             shift=True,
-                             spacing=2.0,
-                             include_gbsa=include_gbsa,
-                             **d_box_length)
-        self.directories['system'] = self.system.directory
-        self._steps['combined'] = True
+        self.system = System(
+            *self.molecules,
+            name=self.name,
+            shift=True,
+            spacing=2.0,
+            include_gbsa=include_gbsa,
+            **d_box_length
+        )
+        self.directories["system"] = self.system.directory
+        self._steps["combined"] = True
 
-    def make_simulation(self, solvent_model: str = 'rf',
-                        mdps: dict = None, **kwargs):
+    def make_simulation(self, solvent_model: str = "rf", mdps: dict = None, **kwargs):
         """
         Make a Simulation object from the System
 
@@ -342,11 +360,15 @@ class SimpleSimulation(object):
             mdp files
         :return: None
         """
-        log.info('Creating a Simulation object from the {} '
-                 'System object'.format(self.system.name))
-        self.directories['simulation_base'] = self.system.directory
-        solvent_model_dict = {'rf': self._default_mdps_rf,
-                              'gbsa': self._default_mdps_gbsa}
+        log.info(
+            "Creating a Simulation object from the {} "
+            "System object".format(self.system.name)
+        )
+        self.directories["simulation_base"] = self.system.directory
+        solvent_model_dict = {
+            "rf": self._default_mdps_rf,
+            "gbsa": self._default_mdps_gbsa,
+        }
         _mdps = solvent_model_dict[solvent_model.lower()].copy()
         if mdps is not None:
             _mdps.update(mdps)
@@ -359,7 +381,7 @@ class SimpleSimulation(object):
             mdps=_mdps,
             **kwargs
         )
-        self._steps['simulation_created'] = True
+        self._steps["simulation_created"] = True
         gromacs.start_logging()
 
     def _insert_dielectric(self, mdps: dict) -> typing.Dict[str, str]:
@@ -371,7 +393,7 @@ class SimpleSimulation(object):
         :return: dict of step names to strings ot paths to edited mdp files
             (now in a folder specific to this simulation)
         """
-        _dir = self.directories['simulation_base']
+        _dir = self.directories["simulation_base"]
         d_out = dict()
         for key in mdps:
             old_path = pathlib.Path(mdps[key])
@@ -379,39 +401,47 @@ class SimpleSimulation(object):
             text = old_path.read_text()
             text = text.format(dielectric=self._dielectric)
             new_path.write_text(text)
-            log.info('wrote {} mdp with dielectric replaced to {}'.format(
-                key, new_path))
+            log.info(
+                "wrote {} mdp with dielectric replaced to {}".format(key, new_path)
+            )
             d_out[key] = str(new_path)
         return d_out
 
     def save(self):
-        path = pathlib.Path('{}.pkl'.format(self.name))
-        if self._steps['simulation_created']:
+        path = pathlib.Path("{}.pkl".format(self.name))
+        if self._steps["simulation_created"]:
             # This doesn't work...
             # TODO find a way around this (just don't save Sim?)
-            raise AttributeError('Cannot save SimpleSimulation after making '
-                                 'simulation')
-        pickle.dump(self, path.open('wb'))
-        log.info('Saved SimpleSimulation to {}'.format(path))
+            raise AttributeError(
+                "Cannot save SimpleSimulation after making " "simulation"
+            )
+        pickle.dump(self, path.open("wb"))
+        log.info("Saved SimpleSimulation to {}".format(path))
 
     @classmethod
     def load(cls, name: str):
-        path = pathlib.Path('{}.pkl'.format(name))
+        path = pathlib.Path("{}.pkl".format(name))
         if not path.exists():
-            raise FileNotFoundError('Could not find save file for this name: '
-                                    '{}'.format(path))
-        ssim = pickle.load(path.open('rb'))
+            raise FileNotFoundError(
+                "Could not find save file for this name: " "{}".format(path)
+            )
+        ssim = pickle.load(path.open("rb"))
         if not isinstance(ssim, cls):
-            raise TypeError('The loaded pickle file ({}) is not of the '
-                            'correct type: {}'.format(path, cls))
+            raise TypeError(
+                "The loaded pickle file ({}) is not of the "
+                "correct type: {}".format(path, cls)
+            )
         return ssim
 
     def __repr__(self):
-        return ('<{} SimpleSimulation with {} Molecules; params: {}; '
-                'combined: {}, sim made: '
-                '{}>'.format(self.name,
-                             self.n_molecules,
-                             self._steps['parameterized'],
-                             self._steps['combined'],
-                             self._steps['simulation_created']))
-
+        return (
+            "<{} SimpleSimulation with {} Molecules; params: {}; "
+            "combined: {}, sim made: "
+            "{}>".format(
+                self.name,
+                self.n_molecules,
+                self._steps["parameterized"],
+                self._steps["combined"],
+                self._steps["simulation_created"],
+            )
+        )

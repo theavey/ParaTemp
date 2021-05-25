@@ -28,10 +28,11 @@ import re
 import numpy as np
 from numpy.linalg import norm
 from .exceptions import UnknownEnergyError, InputError
+
 # TODO add tests for these
 
 
-__all__ = ['rotation_matrix', 'Vector', 'XYZ', 'COM']
+__all__ = ["rotation_matrix", "Vector", "XYZ", "COM"]
 
 
 def rotation_matrix(axis, theta):
@@ -43,36 +44,39 @@ def rotation_matrix(axis, theta):
     https://stackoverflow.com/questions/6802577/python-rotation-of-3d-vector
     """
     axis = np.asarray(axis)
-    axis = axis/np.sqrt(np.dot(axis, axis))
-    a = np.cos(theta/2.0)
-    b, c, d = -axis * np.sin(theta/2.0)
-    aa, bb, cc, dd = a*a, b*b, c*c, d*d
-    bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
-    return np.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
-                     [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
-                     [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
+    axis = axis / np.sqrt(np.dot(axis, axis))
+    a = np.cos(theta / 2.0)
+    b, c, d = -axis * np.sin(theta / 2.0)
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    return np.array(
+        [
+            [aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+            [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+            [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc],
+        ]
+    )
 
 
 class Vector(np.ndarray):
-
     def __new__(cls, *xyz):
         if len(xyz) != 3:
             try:
                 xyz = xyz[0]
             except IndexError:
-                raise InputError(xyz, '3 values are required to make a vector')
+                raise InputError(xyz, "3 values are required to make a vector")
         if len(xyz) != 3:
-            raise InputError(xyz, 'Length of vector must be 3.')
-        obj = super(Vector, cls).__new__(cls, shape=(3,),
-                                         buffer=np.array(xyz, dtype=float))
+            raise InputError(xyz, "Length of vector must be 3.")
+        obj = super(Vector, cls).__new__(
+            cls, shape=(3,), buffer=np.array(xyz, dtype=float)
+        )
         return obj
 
     def cross(self, vec):
         return np.cross(self, vec)
 
     def diff_angle(self, vec):
-        return np.arccos(self.dot(vec) /
-                         (norm(self) * norm(vec)))
+        return np.arccos(self.dot(vec) / (norm(self) * norm(vec)))
 
     def rotate(self, axis, angle):
         r_mat = rotation_matrix(axis, angle)
@@ -98,15 +102,13 @@ class Vector(np.ndarray):
 class XYZ(object):
     def __init__(self, f_name):
         self.file = f_name
-        with open(f_name, 'r') as f_file:
+        with open(f_name, "r") as f_file:
             f_lines = f_file.readlines()
         if len(f_lines) < 2:
-            raise TypeError('The given file {} appears '
-                            'to be empty'.format(f_name))
+            raise TypeError("The given file {} appears " "to be empty".format(f_name))
         self._header = f_lines[0:2]
-        if 'Energy' in self._header[1]:
-            energy_match = re.search(r'(?:Energy:\s+)(-\d+\.\d+)',
-                                     self._header[1])
+        if "Energy" in self._header[1]:
+            energy_match = re.search(r"(?:Energy:\s+)(-\d+\.\d+)", self._header[1])
             self._energy = float(energy_match.group(1))
         else:
             self._energy = None
@@ -120,21 +122,20 @@ class XYZ(object):
             for atom in data:
                 self.atoms.append(atom[0])
         except IndexError:
-            raise ValueError('invalid line in xyz file: {}'.format(atom))
-        if re.search(r'([a-z]|[A-Z])+\d+', self.atoms[0]):
+            raise ValueError("invalid line in xyz file: {}".format(atom))
+        if re.search(r"([a-z]|[A-Z])+\d+", self.atoms[0]):
             self._fix_atom_names()
         try:
             self.coords = list()
             for atom in data:
-                self.coords.append(
-                    Vector([float(coord) for coord in atom[1:4]]))
+                self.coords.append(Vector([float(coord) for coord in atom[1:4]]))
         except (IndexError, InputError):
-            raise ValueError('invalid line in xyz file: {}'.format(atom))
+            raise ValueError("invalid line in xyz file: {}".format(atom))
 
     def _fix_atom_names(self):
         atoms_new = []
         for atom in self.atoms:
-            atoms_new.append(re.match(r'([a-z]|[A-Z])+', atom).group(0))
+            atoms_new.append(re.match(r"([a-z]|[A-Z])+", atom).group(0))
         self.atoms = atoms_new
 
     def center_on(self, index):
@@ -152,20 +153,20 @@ class XYZ(object):
         self.rotate_to_x_axis_on(index2)
 
     def __str__(self):
-        f_string = ('   {0: <10s} {1.x: > 10.5f} {1.y: > 10.5f} '
-                    '{1.z: > 10.5f}\n')
+        f_string = "   {0: <10s} {1.x: > 10.5f} {1.y: > 10.5f} " "{1.z: > 10.5f}\n"
         output_list = list(self._header)
-        output_list += [f_string.format(self.atoms[i], self.coords[i]) for i
-                        in range(len(self.atoms))]
-        return ''.join(output_list)
+        output_list += [
+            f_string.format(self.atoms[i], self.coords[i])
+            for i in range(len(self.atoms))
+        ]
+        return "".join(output_list)
 
     @property
     def n_atoms(self):
         _n_atoms = len(self.atoms)
         _n_coords = len(self.coords)
         if _n_atoms != _n_coords:
-            print('!!n atoms != n coords!! ({} != {})'.format(_n_atoms,
-                                                              _n_coords))
+            print("!!n atoms != n coords!! ({} != {})".format(_n_atoms, _n_coords))
         else:
             return _n_atoms
 
@@ -194,7 +195,7 @@ class XYZ(object):
         self._energy = None  # Moved atoms, don't know energy
 
     def write(self, f_name):
-        with open(f_name, 'w') as f_file:
+        with open(f_name, "w") as f_file:
             f_file.write(str(self))
 
     def average_loc(self, *args):
@@ -281,49 +282,49 @@ class COM(XYZ):
         self.atoms = []
         self.coords = []
         self._footer = []
-        with open(f_name, 'r') as f_file:
+        with open(f_name, "r") as f_file:
             f_lines = f_file.readlines()
         self._parser(f_lines)
 
     def _parser(self, lines):
-        section = 'header'
+        section = "header"
         data = []
         for line in lines:
-            if section == 'header':
+            if section == "header":
                 self._header.append(line)
-                if line.strip() == '':
-                    section = 'title'
+                if line.strip() == "":
+                    section = "title"
                 continue
-            elif section == 'title':
+            elif section == "title":
                 self._title.append(line)
-                if line.strip() == '':
-                    section = 'charge_mult'
+                if line.strip() == "":
+                    section = "charge_mult"
                 continue
-            elif section == 'charge_mult':
+            elif section == "charge_mult":
                 self._cm.append(line)
-                section = 'geom'
+                section = "geom"
                 continue
-            elif section == 'geom':
-                if line.strip() == '':
-                    section = 'opt_input'
+            elif section == "geom":
+                if line.strip() == "":
+                    section = "opt_input"
                     continue
                 data.append(line.split())
                 continue
-            elif section == 'opt_input':
+            elif section == "opt_input":
                 self._footer.append(line)
                 continue
         self.atoms = [atom[0] for atom in data]
-        self.coords = [Vector([float(coord) for
-                               coord in atom[1:4]]) for atom in data]
+        self.coords = [Vector([float(coord) for coord in atom[1:4]]) for atom in data]
 
     def __str__(self):
-        f_string = ('   {0: <10s} {1.x: > 10.5f} {1.y: > 10.5f} '
-                    '{1.z: > 10.5f}\n')
+        f_string = "   {0: <10s} {1.x: > 10.5f} {1.y: > 10.5f} " "{1.z: > 10.5f}\n"
         output_list = list(self._header)
         output_list += list(self._title)
         output_list += list(self._cm)
-        output_list += [f_string.format(self.atoms[i], self.coords[i]) for i
-                        in range(len(self.atoms))]
-        output_list += ['\n']
+        output_list += [
+            f_string.format(self.atoms[i], self.coords[i])
+            for i in range(len(self.atoms))
+        ]
+        output_list += ["\n"]
         output_list += list(self._footer)
-        return ''.join(output_list)
+        return "".join(output_list)

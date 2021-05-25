@@ -31,22 +31,21 @@ from warnings import warn
 import MDAnalysis as MDa
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+
 # import mdtraj as md  # Think I'm going with MDAnalysis instead
 import numpy as np
 import pandas as pd
 from typing import Iterable, Sequence
 
 from paratemp.plotting import fes_array_3_legend, plot_dist_array, fes_1d
-from paratemp.utils import calc_fes_2d, calc_fes_1d, _parse_ax_input, \
-    _parse_z_bin_input
+from paratemp.utils import calc_fes_2d, calc_fes_1d, _parse_ax_input, _parse_z_bin_input
 from .exceptions import InputError, FileChangedError
 
 
-__all__ = ['Universe', 'Taddol']
+__all__ = ["Universe", "Taddol"]
 
 
 class Universe(MDa.Universe):
-
     def __init__(self, *args, **kwargs):
         """
 
@@ -63,8 +62,8 @@ class Universe(MDa.Universe):
         # self.univ = (line below): I'm not sure if this is needed or if this
         # just automatically inherits everything
         # Maybe use the super() command? need to learn more about this
-        self._verbosity = kwargs.pop('verbosity', 1)
-        self.temperature = kwargs.pop('temp', None)
+        self._verbosity = kwargs.pop("verbosity", 1)
+        self.temperature = kwargs.pop("temp", None)
         super(Universe, self).__init__(*args, **kwargs)
         self._num_frames = self.trajectory.n_frames
         self._last_time = self.trajectory.totaltime
@@ -85,9 +84,9 @@ class Universe(MDa.Universe):
         :return: a DataFrame with one column of Times
         :rtype: pd.DataFrame
         """
-        return pd.DataFrame(np.linspace(0, self._last_time,
-                                        num=self._num_frames),
-                            columns=['Time'])
+        return pd.DataFrame(
+            np.linspace(0, self._last_time, num=self._num_frames), columns=["Time"]
+        )
 
     def save_data(self, filename=None, overwrite=False):
         """
@@ -105,18 +104,18 @@ class Universe(MDa.Universe):
         :return: None
         """
         if filename is None:
-            filename = os.path.splitext(self.trajectory.filename)[0] + '.h5'
+            filename = os.path.splitext(self.trajectory.filename)[0] + ".h5"
         with pd.HDFStore(filename) as store:
-            time = 'time_' + str(int(self._last_time/1000)) + 'ns'
+            time = "time_" + str(int(self._last_time / 1000)) + "ns"
             # TODO use self.final_time_str
-            if overwrite or ('/'+time not in store.keys()):
+            if overwrite or ("/" + time not in store.keys()):
                 store[time] = self._data
             else:
                 store_cols = store.get_node(time).axis0.read().astype(str)
                 set_diff_cols = set(self._data.columns).difference(store_cols)
                 if not set_diff_cols:
                     if self._verbosity:
-                        print('No data added to {}[{}]'.format(filename, time))
+                        print("No data added to {}[{}]".format(filename, time))
                     return
                 store_df = store[time]  # seems this has to be done to add cols
                 # see https://stackoverflow.com/questions/15939603/
@@ -125,7 +124,7 @@ class Universe(MDa.Universe):
                     store_df[col] = self._data[col]
                 store[time] = store_df
         if self._verbosity:
-            print('Saved data to {}[{}]'.format(filename, time))
+            print("Saved data to {}[{}]".format(filename, time))
 
     def read_data(self, filename=None, ignore_no_data=False):
         """
@@ -142,32 +141,36 @@ class Universe(MDa.Universe):
         :raises: IOError
         """
         if filename is None:
-            filename = os.path.splitext(self.trajectory.filename)[0] + '.h5'
+            filename = os.path.splitext(self.trajectory.filename)[0] + ".h5"
         with pd.HDFStore(filename) as store:
-            time = 'time_' + str(int(self._last_time/1000)) + 'ns'
+            time = "time_" + str(int(self._last_time / 1000)) + "ns"
             # TODO use self.final_time_str
             try:
                 read_df = store[time]
-                keys_to_read = set(read_df.columns).difference(
-                    self._data.columns)
+                keys_to_read = set(read_df.columns).difference(self._data.columns)
             except KeyError:
                 keys_to_read = []
                 read_df = pd.DataFrame()  # not necessary; stops IDE complaint
                 if not ignore_no_data:
-                    raise IOError('This data does not exist!\n{}[{}]'.format(
-                        filename, time))
+                    raise IOError(
+                        "This data does not exist!\n{}[{}]".format(filename, time)
+                    )
                 else:
                     if self._verbosity:
-                        print('No data to read in '
-                              '{}[{}]'.format(filename, time))
+                        print("No data to read in " "{}[{}]".format(filename, time))
                     return
         for key in keys_to_read:
             self._data[key] = read_df[key]
 
-    def calculate_distances(self, *args, recalculate=False,
-                            ignore_file_change=False,
-                            read_data=True, save_data=True,
-                            **kwargs):
+    def calculate_distances(
+        self,
+        *args,
+        recalculate=False,
+        ignore_file_change=False,
+        read_data=True,
+        save_data=True,
+        **kwargs
+    ):
         """
         Calculate distances by iterating through the trajectory
 
@@ -204,13 +207,13 @@ class Universe(MDa.Universe):
             self.read_data(ignore_no_data=True)
             self._verbosity = v
         # Make empty atom selections to be appended to:
-        first_group = self.select_atoms('protein and not protein')
-        second_group = self.select_atoms('protein and not protein')
+        first_group = self.select_atoms("protein and not protein")
+        second_group = self.select_atoms("protein and not protein")
         column_names = []
         groups_CoM = []
         column_names_CoM = []
         if len(args) == 0 and len(kwargs) == 0:
-            args = ['all']
+            args = ["all"]
         if len(args) != 0:
             kwargs = self._parse_calc_dist_pos_args(args, kwargs)
         if not recalculate:
@@ -227,71 +230,78 @@ class Universe(MDa.Universe):
                     # assume it is iterable as is
                     atoms = kwargs[key]
                 if len(atoms) != 2:
-                    raise SyntaxError('This input should split to two atom '
-                                      'indices: {}'.format(kwargs[key]))
+                    raise SyntaxError(
+                        "This input should split to two atom "
+                        "indices: {}".format(kwargs[key])
+                    )
                 try:
                     [int(atom) for atom in atoms]
                 except ValueError:
-                    raise NotImplementedError('Only selection by atom index is'
-                                              ' currently supported.\nAt your '
-                                              'own risk you can try assigning '
-                                              'to self._data[{}].'.format(key))
+                    raise NotImplementedError(
+                        "Only selection by atom index is"
+                        " currently supported.\nAt your "
+                        "own risk you can try assigning "
+                        "to self._data[{}].".format(key)
+                    )
                 except TypeError:
                     selections = []
                     for g in atoms:
-                        sel_string = 'bynum ' + ' '.join([str(i) for i in g])
+                        sel_string = "bynum " + " ".join([str(i) for i in g])
                         selections.append(self.select_atoms(sel_string))
                     groups_CoM.append(selections)
                     column_names_CoM.append(key)
                     continue
-                first_group += self.select_atoms('bynum '+str(atoms[0]))
-                second_group += self.select_atoms('bynum '+str(atoms[1]))
+                first_group += self.select_atoms("bynum " + str(atoms[0]))
+                second_group += self.select_atoms("bynum " + str(atoms[1]))
                 column_names += [key]
         else:
             if self._verbosity:
-                print('Nothing (new) to calculate here.')
+                print("Nothing (new) to calculate here.")
             return
         n1 = first_group.n_atoms
         n2 = second_group.n_atoms
         nc = len(column_names)
         if not nc == n1 == n2:
-            raise SyntaxError('Different numbers of atom selections or number'
-                              ' of column labels '
-                              '({}, {}, and {}, respectively).'.format(n1,
-                                                                       n2,
-                                                                       nc) +
-                              '\nThis should not happen.\nPossibly invalid '
-                              'atom selection.')
+            raise SyntaxError(
+                "Different numbers of atom selections or number"
+                " of column labels "
+                "({}, {}, and {}, respectively).".format(n1, n2, nc)
+                + "\nThis should not happen.\nPossibly invalid "
+                "atom selection."
+            )
         n_groups = len(groups_CoM)
         n_group_names = len(column_names_CoM)
         if not n_groups == n_group_names:
-            raise SyntaxError('Different numbers of atom groups or number'
-                              ' of column labels for CoM calculations'
-                              '({} and {}, respectively).\n'
-                              'This should not happen.'.format(n_groups,
-                                                               n_group_names))
+            raise SyntaxError(
+                "Different numbers of atom groups or number"
+                " of column labels for CoM calculations"
+                "({} and {}, respectively).\n"
+                "This should not happen.".format(n_groups, n_group_names)
+            )
         if self._num_frames != self.trajectory.n_frames:
             if self._verbosity:
-                print('Current trajectory has {} frames, '.format(
-                    self.trajectory.n_frames) +
-                      'but this object was instantiated with ' 
-                      '{} frames.'.format(self._num_frames))
+                print(
+                    "Current trajectory has {} frames, ".format(
+                        self.trajectory.n_frames
+                    )
+                    + "but this object was instantiated with "
+                    "{} frames.".format(self._num_frames)
+                )
             if not ignore_file_change:
                 raise FileChangedError()
         dists = np.zeros((self._num_frames, n1 + n_groups))
-        positions_1 = np.zeros((n1+n_groups, 3), dtype=np.float32)
-        positions_2 = np.zeros((n1+n_groups, 3), dtype=np.float32)
+        positions_1 = np.zeros((n1 + n_groups, 3), dtype=np.float32)
+        positions_2 = np.zeros((n1 + n_groups, 3), dtype=np.float32)
         for i in range(self._num_frames):
             self.trajectory[i]
             positions_1[:n1] = first_group.positions
             positions_2[:n1] = second_group.positions
             for j, group in enumerate(groups_CoM):
-                positions_1[n1+j] = group[0].center_of_mass()
-                positions_2[n1+j] = group[1].center_of_mass()
-            MDa.lib.distances.calc_bonds(positions_1,
-                                         positions_2,
-                                         box=self.dimensions,
-                                         result=dists[i])
+                positions_1[n1 + j] = group[0].center_of_mass()
+                positions_2[n1 + j] = group[1].center_of_mass()
+            MDa.lib.distances.calc_bonds(
+                positions_1, positions_2, box=self.dimensions, result=dists[i]
+            )
         for i, column in enumerate(column_names + column_names_CoM):
             self._data[column] = dists[:, i]
         if save_data:
@@ -301,7 +311,7 @@ class Universe(MDa.Universe):
         try:
             args = [arg.lower() for arg in args]
         except AttributeError:
-            raise SyntaxError('All positional arguments must be strings')
+            raise SyntaxError("All positional arguments must be strings")
         bad_args = []
         for arg in args:
             try:
@@ -311,27 +321,30 @@ class Universe(MDa.Universe):
             except KeyError:
                 bad_args.append(arg)
         if len(bad_args) != 0:
-            warn('The following positional arguments were given but not '
-                 'recognized: ' + str(bad_args) + '\nThey will be '
-                                                  'ignored.')
+            warn(
+                "The following positional arguments were given but not "
+                "recognized: " + str(bad_args) + "\nThey will be "
+                "ignored."
+            )
         return kwargs
 
     def calculate_dihedrals(self, *args, **kwargs):
-        """"""
+        """ """
         # todo there should be a way to generalize the "calculate" functions
         # use this function
         # http://www.mdanalysis.org/docs/documentation_pages/lib/distances.html
         # Make empty atom selections to be appended to:
-        groups = [self.select_atoms('protein and not protein')] * 4
+        groups = [self.select_atoms("protein and not protein")] * 4
         column_names = []
         if len(args) == 0 and len(kwargs) == 0:
-            raise InputError('calculate_dihedrals', 'No arguments given; '
-                                                    'nothing to calculate')
+            raise InputError(
+                "calculate_dihedrals", "No arguments given; " "nothing to calculate"
+            )
         if len(args) != 0:
             try:
                 args = [arg.lower() for arg in args]
             except AttributeError:
-                raise SyntaxError('All positional arguments must be strings')
+                raise SyntaxError("All positional arguments must be strings")
             bad_args = []
             for arg in args:
                 try:
@@ -341,9 +354,11 @@ class Universe(MDa.Universe):
                 except KeyError:
                     bad_args.append(arg)
             if len(bad_args) != 0:
-                warn('The following positional arguments were given but not '
-                     'recognized: ' + str(bad_args) + '\nThey will be '
-                                                      'ignored.')
+                warn(
+                    "The following positional arguments were given but not "
+                    "recognized: " + str(bad_args) + "\nThey will be "
+                    "ignored."
+                )
         if len(kwargs) != 0:
             for key in kwargs:
                 try:
@@ -352,36 +367,42 @@ class Universe(MDa.Universe):
                     # assume it is iterable as is
                     atoms = kwargs[key]
                 if len(atoms) != 4:
-                    raise SyntaxError('This input should split to four atom '
-                                      'indices: {}'.format(kwargs[key]))
+                    raise SyntaxError(
+                        "This input should split to four atom "
+                        "indices: {}".format(kwargs[key])
+                    )
                 try:
                     [int(atom) for atom in atoms]
                 except ValueError:
-                    raise NotImplementedError('Only selection by atom index is'
-                                              ' currently supported.\nAt your '
-                                              'own risk you can try assigning '
-                                              'to self._data[{}].'.format(key))
+                    raise NotImplementedError(
+                        "Only selection by atom index is"
+                        " currently supported.\nAt your "
+                        "own risk you can try assigning "
+                        "to self._data[{}].".format(key)
+                    )
                 for i in range(4):
-                    groups[i] += self.select_atoms('bynum ' + str(atoms[i]))
+                    groups[i] += self.select_atoms("bynum " + str(atoms[i]))
                 column_names += [key]
         n_atoms = [x.n_atoms for x in groups]
         nc = len(column_names)
-        if not (n_atoms.count(n_atoms[0]) == len(n_atoms)
-                and n_atoms[0] == nc):
-            raise SyntaxError('Different number of column labels or atom '
-                              'selections ({}, {}, {}, {} and {}, '
-                              'respectively).'.format(nc, *n_atoms) +
-                              '\nThis should not happen.')
+        if not (n_atoms.count(n_atoms[0]) == len(n_atoms) and n_atoms[0] == nc):
+            raise SyntaxError(
+                "Different number of column labels or atom "
+                "selections ({}, {}, {}, {} and {}, "
+                "respectively).".format(nc, *n_atoms) + "\nThis should not happen."
+            )
         if self._num_frames != self.trajectory.n_frames:
             raise FileChangedError()
         diheds = np.zeros((self._num_frames, nc))
         for i, frame in enumerate(self.trajectory):
-            MDa.lib.distances.calc_dihedrals(groups[0].positions,
-                                             groups[1].positions,
-                                             groups[2].positions,
-                                             groups[3].positions,
-                                             box=self.dimensions,
-                                             result=diheds[i])
+            MDa.lib.distances.calc_dihedrals(
+                groups[0].positions,
+                groups[1].positions,
+                groups[2].positions,
+                groups[3].positions,
+                box=self.dimensions,
+                result=diheds[i],
+            )
         for i, column in enumerate(column_names):
             self._data[column] = diheds[:, i]
 
@@ -412,17 +433,24 @@ class Universe(MDa.Universe):
         """
         d = dict()
         for key in criteria:
-            d[key+'_min'] = self.data[key] > criteria[key][0]
-            d[key+'_max'] = self.data[key] < criteria[key][1]
+            d[key + "_min"] = self.data[key] > criteria[key][0]
+            d[key + "_max"] = self.data[key] < criteria[key][1]
         self._data[name] = pd.DataFrame(d).all(axis=1)
         if self._verbosity:
             num = len(self.data[self.data[name]])
-            plural = 's' if num != 1 else ''
-            print('These criteria include {} frame{}'.format(num, plural))
+            plural = "s" if num != 1 else ""
+            print("These criteria include {} frame{}".format(num, plural))
         return np.array(self.data.index[self.data[name]])
 
-    def fes_1d(self, data, bins=None, temp=None,
-               xlabel=r'distance / $\mathrm{\AA}$', ax=None, **kwargs):
+    def fes_1d(
+        self,
+        data,
+        bins=None,
+        temp=None,
+        xlabel=r"distance / $\mathrm{\AA}$",
+        ax=None,
+        **kwargs
+    ):
         """
         Make FES of some time series data
 
@@ -456,13 +484,25 @@ class Universe(MDa.Universe):
         """
         _temp = self._parse_temp_input(temp)
         _data = self._parse_data_input(data)
-        return fes_1d(x=_data, temp=_temp, ax=ax, bins=bins, xlabel=xlabel,
-                      **kwargs)
+        return fes_1d(x=_data, temp=_temp, ax=ax, bins=bins, xlabel=xlabel, **kwargs)
 
-    def fes_2d(self, x, y, temp=None, ax=None, bins=None,
-               zrange=(0, 20, 11), zfinal=40, n_bins=32, transpose=False,
-               xlabel='x', ylabel='y', scale=True, square=True,
-               **kwargs):
+    def fes_2d(
+        self,
+        x,
+        y,
+        temp=None,
+        ax=None,
+        bins=None,
+        zrange=(0, 20, 11),
+        zfinal=40,
+        n_bins=32,
+        transpose=False,
+        xlabel="x",
+        ylabel="y",
+        scale=True,
+        square=True,
+        **kwargs
+    ):
         """
         plot FES in 2D along defined values
 
@@ -529,14 +569,13 @@ class Universe(MDa.Universe):
         else:
             xmids, ymids = ymids, xmids
             _xlabel, _ylabel = ylabel, xlabel
-        contours = ax.contourf(xmids, ymids, delta_g,
-                               _bins, vmax=vmax, **kwargs)
+        contours = ax.contourf(xmids, ymids, delta_g, _bins, vmax=vmax, **kwargs)
         ax.set_xlabel(_xlabel)
         ax.set_ylabel(_ylabel)
         if square:
-            ax.set_aspect('equal', 'box')
+            ax.set_aspect("equal", "box")
         if scale:
-            fig.colorbar(contours, label='kcal / mol')
+            fig.colorbar(contours, label="kcal / mol")
         fig.tight_layout()
         return delta_g, (xmids, ymids), contours, fig, ax
 
@@ -550,9 +589,12 @@ class Universe(MDa.Universe):
         num_frames = self.trajectory.n_frames
         if num_frames != self._num_frames:
             if self._verbosity and not silent:
-                print('Updating num of frames from {} to {}'.format(
-                    self._num_frames, num_frames) +
-                      '\nand the final time.')
+                print(
+                    "Updating num of frames from {} to {}".format(
+                        self._num_frames, num_frames
+                    )
+                    + "\nand the final time."
+                )
             self._num_frames = num_frames
             self._last_time = self.trajectory.totaltime
 
@@ -569,17 +611,18 @@ class Universe(MDa.Universe):
         """
         if update_time:
             self.update_num_frames(silent=True)
-        if self._data['Time'].iat[-1] != self._last_time:
+        if self._data["Time"].iat[-1] != self._last_time:
             old_len = len(self.data)
             new_times_df = self._init_dataframe()
-            self._data = self._data.join(new_times_df.set_index('Time'),
-                                         on='Time')
+            self._data = self._data.join(new_times_df.set_index("Time"), on="Time")
             if self._verbosity and not silent:
-                print('Updating data from '
-                      '{} frames to {} frames'.format(old_len, len(self._data)))
+                print(
+                    "Updating data from "
+                    "{} frames to {} frames".format(old_len, len(self._data))
+                )
         else:
             if self._verbosity and not silent:
-                print('No need to update self.data')
+                print("No need to update self.data")
 
     @property
     def data(self):
@@ -599,16 +642,15 @@ class Universe(MDa.Universe):
 
     @property
     def final_time_str(self):
-        """"""
-        ps, ns, us, ms = (1, 'ps'), (1e3, 'ns'), (1e6, 'us'), (1e9, 'ms')
-        time_dict = {1: ps, 2: ps, 3: ps, 4: ns, 5: ns, 6: ns, 7: us, 8: us,
-                     9: us}
+        """ """
+        ps, ns, us, ms = (1, "ps"), (1e3, "ns"), (1e6, "us"), (1e9, "ms")
+        time_dict = {1: ps, 2: ps, 3: ps, 4: ns, 5: ns, 6: ns, 7: us, 8: us, 9: us}
         f_time = str(int(self._last_time))
         try:
             power, exten = time_dict[len(f_time)]
         except KeyError:
             power, exten = ms
-        return str(int(self._last_time/power)) + exten
+        return str(int(self._last_time / power)) + exten
 
     def _parse_temp_input(self, temp):
         if temp is None:
@@ -616,8 +658,7 @@ class Universe(MDa.Universe):
         else:
             _temp = temp
         if _temp is None:
-            raise ValueError('The temperature must be defined to calculate an'
-                             ' FES')
+            raise ValueError("The temperature must be defined to calculate an" " FES")
         return _temp
 
     def _parse_data_input(self, x):
@@ -625,14 +666,17 @@ class Universe(MDa.Universe):
             try:
                 return self.data[x]
             except KeyError:
-                raise InputError(x, 'input as a str must be an existing '
-                                    'key for the data in this object')
+                raise InputError(
+                    x,
+                    "input as a str must be an existing "
+                    "key for the data in this object",
+                )
         else:
             return x
 
 
 class Taddol(Universe):
-    """"""
+    """ """
 
     def __init__(self, *args, **kwargs):
         """
@@ -650,36 +694,37 @@ class Taddol(Universe):
         :param args:
         :param kwargs:
         """
-        self._oc_cutoffs = kwargs.pop('oc_cutoffs',
-                                      ((1.0, 3.25), (3.75, 10.0)))
+        self._oc_cutoffs = kwargs.pop("oc_cutoffs", ((1.0, 3.25), (3.75, 10.0)))
         super(Taddol, self).__init__(*args, **kwargs)
         # TODO add temp argument and pass to FES functions
         # dict of distance definitions
         # TODO Find a way to make this atom-ordering independent
         # For example, this will break if TADDOL is not the first molecule
         # listed.
-        self._dict_dist_defs = {'ox': {'O-O': (7, 9),
-                                       'O(l)-Cy': (9, 13),
-                                       'O(r)-Cy': (7, 13)},
-                                'cv': {'CV1': (160, 9),
-                                       'CV2': (133, 8)}}
+        self._dict_dist_defs = {
+            "ox": {"O-O": (7, 9), "O(l)-Cy": (9, 13), "O(r)-Cy": (7, 13)},
+            "cv": {"CV1": (160, 9), "CV2": (133, 8)},
+        }
         self._dict_dihed_defs = {}
 
     def _parse_calc_dist_pos_args(self, args, kwargs):
         try:
             args = [arg.lower() for arg in args]
         except AttributeError:
-            raise SyntaxError('All positional arguments must be strings')
-        if 'pi' in args:
-            args.remove('pi')
-            warn('pi distances have not yet been implemented and will not'
-                 ' be calculated.')
-        if 'all' in args:
-            args.remove('all')
-            print('"all" given or implied, calculating distances for '
-                  'oxygens and CVs')
-            args.append('ox')
-            args.append('cv')
+            raise SyntaxError("All positional arguments must be strings")
+        if "pi" in args:
+            args.remove("pi")
+            warn(
+                "pi distances have not yet been implemented and will not"
+                " be calculated."
+            )
+        if "all" in args:
+            args.remove("all")
+            print(
+                '"all" given or implied, calculating distances for ' "oxygens and CVs"
+            )
+            args.append("ox")
+            args.append("cv")
         bad_args = []
         for arg in args:
             try:
@@ -689,9 +734,11 @@ class Taddol(Universe):
             except KeyError:
                 bad_args.append(arg)
         if len(bad_args) != 0:
-            warn('The following positional arguments were given but not '
-                 'recognized: ' + str(bad_args) + '\nThey will be '
-                                                  'ignored.')
+            warn(
+                "The following positional arguments were given but not "
+                "recognized: " + str(bad_args) + "\nThey will be "
+                "ignored."
+            )
         return kwargs
 
     @property
@@ -702,16 +749,17 @@ class Taddol(Universe):
         :return:
         """
         try:
-            self._data['O-O']
+            self._data["O-O"]
         except KeyError:
             if self._verbosity:
-                print('Calculating oxygen distances...\n'
-                      'This may take a few minutes.')
-            self.calculate_distances('ox')
+                print(
+                    "Calculating oxygen distances...\n" "This may take a few minutes."
+                )
+            self.calculate_distances("ox")
         # might want to (optionally) return the time column here too
         # though, as a @property, this can't take arguments, so it would need
         # to be some variable in the class
-        return self._data.filter(('O-O', 'O(l)-Cy', 'O(r)-Cy'))
+        return self._data.filter(("O-O", "O(l)-Cy", "O(r)-Cy"))
 
     @property
     def pi_dists(self):
@@ -721,13 +769,12 @@ class Taddol(Universe):
         :return:
         """
         try:
-            self._data['pi-0']
+            self._data["pi-0"]
         except KeyError:
             if self._verbosity:
-                print('Calculating pi distances...\n'
-                      'This may take a few minutes.')
-            self.calculate_distances('pi')
-        return self._data.filter(['pi-'+str(i) for i in range(16)])
+                print("Calculating pi distances...\n" "This may take a few minutes.")
+            self.calculate_distances("pi")
+        return self._data.filter(["pi-" + str(i) for i in range(16)])
 
     @property
     def open_ox_dists(self):
@@ -737,13 +784,12 @@ class Taddol(Universe):
         :return:
         """
         try:
-            self._data['open_TAD']
+            self._data["open_TAD"]
         except KeyError:
             if self._verbosity:
-                print('Finding open/closed configurations...')
+                print("Finding open/closed configurations...")
             self.calc_open_closed()
-        return self._data[self._data['open_TAD']].filter(
-            ('O-O', 'O(l)-Cy', 'O(r)-Cy'))
+        return self._data[self._data["open_TAD"]].filter(("O-O", "O(l)-Cy", "O(r)-Cy"))
 
     @property
     def closed_ox_dists(self):
@@ -753,13 +799,14 @@ class Taddol(Universe):
         :return:
         """
         try:
-            self._data['closed_TAD']
+            self._data["closed_TAD"]
         except KeyError:
             if self._verbosity:
-                print('Finding open/closed configurations...')
+                print("Finding open/closed configurations...")
             self.calc_open_closed()
-        return self._data[self._data['closed_TAD']].filter(
-            ('O-O', 'O(l)-Cy', 'O(r)-Cy'))
+        return self._data[self._data["closed_TAD"]].filter(
+            ("O-O", "O(l)-Cy", "O(r)-Cy")
+        )
 
     @property
     def oc_cutoffs(self):
@@ -775,9 +822,9 @@ class Taddol(Universe):
         try:
             [[float(value[i][j]) for i in range(2)] for j in range(2)]
         except (TypeError, IndexError):
-            raise TypeError('cutoffs must be an iterable of shape (2, 2)')
+            raise TypeError("cutoffs must be an iterable of shape (2, 2)")
         except ValueError:
-            raise SyntaxError('These values must be able to be cast as floats')
+            raise SyntaxError("These values must be able to be cast as floats")
         self._oc_cutoffs = value
 
     def calc_open_closed(self):
@@ -792,10 +839,12 @@ class Taddol(Universe):
         cutoffs = self.oc_cutoffs
         cut_closed = cutoffs[0]
         cut_open = cutoffs[1]
-        self._data['closed_TAD'] = self.ox_dists['O-O'].apply(
-            lambda x: cut_closed[0] <= x <= cut_closed[1])
-        self._data['open_TAD'] = self.ox_dists['O-O'].apply(
-            lambda x: cut_open[0] <= x <= cut_open[1])
+        self._data["closed_TAD"] = self.ox_dists["O-O"].apply(
+            lambda x: cut_closed[0] <= x <= cut_closed[1]
+        )
+        self._data["open_TAD"] = self.ox_dists["O-O"].apply(
+            lambda x: cut_open[0] <= x <= cut_open[1]
+        )
 
     @property
     def cv1_dists(self):
@@ -806,12 +855,11 @@ class Taddol(Universe):
         :rtype: pd.Series
         """
         try:
-            self._data['CV1']
+            self._data["CV1"]
         except KeyError:
-            print('Calculating CV values...\n'
-                  'This may take a few minutes.')
-            self.calculate_distances('cv')
-        return self._data['CV1']
+            print("Calculating CV values...\n" "This may take a few minutes.")
+            self.calculate_distances("cv")
+        return self._data["CV1"]
 
     @property
     def cv2_dists(self):
@@ -822,15 +870,14 @@ class Taddol(Universe):
         :rtype: pd.Series
         """
         try:
-            self._data['CV2']
+            self._data["CV2"]
         except KeyError:
-            print('Calculating CV values...\n'
-                  'This may take a few minutes.')
-            self.calculate_distances('cv')
-        return self._data['CV2']
+            print("Calculating CV values...\n" "This may take a few minutes.")
+            self.calculate_distances("cv")
+        return self._data["CV2"]
 
     def hist_2d_cvs(self, x=None, y=None, return_fig=True, ax=None, **kwargs):
-        """"""
+        """ """
         # TODO make the constants here arguments
         # TODO make this optionally save figure
         if x is None:
@@ -841,21 +888,20 @@ class Taddol(Universe):
             fig, ax = plt.subplots()
         else:
             fig = ax.figure
-        counts, xedges, yedges = ax.hist2d(x, y,
-                                           32, **kwargs)[:3]
+        counts, xedges, yedges = ax.hist2d(x, y, 32, **kwargs)[:3]
         ax.axis((1.5, 10, 1.5, 10))
-        ax.set_xlabel('CV 2')
-        ax.set_ylabel('CV 1')
-        ax.set_aspect('equal', 'box')
+        ax.set_xlabel("CV 2")
+        ax.set_ylabel("CV 1")
+        ax.set_aspect("equal", "box")
         fig.tight_layout()
         if return_fig:
             return fig
         else:
             return counts, xedges, yedges, fig, ax
 
-    def fes_2d_cvs(self, x=None, y=None, temp=205.,
-                   xlabel='CV 1', ylabel='CV 2',
-                   **kwargs):
+    def fes_2d_cvs(
+        self, x=None, y=None, temp=205.0, xlabel="CV 1", ylabel="CV 2", **kwargs
+    ):
         """
         plot FES in 2D along defined CVs
 
@@ -879,13 +925,20 @@ class Taddol(Universe):
             x = self.cv1_dists
         if y is None:
             y = self.cv2_dists
-        fig = self.fes_2d(x=x, y=y, temp=temp, xlabel=xlabel, ylabel=ylabel,
-                          **kwargs)[-2]
+        fig = self.fes_2d(x=x, y=y, temp=temp, xlabel=xlabel, ylabel=ylabel, **kwargs)[
+            -2
+        ]
         return fig
 
-    def plot_ox_dists(self, save=False, save_format='png',
-                      save_base_name='ox-dists',
-                      display=True, ax=None, **kwargs):
+    def plot_ox_dists(
+        self,
+        save=False,
+        save_format="png",
+        save_base_name="ox-dists",
+        display=True,
+        ax=None,
+        **kwargs
+    ):
         """
         Plot the three oxygen-related distances.
 
@@ -907,14 +960,12 @@ class Taddol(Universe):
             fig, ax = plt.subplots()
         else:
             fig = ax.figure
-        ax.plot(self._data['Time'], ox_dists['O-O'], label='O-O', **kwargs)
-        ax.plot(self._data['Time'], ox_dists['O(l)-Cy'], label='O(l)-Cy',
-                **kwargs)
-        ax.plot(self._data['Time'], ox_dists['O(r)-Cy'], label='O(r)-Cy',
-                **kwargs)
+        ax.plot(self._data["Time"], ox_dists["O-O"], label="O-O", **kwargs)
+        ax.plot(self._data["Time"], ox_dists["O(l)-Cy"], label="O(l)-Cy", **kwargs)
+        ax.plot(self._data["Time"], ox_dists["O(r)-Cy"], label="O(r)-Cy", **kwargs)
         ax.legend()
-        ax.set_xlabel('time / ps')
-        ax.set_ylabel(r'distance / $\mathrm{\AA}$')
+        ax.set_xlabel("time / ps")
+        ax.set_ylabel(r"distance / $\mathrm{\AA}$")
         if save:
             fig.savefig(save_base_name + save_format)
         if display:
@@ -922,9 +973,17 @@ class Taddol(Universe):
         else:
             return None
 
-    def hist_ox_dists(self, data=None, n_bins=10, save=False,
-                      save_format='pdf', save_base_name='ox-dists-hist',
-                      display=True, axes=None, **kwargs):
+    def hist_ox_dists(
+        self,
+        data=None,
+        n_bins=10,
+        save=False,
+        save_format="pdf",
+        save_base_name="ox-dists-hist",
+        display=True,
+        axes=None,
+        **kwargs
+    ):
         """
         Make histogram of alcoholic O distances in TADDOL trajectory
 
@@ -945,43 +1004,48 @@ class Taddol(Universe):
         :return: The figure of histograms of oxygen distances.
         """
         try:
-            data['O-O']
+            data["O-O"]
         except KeyError:
-            raise InputError(data, 'data must be a pd.DataFrame like object '
-                                   'with item O-O, O(l)-Cy, and O(r)-Cy.')
+            raise InputError(
+                data,
+                "data must be a pd.DataFrame like object "
+                "with item O-O, O(l)-Cy, and O(r)-Cy.",
+            )
         except TypeError:
             if self._verbosity:
-                print('Using default data: self.ox_dists.')
+                print("Using default data: self.ox_dists.")
             data = self.ox_dists
         if axes is None:
-            fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True,
-                                     sharex=True)
+            fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True, sharex=True)
         else:
             try:
                 fig = axes.flat[3].figure
             except (IndexError, TypeError):
-                raise InputError('axes={}'.format(axes), 'Input axes must be '
-                                 'able to plot at least four things')
+                raise InputError(
+                    "axes={}".format(axes),
+                    "Input axes must be " "able to plot at least four things",
+                )
             except AttributeError:
                 try:
                     fig = axes[3].figure
                 except IndexError:
-                    raise InputError('axes={}'.format(axes), 'Input axes must '
-                                     'be able to plot at least four things')
+                    raise InputError(
+                        "axes={}".format(axes),
+                        "Input axes must " "be able to plot at least four things",
+                    )
         handles = []
         # Use whatever the default colors for the system are
         # TODO find a more elegant way to do this
-        colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
-        for i, key in enumerate(('O-O', 'O(l)-Cy', 'O(r)-Cy')):
+        colors = mpl.rcParams["axes.prop_cycle"].by_key().values()[0]
+        for i, key in enumerate(("O-O", "O(l)-Cy", "O(r)-Cy")):
             n, bins = np.histogram(data[key], n_bins)
             ax = axes.flat[i]
-            line, = ax.plot(bins[:-1], n, colors[i], **kwargs)
+            (line,) = ax.plot(bins[:-1], n, colors[i], **kwargs)
             handles.append(line)
-            ax.set_ylabel(r'count')
-            ax.set_xlabel(r'distance / $\mathrm{\AA}$')
-        axes.flat[3].axis('off')
-        axes.flat[3].legend(handles, ['O-O', 'O(l)-Cy', 'O(r)-Cy'],
-                            loc='center')
+            ax.set_ylabel(r"count")
+            ax.set_xlabel(r"distance / $\mathrm{\AA}$")
+        axes.flat[3].axis("off")
+        axes.flat[3].legend(handles, ["O-O", "O(l)-Cy", "O(r)-Cy"], loc="center")
         if save:
             fig.savefig(save_base_name + save_format)
         if display:
@@ -989,10 +1053,18 @@ class Taddol(Universe):
         else:
             return None
 
-    def fes_ox_dists(self, data=None, temp=791., bins=None, save=False,
-                     save_format='pdf',
-                     save_base_name='ox-dists-fes',
-                     display=True, axes=None, **kwargs):
+    def fes_ox_dists(
+        self,
+        data=None,
+        temp=791.0,
+        bins=None,
+        save=False,
+        save_format="pdf",
+        save_base_name="ox-dists-fes",
+        display=True,
+        axes=None,
+        **kwargs
+    ):
         """
         Make FESs of the oxygen distances of a TADDOL from histogram data
 
@@ -1017,17 +1089,25 @@ class Taddol(Universe):
         :return:
         """
         try:
-            data['O-O']
+            data["O-O"]
         except KeyError:
-            raise InputError(data, 'data must be a pd.DataFrame like object '
-                                   'with items O-O, O(l)-Cy, and O(r)-Cy.')
+            raise InputError(
+                data,
+                "data must be a pd.DataFrame like object "
+                "with items O-O, O(l)-Cy, and O(r)-Cy.",
+            )
         except TypeError:
             if self._verbosity:
-                print('Using default data: self.ox_dists.')
+                print("Using default data: self.ox_dists.")
             data = self.ox_dists
-        fig = fes_array_3_legend(data, temp=temp, labels=('O-O', 'O(l)-Cy',
-                                                          'O(r)-Cy'),
-                                 axes=axes, bins=bins, **kwargs)[3]
+        fig = fes_array_3_legend(
+            data,
+            temp=temp,
+            labels=("O-O", "O(l)-Cy", "O(r)-Cy"),
+            axes=axes,
+            bins=bins,
+            **kwargs
+        )[3]
         if save:
             fig.savefig(save_base_name + save_format)
         if display:
@@ -1040,23 +1120,23 @@ def get_taddol_selections(universe, univ_in_dict=True):
     """Returns a dict of AtomSelections from the given universe"""
     d_out = dict()
     if univ_in_dict:
-        d_out['universe'] = universe
-    d_out["phenrtt"] = universe.select_atoms('bynum 92 94')
-    d_out["phenrtb"] = universe.select_atoms('bynum 82 87')
-    d_out["phenrbt"] = universe.select_atoms('bynum 69 71')
-    d_out["phenrbb"] = universe.select_atoms('bynum 59 64')
-    d_out["phenltt"] = universe.select_atoms('bynum 115 117')
-    d_out["phenltb"] = universe.select_atoms('bynum 105 110')
-    d_out["phenlbt"] = universe.select_atoms('bynum 36 41')
-    d_out["phenlbb"] = universe.select_atoms('bynum 46 48')
-    d_out["quatl"] = universe.select_atoms('bynum 6')
-    d_out["quatr"] = universe.select_atoms('bynum 1')
-    d_out["chirl"] = universe.select_atoms('bynum 4')
-    d_out["chirr"] = universe.select_atoms('bynum 2')
-    d_out["cyclon"] = universe.select_atoms('bynum 13')
-    d_out["cyclof"] = universe.select_atoms('bynum 22')
-    d_out["aoxl"] = universe.select_atoms('bynum 9')
-    d_out["aoxr"] = universe.select_atoms('bynum 7')
+        d_out["universe"] = universe
+    d_out["phenrtt"] = universe.select_atoms("bynum 92 94")
+    d_out["phenrtb"] = universe.select_atoms("bynum 82 87")
+    d_out["phenrbt"] = universe.select_atoms("bynum 69 71")
+    d_out["phenrbb"] = universe.select_atoms("bynum 59 64")
+    d_out["phenltt"] = universe.select_atoms("bynum 115 117")
+    d_out["phenltb"] = universe.select_atoms("bynum 105 110")
+    d_out["phenlbt"] = universe.select_atoms("bynum 36 41")
+    d_out["phenlbb"] = universe.select_atoms("bynum 46 48")
+    d_out["quatl"] = universe.select_atoms("bynum 6")
+    d_out["quatr"] = universe.select_atoms("bynum 1")
+    d_out["chirl"] = universe.select_atoms("bynum 4")
+    d_out["chirr"] = universe.select_atoms("bynum 2")
+    d_out["cyclon"] = universe.select_atoms("bynum 13")
+    d_out["cyclof"] = universe.select_atoms("bynum 22")
+    d_out["aoxl"] = universe.select_atoms("bynum 9")
+    d_out["aoxr"] = universe.select_atoms("bynum 7")
     return d_out
 
 
@@ -1065,155 +1145,182 @@ def get_dist(a, b, box=None):
 
     If a box is provided, this will use the builtin MDAnalysis function to
     account for periodic boundary conditions."""
-    warn('get_dist will soon be deprecated. Use '
-         'Universe.calculate_distances', DeprecationWarning)
+    warn(
+        "get_dist will soon be deprecated. Use " "Universe.calculate_distances",
+        DeprecationWarning,
+    )
     if box is not None:
         coordinates = (np.array([atom.centroid()]) for atom in (a, b))
-        return MDa.lib.distances.calc_bonds(*coordinates,
-                                            box=box)
+        return MDa.lib.distances.calc_bonds(*coordinates, box=box)
     else:
         return np.linalg.norm(a.centroid() - b.centroid())
 
 
 def get_dist_dict(dictionary, a, b, box=None):
     """Calculate distance using dict of AtomSelections"""
-    warn('get_dist_dict will soon be deprecated. Use '
-         'Universe.calculate_distances', DeprecationWarning)
+    warn(
+        "get_dist_dict will soon be deprecated. Use " "Universe.calculate_distances",
+        DeprecationWarning,
+    )
     return get_dist(dictionary[a], dictionary[b], box=box)
 
 
-def get_angle(a, b, c, units='rad'):
+def get_angle(a, b, c, units="rad"):
     """Calculate the angle between ba and bc for AtomGroups a, b, c"""
-    warn('get_angle will soon be deprecated. Implement '
-         'Universe.calculate_angles', DeprecationWarning)
+    warn(
+        "get_angle will soon be deprecated. Implement " "Universe.calculate_angles",
+        DeprecationWarning,
+    )
     # TODO look at using the MDAnalysis builtin function
     b_center = b.centroid()
     ba = a.centroid() - b_center
     bc = c.centroid() - b_center
-    angle = np.arccos(np.dot(ba, bc) /
-                      (np.linalg.norm(ba) * np.linalg.norm(bc)))
-    if units == 'rad':
+    angle = np.arccos(np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc)))
+    if units == "rad":
         return angle
-    elif units == 'deg':
+    elif units == "deg":
         return np.rad2deg(angle)
     else:
-        raise InputError(units,
-                         'Unrecognized units: '
-                         'the two recognized units are rad and deg.')
+        raise InputError(
+            units, "Unrecognized units: " "the two recognized units are rad and deg."
+        )
 
 
-def get_angle_dict(dictionary, a, b, c, units='rad'):
+def get_angle_dict(dictionary, a, b, c, units="rad"):
     """Calculate angle using dict of AtomSelections"""
-    warn('get_angle_dict will soon be deprecated. Implement '
-         'Universe.calculate_angles', DeprecationWarning)
-    return get_angle(dictionary[a], dictionary[b], dictionary[c],
-                     units=units)
+    warn(
+        "get_angle_dict will soon be deprecated. Implement "
+        "Universe.calculate_angles",
+        DeprecationWarning,
+    )
+    return get_angle(dictionary[a], dictionary[b], dictionary[c], units=units)
 
 
-def get_dihedral(a, b, c, d, units='rad'):
+def get_dihedral(a, b, c, d, units="rad"):
     """Calculate the angle between abc and bcd for AtomGroups a,b,c,d
 
     Based on formula given in
     https://en.wikipedia.org/wiki/Dihedral_angle"""
-    warn('get_dihedral will soon be deprecated. Use '
-         'Universe.calculate_dihedrals', DeprecationWarning)
+    warn(
+        "get_dihedral will soon be deprecated. Use " "Universe.calculate_dihedrals",
+        DeprecationWarning,
+    )
     # TODO look at using the MDAnalysis builtin function
     ba = a.centroid() - b.centroid()
     bc = b.centroid() - c.centroid()
     dc = d.centroid() - c.centroid()
     angle = np.arctan2(
-        np.dot(np.cross(np.cross(ba, bc), np.cross(bc, dc)), bc
-               ) / np.linalg.norm(bc),
-        np.dot(np.cross(ba, bc), np.cross(bc, dc)))
-    if units == 'rad':
+        np.dot(np.cross(np.cross(ba, bc), np.cross(bc, dc)), bc) / np.linalg.norm(bc),
+        np.dot(np.cross(ba, bc), np.cross(bc, dc)),
+    )
+    if units == "rad":
         return angle
-    elif units == 'deg':
+    elif units == "deg":
         return np.rad2deg(angle)
     else:
-        raise InputError(units,
-                         'Unrecognized units: '
-                         'the two recognized units are rad and deg.')
+        raise InputError(
+            units, "Unrecognized units: " "the two recognized units are rad and deg."
+        )
 
 
-def get_dihedral_dict(dictionary, a, b, c, d, units='rad'):
+def get_dihedral_dict(dictionary, a, b, c, d, units="rad"):
     """Calculate dihedral using dict of AtomSelections"""
-    warn('get_dihedral_dict will soon be deprecated. Use '
-         'Universe.calculate_dihedrals', DeprecationWarning)
-    return get_dihedral(dictionary[a], dictionary[b],
-                        dictionary[c], dictionary[d],
-                        units=units)
+    warn(
+        "get_dihedral_dict will soon be deprecated. Use "
+        "Universe.calculate_dihedrals",
+        DeprecationWarning,
+    )
+    return get_dihedral(
+        dictionary[a], dictionary[b], dictionary[c], dictionary[d], units=units
+    )
 
 
 def get_taddol_ox_dists(universe, sel_dict=False):
     """Get array of oxygen distances in TADDOL trajectory"""
-    warn('get_taddol_ox_dists will soon be deprecated. Use Taddol.ox_dists',
-         DeprecationWarning)
+    warn(
+        "get_taddol_ox_dists will soon be deprecated. Use Taddol.ox_dists",
+        DeprecationWarning,
+    )
     if not sel_dict:
         sel_dict = get_taddol_selections(universe)
     output = []
     for frame in universe.trajectory:
         box = universe.dimensions
-        output.append((universe.trajectory.time,
-                       get_dist_dict(sel_dict, 'aoxl', 'aoxr', box=box),
-                       get_dist_dict(sel_dict, 'aoxl', 'cyclon', box=box),
-                       get_dist_dict(sel_dict, 'aoxr', 'cyclon', box=box)))
+        output.append(
+            (
+                universe.trajectory.time,
+                get_dist_dict(sel_dict, "aoxl", "aoxr", box=box),
+                get_dist_dict(sel_dict, "aoxl", "cyclon", box=box),
+                get_dist_dict(sel_dict, "aoxr", "cyclon", box=box),
+            )
+        )
     return np.array(output)
 
 
-def make_plot_taddol_ox_dists(data, save=False, save_format='pdf',
-                              save_base_name='ox_dists',
-                              display=True):
+def make_plot_taddol_ox_dists(
+    data, save=False, save_format="pdf", save_base_name="ox_dists", display=True
+):
     """Make plot of alcoholic O distances in TADDOL trajectory"""
-    warn('make_plot_taddol_ox_dists will soon be deprecated. Use '
-         'Taddol.plot_ox_dists',
-         DeprecationWarning)
+    warn(
+        "make_plot_taddol_ox_dists will soon be deprecated. Use "
+        "Taddol.plot_ox_dists",
+        DeprecationWarning,
+    )
     fig, axes = plt.subplots()
-    axes.plot(data[:, 0], data[:, 1], label='O-O')
-    axes.plot(data[:, 0], data[:, 2], label='O(l)-Cy')
-    axes.plot(data[:, 0], data[:, 3], label='O(r)-Cy')
+    axes.plot(data[:, 0], data[:, 1], label="O-O")
+    axes.plot(data[:, 0], data[:, 2], label="O(l)-Cy")
+    axes.plot(data[:, 0], data[:, 3], label="O(r)-Cy")
     axes.legend()
-    axes.set_xlabel('time / ps')
-    axes.set_ylabel(r'distance / $\mathrm{\AA}$')
+    axes.set_xlabel("time / ps")
+    axes.set_ylabel(r"distance / $\mathrm{\AA}$")
     if save:
-        fig.savefig(save_base_name+save_format)
+        fig.savefig(save_base_name + save_format)
     if display:
         return fig
     else:
         return None
 
 
-def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
-                              save_base_name='ox_dists_hist',
-                              display=True, separate=False):
+def make_hist_taddol_ox_dists(
+    data,
+    n_bins=10,
+    save=False,
+    save_format="pdf",
+    save_base_name="ox_dists_hist",
+    display=True,
+    separate=False,
+):
     """Make histogram of alcoholic O distances in TADDOL trajectory"""
-    warn('make_hist_taddol_ox_dists will soon be deprecated. Use '
-         'Taddol.hist_ox_dists',
-         DeprecationWarning)
-    legend_entries = ['O-O', 'O(l)-Cy', 'O(r)-Cy']
+    warn(
+        "make_hist_taddol_ox_dists will soon be deprecated. Use "
+        "Taddol.hist_ox_dists",
+        DeprecationWarning,
+    )
+    legend_entries = ["O-O", "O(l)-Cy", "O(r)-Cy"]
     if separate:
         fig, axes = plt.subplots(nrows=2, ncols=2, sharex=True, sharey=True)
         handles = []
         # Use whatever the default colors for the system are
         # TODO find a more elegant way to do this
-        colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
+        colors = mpl.rcParams["axes.prop_cycle"].by_key().values()[0]
         for i in range(3):
             ax = axes.flat[i]
-            n, bins, patches = ax.hist(data[:, 1 + i], n_bins,
-                                       label=legend_entries[i],
-                                       facecolor=colors[i])
+            n, bins, patches = ax.hist(
+                data[:, 1 + i], n_bins, label=legend_entries[i], facecolor=colors[i]
+            )
             handles.append(patches[0])
-            ax.set_xlabel(r'distance / $\mathrm{\AA}$')
-            ax.set_ylabel('frequency')
-        axes.flat[3].axis('off')
-        axes.flat[3].legend(handles, legend_entries, loc='center')
+            ax.set_xlabel(r"distance / $\mathrm{\AA}$")
+            ax.set_ylabel("frequency")
+        axes.flat[3].axis("off")
+        axes.flat[3].legend(handles, legend_entries, loc="center")
     else:
         fig, ax = plt.subplots()
-        ax.hist(data[:, 1:], n_bins, histtype='stepfilled')
-        ax.set_xlabel(r'distance / $\mathrm{\AA}$')
-        ax.set_ylabel('frequency')
+        ax.hist(data[:, 1:], n_bins, histtype="stepfilled")
+        ax.set_xlabel(r"distance / $\mathrm{\AA}$")
+        ax.set_ylabel("frequency")
         ax.legend(legend_entries)
     if save:
-        fig.savefig(save_base_name+save_format)
+        fig.savefig(save_base_name + save_format)
     if display:
         return fig
     else:
@@ -1222,9 +1329,10 @@ def make_hist_taddol_ox_dists(data, n_bins=10, save=False, save_format='pdf',
 
 def get_taddol_pi_dists(universe, sel_dict=False):
     """Get array of phenanthryl distances in TADDOL trajectory"""
-    warn('get_taddol_pi_dists will soon be deprecated. Use '
-         'Taddol.pi_dists',
-         DeprecationWarning)
+    warn(
+        "get_taddol_pi_dists will soon be deprecated. Use " "Taddol.pi_dists",
+        DeprecationWarning,
+    )
     if not sel_dict:
         sel_dict = get_taddol_selections(universe)
     output = []
@@ -1232,78 +1340,88 @@ def get_taddol_pi_dists(universe, sel_dict=False):
     gdd = get_dist_dict
     sd = sel_dict
     for frame in universe.trajectory:
-        output.append((universe.trajectory.time,
-                       gdd(sd, 'phenrtt', 'phenltt'),
-                       gdd(sd, 'phenrtt', 'phenltb'),
-                       gdd(sd, 'phenrtt', 'phenlbt'),
-                       gdd(sd, 'phenrtt', 'phenlbb'),
-                       gdd(sd, 'phenrtb', 'phenltt'),
-                       gdd(sd, 'phenrtb', 'phenltb'),
-                       gdd(sd, 'phenrtb', 'phenlbt'),
-                       gdd(sd, 'phenrtb', 'phenlbb'),
-                       gdd(sd, 'phenrbt', 'phenltt'),
-                       gdd(sd, 'phenrbt', 'phenltb'),
-                       gdd(sd, 'phenrbt', 'phenlbt'),
-                       gdd(sd, 'phenrbt', 'phenlbb'),
-                       gdd(sd, 'phenrbb', 'phenltt'),
-                       gdd(sd, 'phenrbb', 'phenltb'),
-                       gdd(sd, 'phenrbb', 'phenlbt'),
-                       gdd(sd, 'phenrbb', 'phenlbb')))
+        output.append(
+            (
+                universe.trajectory.time,
+                gdd(sd, "phenrtt", "phenltt"),
+                gdd(sd, "phenrtt", "phenltb"),
+                gdd(sd, "phenrtt", "phenlbt"),
+                gdd(sd, "phenrtt", "phenlbb"),
+                gdd(sd, "phenrtb", "phenltt"),
+                gdd(sd, "phenrtb", "phenltb"),
+                gdd(sd, "phenrtb", "phenlbt"),
+                gdd(sd, "phenrtb", "phenlbb"),
+                gdd(sd, "phenrbt", "phenltt"),
+                gdd(sd, "phenrbt", "phenltb"),
+                gdd(sd, "phenrbt", "phenlbt"),
+                gdd(sd, "phenrbt", "phenlbb"),
+                gdd(sd, "phenrbb", "phenltt"),
+                gdd(sd, "phenrbb", "phenltb"),
+                gdd(sd, "phenrbb", "phenlbt"),
+                gdd(sd, "phenrbb", "phenlbb"),
+            )
+        )
     return np.array(output)
 
 
-def make_taddol_pi_dist_array(dists, save=False, save_format='pdf',
-                              save_base_name='pi_dists',
-                              display=True):
+def make_taddol_pi_dist_array(
+    dists, save=False, save_format="pdf", save_base_name="pi_dists", display=True
+):
     """Plot array of pi distances in TADDOL trajectory"""
     fig = plot_dist_array(dists)
     [ax.get_xaxis().set_ticks([]) for ax in fig.axes]
-    fig.text(0.05, 0.585, r'distance / $\mathrm{\AA}$', ha='center',
-             rotation='vertical')
-    fig.text(0.513, 0.08, 'time', ha='center')
+    fig.text(
+        0.05, 0.585, r"distance / $\mathrm{\AA}$", ha="center", rotation="vertical"
+    )
+    fig.text(0.513, 0.08, "time", ha="center")
     if save:
-        fig.savefig(save_base_name+save_format)
+        fig.savefig(save_base_name + save_format)
     if display:
         return fig
     else:
         return None
 
 
-def make_fes_taddol_ox_dist(dists, temp=791., bins=None, save=False,
-                            save_format='pdf',
-                            save_base_name='ox_dists_fes',
-                            display=True, **kwargs):
+def make_fes_taddol_ox_dist(
+    dists,
+    temp=791.0,
+    bins=None,
+    save=False,
+    save_format="pdf",
+    save_base_name="ox_dists_fes",
+    display=True,
+    **kwargs
+):
     """Plot the relative free energy surface of O distances in TADDOL"""
-    warn('make_fes_taddol_ox_dist will soon be deprecated. Use '
-         'Taddol.fes_ox_dists',
-         DeprecationWarning)
+    warn(
+        "make_fes_taddol_ox_dist will soon be deprecated. Use " "Taddol.fes_ox_dists",
+        DeprecationWarning,
+    )
     delta_gs = []
     fig, axes = plt.subplots(nrows=2, ncols=2, sharey=True, sharex=True)
     handles = []
     # Use whatever the default colors for the system are
     # TODO find a more elegant way to do this
-    colors = mpl.rcParams['axes.prop_cycle'].by_key().values()[0]
+    colors = mpl.rcParams["axes.prop_cycle"].by_key().values()[0]
     for i in range(3):
         delta_g, bin_mids = calc_fes_1d(dists[:, 1 + i], temp=temp, bins=bins)
         delta_gs.append(delta_g)
         ax = axes.flat[i]
-        line, = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
+        (line,) = ax.plot(bin_mids, delta_g, colors[i], **kwargs)
         handles.append(line)
-        ax.set_ylabel(r'$\Delta G$ / (kcal / mol)')
-        ax.set_xlabel(r'distance / $\mathrm{\AA}$')
-    axes.flat[3].axis('off')
-    axes.flat[3].legend(handles, ['O-O', 'O(l)-Cy', 'O(r)-Cy'],
-                        loc='center')
+        ax.set_ylabel(r"$\Delta G$ / (kcal / mol)")
+        ax.set_xlabel(r"distance / $\mathrm{\AA}$")
+    axes.flat[3].axis("off")
+    axes.flat[3].legend(handles, ["O-O", "O(l)-Cy", "O(r)-Cy"], loc="center")
     if save:
-        fig.savefig(save_base_name+save_format)
+        fig.savefig(save_base_name + save_format)
     if display:
         return fig
     else:
         return None
 
 
-def select_open_closed_dists(dists, cutoffs=((1.0, 3.25),
-                                             (3.75, 10.0))):
+def select_open_closed_dists(dists, cutoffs=((1.0, 3.25), (3.75, 10.0))):
     """
     Select the coordinates for open vs. closed TADDOL
 
@@ -1311,9 +1429,11 @@ def select_open_closed_dists(dists, cutoffs=((1.0, 3.25),
     :param cutoffs:
     :return:
     """
-    warn('select_open_closed_dists will soon be deprecated. Use '
-         'Taddol.calc_open_closed',
-         DeprecationWarning)
+    warn(
+        "select_open_closed_dists will soon be deprecated. Use "
+        "Taddol.calc_open_closed",
+        DeprecationWarning,
+    )
     cut_closed = cutoffs[0]
     cut_open = cutoffs[1]
     set_open = []
@@ -1323,6 +1443,7 @@ def select_open_closed_dists(dists, cutoffs=((1.0, 3.25),
             set_open.append(ts)
         if cut_closed[0] <= ts[1] <= cut_closed[1]:
             set_closed.append(ts)
-    columns = ['Time', 'O-O', 'Ol-Cy', 'Or-Cy']
-    return pd.DataFrame(set_open, columns=columns), \
-        pd.DataFrame(set_closed, columns=columns)
+    columns = ["Time", "O-O", "Ol-Cy", "Or-Cy"]
+    return pd.DataFrame(set_open, columns=columns), pd.DataFrame(
+        set_closed, columns=columns
+    )

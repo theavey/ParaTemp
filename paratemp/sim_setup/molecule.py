@@ -38,7 +38,7 @@ import pkg_resources
 from ..tools import cd
 
 
-__all__ = ['Molecule', 'make_mol_inputs']
+__all__ = ["Molecule", "make_mol_inputs"]
 
 
 log = logging.getLogger(__name__)
@@ -47,31 +47,32 @@ log = logging.getLogger(__name__)
 def make_mol_inputs() -> Dict[str, Any]:
     geometry = None
     while geometry is None:
-        geometry = Path(input('Path to geometry input (as a PDB, '
-                              'MDL, or mol2): '))
+        geometry = Path(input("Path to geometry input (as a PDB, " "MDL, or mol2): "))
         if not geometry.exists():
-            print('That file does not exist. Try again...')
+            print("That file does not exist. Try again...")
             geometry = None
     charge = None
     while charge is None:
         try:
-            charge = int(input('What is the charge on this molecule? '))
+            charge = int(input("What is the charge on this molecule? "))
         except ValueError:
-            print('That was not a valid integer. Try again...')
+            print("That was not a valid integer. Try again...")
     name = None
     while name is None:
-        name = input('What is the name of this molecule? (try to avoid '
-                     'special characters)')
+        name = input(
+            "What is the name of this molecule? (try to avoid " "special characters)"
+        )
     resname = None
     while resname is None:
-        resname = input('What should be the residue name (normally a unique '
-                        'three character string)?')
+        resname = input(
+            "What should be the residue name (normally a unique "
+            "three character string)?"
+        )
         resname = resname.strip()
         if 0 == len(resname) or len(resname) > 4:
-            print('Try a shorter or longer string...')
+            print("Try a shorter or longer string...")
             resname = None
-    return dict(geometry=geometry, charge=charge,
-                name=name, resname=resname)
+    return dict(geometry=geometry, charge=charge, name=name, resname=resname)
 
 
 class Molecule(object):
@@ -79,11 +80,14 @@ class Molecule(object):
     Molecule class will make a GAFF-parameterized Structure from an input
     """
 
-    def __init__(self, geometry: Union[str, Path],
-                 charge: int = 0,
-                 name: str = None,
-                 resname: str = 'MOL',):
-        log.debug('Initializing Molecule with {}'.format(geometry))
+    def __init__(
+        self,
+        geometry: Union[str, Path],
+        charge: int = 0,
+        name: str = None,
+        resname: str = "MOL",
+    ):
+        log.debug("Initializing Molecule with {}".format(geometry))
         self._input_geo_path = Path(geometry)
         self._name = self._input_geo_path.stem if name is None else name
         self.resname = resname
@@ -109,55 +113,55 @@ class Molecule(object):
         # could take keywords for FF
         # could use charges from QM calc
         # TODO convert from whatever to PDB, MDL, or MOL2
-        log.debug('Parameterizing {} with acpype'.format(self._name))
+        log.debug("Parameterizing {} with acpype".format(self._name))
         env_to_load = self._get_amber_env()
-        cl = shlex.split('acpype -i {} '
-                         '-o gmx '
-                         '-n {} '
-                         '-c user '
-                         '-b {} '.format(
-                            self._input_geo_path.resolve(),
-                            self.charge,
-                            self._name))
-        log.warning('Running acpype; this may take a few minutes')
+        cl = shlex.split(
+            "acpype -i {} "
+            "-o gmx "
+            "-n {} "
+            "-c user "
+            "-b {} ".format(self._input_geo_path.resolve(), self.charge, self._name)
+        )
+        log.warning("Running acpype; this may take a few minutes")
         proc = self._run_in_dir(cl, env=env_to_load)
-        log.info('acpype said:\n {}'.format(proc.stdout))
+        log.info("acpype said:\n {}".format(proc.stdout))
         proc.check_returncode()
-        ac_dir = self._directory / '{}.acpype'.format(self._name)
-        gro = ac_dir / '{}_GMX.gro'.format(self._name)
-        top = ac_dir / '{}_GMX.top'.format(self._name)
+        ac_dir = self._directory / "{}.acpype".format(self._name)
+        gro = ac_dir / "{}_GMX.gro".format(self._name)
+        top = ac_dir / "{}_GMX.top".format(self._name)
         if not gro.is_file() or not top.is_file():
-            mes = 'gro or top file not created in {}'.format(ac_dir)
+            mes = "gro or top file not created in {}".format(ac_dir)
             log.error(mes)
             raise FileNotFoundError(mes)
         self._gro = gro
         self._top = top
-        ptop = parmed.gromacs.GromacsTopologyFile(str(top),
-                                                  xyz=str(gro))
+        ptop = parmed.gromacs.GromacsTopologyFile(str(top), xyz=str(gro))
         self._ptop = ptop
         for res in ptop.residues:
             res.name = self.resname
         self.atom_types = set(a.type for a in ptop.atoms)
-        ptop.write(str(self._directory / '{}.top'.format(self._name)))
-        ptop.save(str(self._directory / '{}.gro'.format(self._name)))
-        log.info('Wrote top and gro files in {}'.format(self._directory))
+        ptop.write(str(self._directory / "{}.top".format(self._name)))
+        ptop.save(str(self._directory / "{}.gro".format(self._name)))
+        log.info("Wrote top and gro files in {}".format(self._directory))
         self._parameterized = True
 
     @staticmethod
     def _get_amber_env() -> Dict[str, str]:
-        log.info('Using special environment variables for Amber executables')
+        log.info("Using special environment variables for Amber executables")
         amber_env_stream = pkg_resources.resource_stream(
-            __name__, 'SimpleSim_data/amber_env.json')  # type: TextIOBase
+            __name__, "SimpleSim_data/amber_env.json"
+        )  # type: TextIOBase
         amber_env = json.load(amber_env_stream)
         curr_env = dict(os.environ)
         curr_env.update(amber_env)
         try:
-            conda_prefix = Path(curr_env['CONDA_PREFIX'])
-            python_bin = conda_prefix / 'bin'
+            conda_prefix = Path(curr_env["CONDA_PREFIX"])
+            python_bin = conda_prefix / "bin"
         except KeyError:
             import sys
+
             python_bin = Path(sys.executable).parent
-        curr_env['PATH'] += os.pathsep + str(python_bin)
+        curr_env["PATH"] += os.pathsep + str(python_bin)
         return curr_env
 
     @property
@@ -174,12 +178,14 @@ class Molecule(object):
 
     def _run_in_dir(self, cl, **kwargs) -> subprocess.CompletedProcess:
         with cd(self._directory):
-            proc = subprocess.run(cl, stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT,
-                                  universal_newlines=True,
-                                  **kwargs)
+            proc = subprocess.run(
+                cl,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                **kwargs
+            )
         return proc
 
     def __repr__(self):
-        return '<{} Molecule; parameterized: {}>'.format(self.name,
-                                                          self._parameterized)
+        return "<{} Molecule; parameterized: {}>".format(self.name, self._parameterized)

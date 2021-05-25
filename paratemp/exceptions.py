@@ -51,12 +51,14 @@ class FileChangedError(Exception):
         self.msg = msg
 
     def __str__(self):
-        output = ('Number of frames in trajectory does not match the '
-                  'number when this was initialized.\nTry '
-                  'reinitializing the object or rewrite the code to '
-                  'deal with this in a smarter way.')
+        output = (
+            "Number of frames in trajectory does not match the "
+            "number when this was initialized.\nTry "
+            "reinitializing the object or rewrite the code to "
+            "deal with this in a smarter way."
+        )
         if self.msg is not None:
-            output += '\n' + self.msg
+            output += "\n" + self.msg
             return repr(output)
 
 
@@ -70,9 +72,11 @@ class UnknownEnergyError(Exception):
         self.msg = msg
 
     def __str__(self):
-        standard_response = ("The energy is unknown either because it wasn't "
-                             "in the original file or the coordinates have "
-                             "changed.\nCould try XYZ.original_energy")
+        standard_response = (
+            "The energy is unknown either because it wasn't "
+            "in the original file or the coordinates have "
+            "changed.\nCould try XYZ.original_energy"
+        )
         if self.msg is None:
             return repr(standard_response)
         else:

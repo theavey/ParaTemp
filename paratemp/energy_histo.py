@@ -56,14 +56,14 @@ def find_energies() -> List[str]:
     not, creates it by calling the GROMACS tool gmx energy where input='13'
     corresponds to the total energy at each time.
     It returns a list of the names of the energy files."""
-    energy_files = glob.glob('*[0-9].edr')
+    energy_files = glob.glob("*[0-9].edr")
     output_files = []
     for file_name in energy_files:
-        output_name = ('energy' + re.search(r'[0-9]*(?=\.edr)',
-                                            file_name).group(0) + '.xvg')
+        output_name = (
+            "energy" + re.search(r"[0-9]*(?=\.edr)", file_name).group(0) + ".xvg"
+        )
         if not os.path.isfile(output_name):
-            gromacs.tools.G_energy(f=file_name, o=output_name,
-                                   input='Total-Energy')()
+            gromacs.tools.G_energy(f=file_name, o=output_name, input="Total-Energy")()
         output_files += [output_name]
     output_files.sort()
     output_files.sort(key=len)
@@ -88,15 +88,15 @@ def import_energies(output_files, return_lengths=False):
 
 
 def _demux_exe():
-    if distutils.spawn.find_executable('demux'):
-        return 'demux'
-    elif distutils.spawn.find_executable('demux.pl'):
-        return 'demux.pl'
+    if distutils.spawn.find_executable("demux"):
+        return "demux"
+    elif distutils.spawn.find_executable("demux.pl"):
+        return "demux.pl"
     else:
-        raise OSError(errno.ENOENT, 'No demux executable found')
+        raise OSError(errno.ENOENT, "No demux executable found")
 
 
-def make_indices(logfile: str = 'npt_PT_out0.log') -> None:
+def make_indices(logfile: str = "npt_PT_out0.log") -> None:
     """
     Make replica_temp and replica_index.xvg if they don't exist
 
@@ -109,36 +109,41 @@ def make_indices(logfile: str = 'npt_PT_out0.log') -> None:
     :raises: subprocess.CalledProcessError if demux.pl returns a non-zero
         exit status.
     """
-    if (not os.path.isfile('replica_temp.xvg') and
-            not os.path.isfile('replica_index.xvg')):
+    if not os.path.isfile("replica_temp.xvg") and not os.path.isfile(
+        "replica_index.xvg"
+    ):
         command_line = [_demux_exe(), logfile]
-        with open('demux.pl.log', 'w') as log_out_file:
-            proc = subprocess.run(command_line, stdout=log_out_file,
-                                  stderr=subprocess.STDOUT, bufsize=1)
+        with open("demux.pl.log", "w") as log_out_file:
+            proc = subprocess.run(
+                command_line, stdout=log_out_file, stderr=subprocess.STDOUT, bufsize=1
+            )
             proc.check_returncode()
 
 
 # Run this only if called from the command line
 if __name__ == "__main__":
     import argparse
+
     # todo add argument and code for way to save to a file instead of viewing
     # todo take arguments to change the plotting
     parser = argparse.ArgumentParser(
-        description='A script to plot energy histograms from a GROMACS '
-                    'parallel tempering simulation.')
-    parser.add_argument('--version', action='version',
-                        version='%(prog)s v{}'.format(__version__))
+        description="A script to plot energy histograms from a GROMACS "
+        "parallel tempering simulation."
+    )
+    parser.add_argument(
+        "--version", action="version", version="%(prog)s v{}".format(__version__)
+    )
     args = parser.parse_args()
 
     out_files = find_energies()
     all_data = import_energies(out_files)
 
-    plt.hist(all_data, 50, histtype='stepfilled')
+    plt.hist(all_data, 50, histtype="stepfilled")
 
     plt.show()
 
 
-def combine_energy_files(basename='energy', files=False):
+def combine_energy_files(basename="energy", files=False):
     """combine_energy_files(basename='energy', files=False) is a function that
     combines a set of .xvg files writes a combined .xvg file.
     'basename' is the first part of the name for the xvg files to be combined
@@ -146,14 +151,16 @@ def combine_energy_files(basename='energy', files=False):
     Alternatively, the list of files (in the desired order) can be passed in
     with the keyword 'files'.
     Returns None"""
-    output_name = basename + '_comb.xvg'
+    output_name = basename + "_comb.xvg"
     if os.path.isfile(output_name):
-        print('Seems like this has already been run. \n'
-              'If you want it run again, change the name or delete '
-              'the file named "{}".'.format(output_name))
+        print(
+            "Seems like this has already been run. \n"
+            "If you want it run again, change the name or delete "
+            'the file named "{}".'.format(output_name)
+        )
         return None
     if not files:
-        files = glob.glob(basename + '*.xvg')
+        files = glob.glob(basename + "*.xvg")
         files.sort()
         files.sort(key=len)
     imported_data, lengths = import_energies(files, return_lengths=True)
@@ -162,11 +169,12 @@ def combine_energy_files(basename='energy', files=False):
         data += imported_data
     else:
         len_shortest = min(lengths)
-        data = [gromacs.formats.XVG(filename=files[0]).array[0,
-                :len_shortest]]
-        print('Energy lists not all equal lengths. '
-              'Cropping all to the length of the shortest:'
-              ' {}'.format(len_shortest))
+        data = [gromacs.formats.XVG(filename=files[0]).array[0, :len_shortest]]
+        print(
+            "Energy lists not all equal lengths. "
+            "Cropping all to the length of the shortest:"
+            " {}".format(len_shortest)
+        )
         imported_data = [part[:len_shortest] for part in imported_data]
         data += imported_data
     data = np.array(data)
@@ -174,8 +182,7 @@ def combine_energy_files(basename='energy', files=False):
     return None
 
 
-def deconvolve_energies(energyfile='energy_comb.xvg',
-                        indexfile='replica_temp.xvg'):
+def deconvolve_energies(energyfile="energy_comb.xvg", indexfile="replica_temp.xvg"):
     """
     Take an xvg file and return an array of the energies of the walkers.
 
@@ -206,8 +213,8 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
     approx_ratio = int(round(ratio))
     if ratio == 1.0:
         deconvolved_energies = energies_indexed[1:][
-            indices_indexed[1:],
-            np.arange(length_i)]
+            indices_indexed[1:], np.arange(length_i)
+        ]
         e_times = [energies_indexed[0, 0], energies_indexed[0, -1]]
         i_times = [indices_indexed[0, 0], indices_indexed[0, -1]]
     elif ratio > 1:
@@ -216,29 +223,34 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
             extra_i = 0
         elif approx_ratio > ratio:
             extra_i = length_i - length_e / approx_ratio
-            extra_e = np.mod(length_e, length_i-extra_i)
+            extra_e = np.mod(length_e, length_i - extra_i)
         elif approx_ratio < ratio:
             extra_e = np.mod(length_e, length_i)
             extra_i = 0
         else:
-            raise ImportError('ratio: '
-                              '{}, approx ratio: {}'.format(ratio,
-                                                            approx_ratio))
+            raise ImportError(
+                "ratio: " "{}, approx ratio: {}".format(ratio, approx_ratio)
+            )
         # This is dumb! this discards meaningful energies
         # just need to duplicate the index rows for consecutive energy
         # readings between attempted exchanges!
         # todo fix this to not waste energy values
-        deconvolved_energies = energies_indexed[1:,
-                               :length_e-extra_e:approx_ratio][
-            indices_indexed[1:, :length_i-extra_i],
-            np.arange((length_i-extra_i))]
-        e_times = [energies_indexed[0, :length_e-extra_e:approx_ratio][0],
-                   energies_indexed[0, :length_e-extra_e:approx_ratio][-1]]
-        i_times = [indices_indexed[0, :length_i-extra_i][0],
-                   indices_indexed[0, :length_i-extra_i][-1]]
+        deconvolved_energies = energies_indexed[
+            1:, : length_e - extra_e : approx_ratio
+        ][indices_indexed[1:, : length_i - extra_i], np.arange((length_i - extra_i))]
+        e_times = [
+            energies_indexed[0, : length_e - extra_e : approx_ratio][0],
+            energies_indexed[0, : length_e - extra_e : approx_ratio][-1],
+        ]
+        i_times = [
+            indices_indexed[0, : length_i - extra_i][0],
+            indices_indexed[0, : length_i - extra_i][-1],
+        ]
     elif ratio < 1:
-        print('likely undersampling energies because energy / indices ratio is '
-              '{}'.format(ratio))
+        print(
+            "likely undersampling energies because energy / indices ratio is "
+            "{}".format(ratio)
+        )
         ratio = 1 / ratio
         approx_ratio = int(round(ratio))
         if approx_ratio == ratio:
@@ -247,41 +259,46 @@ def deconvolve_energies(energyfile='energy_comb.xvg',
         # Not so sure about this...
         elif approx_ratio > ratio:
             extra_e = length_e - length_i / approx_ratio
-            extra_i = np.mod(length_i, length_e-extra_e)
+            extra_i = np.mod(length_i, length_e - extra_e)
         elif approx_ratio < ratio:
             extra_i = np.mod(length_i, length_e)
             extra_e = 0
         else:
-            raise ImportError('ratio: '
-                              '{}, approx ratio: {}'.format(ratio,
-                                                            approx_ratio))
-        deconvolved_energies = energies_indexed[1:, :length_e-extra_e][
-            indices_indexed[1:, :length_i-extra_i:approx_ratio],
-            np.arange((length_i-extra_i)/approx_ratio)]
-        e_times = [energies_indexed[0, :length_e-extra_e][0],
-                   energies_indexed[0, :length_e-extra_e][-1]]
-        i_times = [indices_indexed[0, :length_i-extra_i:approx_ratio][0],
-                   indices_indexed[0, :length_i-extra_i:approx_ratio][-1]]
+            raise ImportError(
+                "ratio: " "{}, approx ratio: {}".format(ratio, approx_ratio)
+            )
+        deconvolved_energies = energies_indexed[1:, : length_e - extra_e][
+            indices_indexed[1:, : length_i - extra_i : approx_ratio],
+            np.arange((length_i - extra_i) / approx_ratio),
+        ]
+        e_times = [
+            energies_indexed[0, : length_e - extra_e][0],
+            energies_indexed[0, : length_e - extra_e][-1],
+        ]
+        i_times = [
+            indices_indexed[0, : length_i - extra_i : approx_ratio][0],
+            indices_indexed[0, : length_i - extra_i : approx_ratio][-1],
+        ]
     else:
-        print('length of energy file is {}'.format(length_e))
-        print('length of index file is {}'.format(length_i))
-        raise ImportError('Not sure how to handle those values')
+        print("length of energy file is {}".format(length_e))
+        print("length of index file is {}".format(length_i))
+        raise ImportError("Not sure how to handle those values")
     # todo maybe error check is a more pythonic manner with a try/except loop
     # if length_e != length_i:
     #     print("length of energies, {}, != length of indices, "
     #           "{}!".format(length_e, length_i))
     #     raise IndexError('lengths not equals')
-    if not (float(e_times[0]) == float(i_times[0]) and
-            float(e_times[1]) == float(i_times[1])):
-        print('energies start: {}; end: {}'.format(e_times[0], e_times[1]))
-        print('indices start: {}; end: {}'.format(i_times[0], i_times[1]))
-        print('These values should be about the same if this is working '
-              'properly')
+    if not (
+        float(e_times[0]) == float(i_times[0])
+        and float(e_times[1]) == float(i_times[1])
+    ):
+        print("energies start: {}; end: {}".format(e_times[0], e_times[1]))
+        print("indices start: {}; end: {}".format(i_times[0], i_times[1]))
+        print("These values should be about the same if this is working " "properly")
     return deconvolved_energies
 
 
-def plot_array(array, index_offset=0, num_replicas=None, n_rows=None,
-               n_cols=None):
+def plot_array(array, index_offset=0, num_replicas=None, n_rows=None, n_cols=None):
     """
     Plot each row of array in a different axes of a figure; return figure.
 
@@ -299,18 +316,20 @@ def plot_array(array, index_offset=0, num_replicas=None, n_rows=None,
     if not num_replicas:
         num_replicas = array.shape[0] - index_offset
     from math import sqrt, ceil
+
     if n_rows is None and n_cols is None:
         n_rows = int(ceil(sqrt(float(num_replicas))))
         n_cols = n_rows
     fig, axes = plt.subplots(n_rows, n_cols, sharex=True, sharey=True)
     for i in range(num_replicas):
         ax = axes.flat[i]
-        ax.plot(array[i+index_offset])
+        ax.plot(array[i + index_offset])
     return fig
 
 
-def hist_array(array, index_offset=0, num_replicas=None, n_rows=None,
-               n_cols=None, n_bins=10):
+def hist_array(
+    array, index_offset=0, num_replicas=None, n_rows=None, n_cols=None, n_bins=10
+):
     """
     Histogram each row of array in a different axes of a figure; return figure.
 
@@ -330,13 +349,14 @@ def hist_array(array, index_offset=0, num_replicas=None, n_rows=None,
     if not num_replicas:
         num_replicas = array.shape[0] - index_offset
     from math import sqrt, ceil
+
     if n_rows is None and n_cols is None:
         n_rows = int(ceil(sqrt(float(num_replicas))))
         n_cols = n_rows
     fig, axes = plt.subplots(n_rows, n_cols, sharex=True, sharey=True)
     for i in range(num_replicas):
         ax = axes.flat[i]
-        ax.hist(array[i+index_offset], n_bins)
+        ax.hist(array[i + index_offset], n_bins)
     return fig
 
 
@@ -359,13 +379,18 @@ def hist_multi(array, index_offset=1, n_bins=10):
     :rtype: matplotlib.figure.Figure
     """
     fig, axes = plt.subplots(1, 1)
-    axes.hist(array[index_offset:], n_bins, histtype='stepfilled')
+    axes.hist(array[index_offset:], n_bins, histtype="stepfilled")
     return fig
 
 
-def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
-               output_base_name='solute', index='index.ndx', demux=True,
-               group='CHR'):
+def solute_trr(
+    trr_base_name="npt_PT_out",
+    tpr_base_name="TOPO/npt",
+    output_base_name="solute",
+    index="index.ndx",
+    demux=True,
+    group="CHR",
+):
     """solute_trr takes file base names as input, creates a separate trr file
     for each trajectory that only includes the solutes, and then returns a
     list of the names of the created files.
@@ -373,58 +398,75 @@ def solute_trr(trr_base_name='npt_PT_out', tpr_base_name='TOPO/npt',
     trajectories (to get continuous coordinate files as opposed to continuous
     temperature).
     This uses gromacswrapper to call trjconv and possibly trjcat."""
-    trr_files = glob.glob(trr_base_name + '*.trr')
+    trr_files = glob.glob(trr_base_name + "*.trr")
     trr_files.sort()
     trr_files.sort(key=len)
-    tpr_files = glob.glob(tpr_base_name + '*.tpr')
+    tpr_files = glob.glob(tpr_base_name + "*.tpr")
     tpr_files.sort()
     tpr_files.sort(key=len)
-    matching_output_name = glob.glob(output_base_name+'*.trr')
+    matching_output_name = glob.glob(output_base_name + "*.trr")
     if len(matching_output_name) == len(trr_files):
-        print('There are already '
-              '{} files matched using "{}".'.format(len(matching_output_name),
-                                                    output_base_name) +
-              '\nsolute_trr has likely already run.\n'
-              'Pick new output name or use current files.')
+        print(
+            "There are already "
+            '{} files matched using "{}".'.format(
+                len(matching_output_name), output_base_name
+            )
+            + "\nsolute_trr has likely already run.\n"
+            "Pick new output name or use current files."
+        )
         matching_output_name.sort()
         matching_output_name.sort(key=len)
         return matching_output_name
     output_files = []
     if demux:
-        d_trr_base_name = 'deconv' + trr_base_name
-        prev_deconv_files = glob.glob(d_trr_base_name+'*.trr')
+        d_trr_base_name = "deconv" + trr_base_name
+        prev_deconv_files = glob.glob(d_trr_base_name + "*.trr")
         if len(prev_deconv_files) == len(trr_files):
-            print('Likely already deconvolved trajectories, skipping that step')
+            print("Likely already deconvolved trajectories, skipping that step")
         else:
-            gromacs.tools.Trjcat_mpi(f=trr_files, o='demuxed.trr',
-                                     n='index.ndx',
-                                     demux='replica_index.xvg', input=group)()
-            trr_files = glob.glob('*demuxed.trr')
+            gromacs.tools.Trjcat_mpi(
+                f=trr_files,
+                o="demuxed.trr",
+                n="index.ndx",
+                demux="replica_index.xvg",
+                input=group,
+            )()
+            trr_files = glob.glob("*demuxed.trr")
             trr_files.sort()
             trr_files.sort(key=len)
             for (i, trr_file) in enumerate(trr_files):
-                number = trr_file.split('_')[0]
-                new_name = d_trr_base_name + number + '.trr'
+                number = trr_file.split("_")[0]
+                new_name = d_trr_base_name + number + ".trr"
                 os.rename(trr_file, new_name)
                 trr_files[i] = new_name
         trr_base_name = d_trr_base_name
     if len(trr_files) != len(tpr_files):
-        raise IndexError('Number of trr and tpr files not equal: '
-                         '{} and {}'.format(len(trr_files), len(tpr_files)))
+        raise IndexError(
+            "Number of trr and tpr files not equal: "
+            "{} and {}".format(len(trr_files), len(tpr_files))
+        )
     for (i, trr_name) in enumerate(trr_files):
-        number_match = re.search(r'(?:{})(\d+)(?:\.trr)'.format(trr_base_name),
-                                 trr_name)
+        number_match = re.search(
+            r"(?:{})(\d+)(?:\.trr)".format(trr_base_name), trr_name
+        )
         number = number_match.group(1)
-        out_file = output_base_name + number + '.trr'
+        out_file = output_base_name + number + ".trr"
         output_files.append(out_file)
-        gromacs.tools.Trjconv_mpi(s=tpr_files[i], pbc='mol', f=trr_name,
-                                  o=out_file,
-                                  n=index, center=True, input=(group, group))()
+        gromacs.tools.Trjconv_mpi(
+            s=tpr_files[i],
+            pbc="mol",
+            f=trr_name,
+            o=out_file,
+            n=index,
+            center=True,
+            input=(group, group),
+        )()
     return output_files
 
 
-def radii_of_gyration(basename='solute', atom_selection=False, resname='TAD',
-                      gro_file='geom-solutes.gro'):
+def radii_of_gyration(
+    basename="solute", atom_selection=False, resname="TAD", gro_file="geom-solutes.gro"
+):
     """A function to find the radius of gyration for all timesteps for a set of
     REMD trajectories.
     The basename is the name before the numbers for the trajectory files.
@@ -434,13 +476,13 @@ def radii_of_gyration(basename='solute', atom_selection=False, resname='TAD',
     Assumes all trajectories are the same length.
     Returns the values as a numpy array."""
     u_solutes = []
-    files = glob.glob(basename+'*.trr')
+    files = glob.glob(basename + "*.trr")
     num_files = len(files)
     for file_name in files:
         u_solutes.append(MDAnalysis.Universe(gro_file, file_name))
     rgs = np.zeros((num_files, len(u_solutes[0].trajectory)))
     if not atom_selection:
-        selection = 'resname ' + resname
+        selection = "resname " + resname
     else:
         selection = atom_selection
     for (i, u) in enumerate(u_solutes):
@@ -449,12 +491,18 @@ def radii_of_gyration(basename='solute', atom_selection=False, resname='TAD',
             rgs[i, fr.frame] = tad.radius_of_gyration()
     return rgs
 
+
 # TODO write function to estimate tunneling times
 # TODO write function to find average exchange time/prob?
 
 
-def make_basic_plots(save_base_name='pt', save=True, save_format='.pdf',
-                     display=True, logfile='npt_PT_out0.log'):
+def make_basic_plots(
+    save_base_name="pt",
+    save=True,
+    save_format=".pdf",
+    display=True,
+    logfile="npt_PT_out0.log",
+):
     """make_basic_plots takes keyword arguments to find the energies for replica
     exchange simulations in order to make basic plots of the energies.
     The three plots made are a combined histogram of the replica energies,
@@ -474,40 +522,52 @@ def make_basic_plots(save_base_name='pt', save=True, save_format='.pdf',
     make_indices(logfile=logfile)
     deconvolved_energies = deconvolve_energies()
     deconvolved_energies_of_time_fig = plot_array(deconvolved_energies)
-    deconvolved_energies_of_time_fig.text(0.1, 0.55, 'energy', ha='center',
-                                          rotation='vertical')
-    deconvolved_energies_of_time_fig.text(0.515, 0.08, 'time', ha='center')
+    deconvolved_energies_of_time_fig.text(
+        0.1, 0.55, "energy", ha="center", rotation="vertical"
+    )
+    deconvolved_energies_of_time_fig.text(0.515, 0.08, "time", ha="center")
     for ax in deconvolved_energies_of_time_fig.axes:
         ax.get_xaxis().set_ticks([])
         ax.get_yaxis().set_ticks([])
     deconvolved_energies_hist_fig = hist_array(deconvolved_energies)
-    deconvolved_energies_hist_fig.text(0.1, 0.53, 'count', ha='center',
-                                       rotation='vertical')
-    deconvolved_energies_hist_fig.text(0.51, 0.08, 'energy', ha='center')
+    deconvolved_energies_hist_fig.text(
+        0.1, 0.53, "count", ha="center", rotation="vertical"
+    )
+    deconvolved_energies_hist_fig.text(0.51, 0.08, "energy", ha="center")
     for ax in deconvolved_energies_hist_fig.axes:
         ax.get_xaxis().set_ticks([])
         ax.get_yaxis().set_ticks([])
-    combined_energies = gromacs.formats.XVG(filename='energy_comb.xvg').array
-    repl_ener_hist = hist_multi(combined_energies[1:].transpose(),
-                                index_offset=0, n_bins=100)
+    combined_energies = gromacs.formats.XVG(filename="energy_comb.xvg").array
+    repl_ener_hist = hist_multi(
+        combined_energies[1:].transpose(), index_offset=0, n_bins=100
+    )
     ax = repl_ener_hist.gca()
-    ax.set_ylabel('count')
-    ax.set_xlabel('energy')
+    ax.set_ylabel("count")
+    ax.set_xlabel("energy")
     if save:
-        deconvolved_energies_of_time_fig.savefig(save_base_name + '-e-of-t' +
-                                                 save_format)
-        deconvolved_energies_hist_fig.savefig(save_base_name
-                                              + '-e-hists' + save_format)
-        repl_ener_hist.savefig(save_base_name + '-repl-e-hists' + save_format)
+        deconvolved_energies_of_time_fig.savefig(
+            save_base_name + "-e-of-t" + save_format
+        )
+        deconvolved_energies_hist_fig.savefig(save_base_name + "-e-hists" + save_format)
+        repl_ener_hist.savefig(save_base_name + "-repl-e-hists" + save_format)
     if display:
-        return [deconvolved_energies_of_time_fig, deconvolved_energies_hist_fig,
-                repl_ener_hist]
+        return [
+            deconvolved_energies_of_time_fig,
+            deconvolved_energies_hist_fig,
+            repl_ener_hist,
+        ]
     else:
         return None
 
 
-def make_rg_figures(save_base_name='pt', save=True, save_format='.pdf',
-                    display=True, group='TAD', gro_file='npt_PT_out0.gro'):
+def make_rg_figures(
+    save_base_name="pt",
+    save=True,
+    save_format=".pdf",
+    display=True,
+    group="TAD",
+    gro_file="npt_PT_out0.gro",
+):
     """make_rg_figures will take a set of trajectories, run solute_trr on them
     (to separate out the solutes and remove excess motion) then make a plot of
     the radius of gyration for each walker as a function of time and histograms
@@ -520,36 +580,36 @@ def make_rg_figures(save_base_name='pt', save=True, save_format='.pdf',
     solute_trr(group=group)
     rgs = radii_of_gyration(gro_file=gro_file)
     rgs_t_plots = plot_array(rgs)
-    rgs_t_plots.text(0.1, 0.51, '$R_G$', usetex=True, ha='center',
-                     rotation='vertical')
-    rgs_t_plots.text(0.515, 0.07, 'time', ha='center')
+    rgs_t_plots.text(0.1, 0.51, "$R_G$", usetex=True, ha="center", rotation="vertical")
+    rgs_t_plots.text(0.515, 0.07, "time", ha="center")
     for ax in rgs_t_plots.axes:
         ax.get_xaxis().set_ticks([])
         ax.get_yaxis().set_ticks([])
     rgs_hists = hist_array(rgs)
-    rgs_hists.text(0.1, 0.53, 'count', ha='center', rotation='vertical')
-    rgs_hists.text(0.5, 0.1, '$R_G$', usetex=True)
+    rgs_hists.text(0.1, 0.53, "count", ha="center", rotation="vertical")
+    rgs_hists.text(0.5, 0.1, "$R_G$", usetex=True)
     for ax in rgs_hists.axes:
         ax.get_xaxis().set_ticks([])
         ax.get_yaxis().set_ticks([])
     if save:
-        rgs_t_plots.savefig(save_base_name+'rgs_of_t'+save_format)
-        rgs_hists.savefig(save_base_name+'rgs_hists'+save_format)
+        rgs_t_plots.savefig(save_base_name + "rgs_of_t" + save_format)
+        rgs_hists.savefig(save_base_name + "rgs_hists" + save_format)
     if display:
         return [rgs_t_plots, rgs_hists]
     else:
         return None
 
 
-def plot_std_dev_of_time(data, ax=None, xlabel='time / ns',
-                         ylabel='std. dev.', **kwargs):
+def plot_std_dev_of_time(
+    data, ax=None, xlabel="time / ns", ylabel="std. dev.", **kwargs
+):
     """
     Plot std. dev. as a function of time for checking PTMD convergence.
 
-    :param pd.DataFrame data: Data to plot. The columns should be the indices 
-        of either replicas or walkers and the index (row labels) should be 
+    :param pd.DataFrame data: Data to plot. The columns should be the indices
+        of either replicas or walkers and the index (row labels) should be
         times (in nanoseconds, if using the default xlabel).
-    :param matplotlib.axes.Axes ax: Default: None. If given, the data will be 
+    :param matplotlib.axes.Axes ax: Default: None. If given, the data will be
         plotted on the given Axes. Otherwise, a figure and axes will be created.
     :param str xlabel: Default: 'time / ns'. The label for the the x axis. If
         xlabel evaluates to False, the x axis label will not be set.
@@ -573,10 +633,11 @@ def plot_std_dev_of_time(data, ax=None, xlabel='time / ns',
 class _WRBase(object):
     """
     Base object for information about replica exchanges.
-    
-    
+
+
 
     """  # TODO finish docstring
+
     def __init__(self, filename, time_per_frame=0.002):
         """
         Initialize by reading in a replica exchange info file.
@@ -589,13 +650,17 @@ class _WRBase(object):
             likely the amount of time between attempted exchanges.
         """
         self._time_per_frame = time_per_frame
-        self._wr_count = len(open(filename, 'r').readline().split()) - 1
-        self._df = pd.read_csv(filename, sep=r'\s+', header=None,
-                               names=['times']+[str(i) for i in range(
-                                   self._wr_count)],
-                               index_col=0)
-        self._n_counts = pd.DataFrame({i: self._df[i].value_counts(
-            sort=False, normalize=True) for i in self._df})
+        self._wr_count = len(open(filename, "r").readline().split()) - 1
+        self._df = pd.read_csv(
+            filename,
+            sep=r"\s+",
+            header=None,
+            names=["times"] + [str(i) for i in range(self._wr_count)],
+            index_col=0,
+        )
+        self._n_counts = pd.DataFrame(
+            {i: self._df[i].value_counts(sort=False, normalize=True) for i in self._df}
+        )
         self._std_dev_of_t = None
         self._std_dev_of_t_cuts = None
 
@@ -610,10 +675,10 @@ class _WRBase(object):
         walkers spend in the replicas or the replicas for each replica,
         depending on which file was read in.
 
-        :param int n_cuts: Default: 10. Number of points in time to take 
-            along the trajectory for finding the cumulative standard 
+        :param int n_cuts: Default: 10. Number of points in time to take
+            along the trajectory for finding the cumulative standard
             deviation in the counts.
-        :param bool set_internally: Default: True. If True, the results of 
+        :param bool set_internally: Default: True. If True, the results of
             this calculation will be stored
         :return: The calculated standard deviations as a function of time.
             The columns are the replica or walker index number and the index
@@ -621,16 +686,30 @@ class _WRBase(object):
         :rtype: pd.DataFrame
         """
         times = np.linspace(len(self), 0, num=n_cuts, endpoint=False, dtype=int)
-        result = pd.DataFrame({time*self._time_per_frame: [
-            self._df[col][:time].value_counts(sort=False, normalize=True).std()
-            for col in self._df] for time in times}).T
+        result = pd.DataFrame(
+            {
+                time
+                * self._time_per_frame: [
+                    self._df[col][:time].value_counts(sort=False, normalize=True).std()
+                    for col in self._df
+                ]
+                for time in times
+            }
+        ).T
         if set_internally:
             self._std_dev_of_t = result
             self._std_dev_of_t_cuts = n_cuts
         return result
 
-    def plot_std_dev_of_time(self, n_cuts=None, set_internally=True, ax=None,
-                             xlabel=None, ylabel=None, **kwargs):
+    def plot_std_dev_of_time(
+        self,
+        n_cuts=None,
+        set_internally=True,
+        ax=None,
+        xlabel=None,
+        ylabel=None,
+        **kwargs
+    ):
         """
         Plot std. dev. as a function of time for checking PTMD convergence
 

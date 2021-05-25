@@ -44,16 +44,23 @@ from paratemp.tools import cd
 from paratemp._version import get_versions
 
 
-__all__ = ['compile_tprs', 'extend_tprs', 'cleanup_bad_gromacs_restart']
+__all__ = ["compile_tprs", "extend_tprs", "cleanup_bad_gromacs_restart"]
 
 
-def compile_tprs(start_temp, scaling_exponent,
-                 template='templatemdp.txt', number=16,
-                 base_name='npt',
-                 topology='../*top', multi_structure=False,
-                 structure='../*gro', index='../index.ndx',
-                 temps_file='temperatures.dat', maxwarn='0',
-                 grompp_exe='gmx grompp'):
+def compile_tprs(
+    start_temp,
+    scaling_exponent,
+    template="templatemdp.txt",
+    number=16,
+    base_name="npt",
+    topology="../*top",
+    multi_structure=False,
+    structure="../*gro",
+    index="../index.ndx",
+    temps_file="temperatures.dat",
+    maxwarn="0",
+    grompp_exe="gmx grompp",
+):
     """
     Compile TPR files for multi-temperature run with GROMACS
 
@@ -101,108 +108,145 @@ def compile_tprs(start_temp, scaling_exponent,
         found if ``multi_structure=True``).
     """
     if multi_structure:
-        structures = glob.glob(structure+'*.gro')
+        structures = glob.glob(structure + "*.gro")
         structures.sort()
         structures.sort(key=len)
         if len(structures) != number:
             raise OSError(
-                errno.ENOENT, 'Incorrect number of structure files found.\n'
-                              'Found {}, needed {}.'.format(len(structures),
-                                                            number))
+                errno.ENOENT,
+                "Incorrect number of structure files found.\n"
+                "Found {}, needed {}.".format(len(structures), number),
+            )
         _structure = structures[0]  # just to prevent IDE warning
     else:
         structures = glob.glob(structure)
         if len(structures) > 1:
             _structure = structures[0]
-            warn('Found {} structure files, '
-                 'using {}'.format(len(structures), _structure))
+            warn(
+                "Found {} structure files, "
+                "using {}".format(len(structures), _structure)
+            )
         elif len(structures) == 0:
-            raise OSError(errno.ENOENT, 'No structure file found.')
+            raise OSError(errno.ENOENT, "No structure file found.")
         else:
             _structure = structures[0]
     try:
         _topology = glob.glob(topology)[0]
     except IndexError:
-        raise OSError(errno.ENOENT, 'No topology file found.')
-    index_line = [] if index is None else ['-n', index]
+        raise OSError(errno.ENOENT, "No topology file found.")
+    index_line = [] if index is None else ["-n", index]
     temps = []
     error = False
     for i in range(number):
-        mdp_name = base_name + str(i) + '.mdp'
+        mdp_name = base_name + str(i) + ".mdp"
         temp = start_temp * exp(i * scaling_exponent)
         temps += [temp]
         if multi_structure:
             _structure = structures[i]
-        with open(template, 'r') as f_template, \
-                open(mdp_name, 'w') as out_file:
+        with open(template, "r") as f_template, open(mdp_name, "w") as out_file:
             for line in f_template:
-                if 'TempGoesHere' in line:
-                    line = line.replace('TempGoesHere', str(temp))
+                if "TempGoesHere" in line:
+                    line = line.replace("TempGoesHere", str(temp))
                 out_file.write(line)
         command_line = shlex.split(grompp_exe)
-        command_line += ['-f', mdp_name,
-                         '-p', _topology,
-                         '-c', _structure,
-                         *index_line,
-                         '-o', mdp_name.replace('mdp', 'tpr'),
-                         '-maxwarn', str(maxwarn)]
-        with open('gromacs_compile_output.log', 'a') as log_file:
-            proc = Popen(command_line,
-                         stdout=PIPE, bufsize=1,
-                         stderr=STDOUT,
-                         universal_newlines=True)
+        command_line += [
+            "-f",
+            mdp_name,
+            "-p",
+            _topology,
+            "-c",
+            _structure,
+            *index_line,
+            "-o",
+            mdp_name.replace("mdp", "tpr"),
+            "-maxwarn",
+            str(maxwarn),
+        ]
+        with open("gromacs_compile_output.log", "a") as log_file:
+            proc = Popen(
+                command_line,
+                stdout=PIPE,
+                bufsize=1,
+                stderr=STDOUT,
+                universal_newlines=True,
+            )
             stdout = proc.communicate()[0]
             for line in stdout.splitlines():
-                log_file.write(line+'\n')
+                log_file.write(line + "\n")
                 if error is True:  # Catch the next line after the error
                     error = line
                 elif error:  # If error is not True but is set to string
                     continue
-                elif ('Fatal error' in line or
-                        'File input/output error' in line or
-                        'Error in user input' in line):
+                elif (
+                    "Fatal error" in line
+                    or "File input/output error" in line
+                    or "Error in user input" in line
+                ):
                     error = True  # Deal with this after writing log file
         if error or proc.returncode != 0:
-            error = error if error else 'Unknown error. Check log file.'
-            raise RuntimeError(error, 'returncode: {}'.format(proc.returncode))
-    with open(temps_file, 'w') as t_out:
-        [t_out.write(str(t)+'\n') for t in temps]
+            error = error if error else "Unknown error. Check log file."
+            raise RuntimeError(error, "returncode: {}".format(proc.returncode))
+    with open(temps_file, "w") as t_out:
+        [t_out.write(str(t) + "\n") for t in temps]
     return pathlib.Path(base_name).absolute()
 
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
 
-    __version__ = get_versions()['version']
+    __version__ = get_versions()["version"]
 
-    parser = ArgumentParser(description='A script to help setup parallel '
-                                        'tempering jobs in GROMACS with '
-                                        'PLUMED')
-    parser.add_argument('-l', '--template', default='templatemdp.txt',
-                        help='name of template file')
-    parser.add_argument('-s', '--start_temp', default=205,
-                        help='starting (lowest) temperature')
-    parser.add_argument('-n', '--number', default=16,
-                        help='number of replicates')
-    parser.add_argument('-e', '--scaling_exponent', default=0.025,
-                        help='exponent by which to scale temps')
-    parser.add_argument('-b', '--base_name', default='npt',
-                        help='base name for output mdp and tpr files')
-    parser.add_argument('-p', '--topology',
-                        default='../*.top',
-                        help='name of topology file (.top)')
-    parser.add_argument('-m', '--multi_structure', dest='multi_structure',
-                        action='store_true',
-                        help='Use multiple starting structure files')
+    parser = ArgumentParser(
+        description="A script to help setup parallel "
+        "tempering jobs in GROMACS with "
+        "PLUMED"
+    )
+    parser.add_argument(
+        "-l", "--template", default="templatemdp.txt", help="name of template file"
+    )
+    parser.add_argument(
+        "-s", "--start_temp", default=205, help="starting (lowest) temperature"
+    )
+    parser.add_argument("-n", "--number", default=16, help="number of replicates")
+    parser.add_argument(
+        "-e",
+        "--scaling_exponent",
+        default=0.025,
+        help="exponent by which to scale temps",
+    )
+    parser.add_argument(
+        "-b",
+        "--base_name",
+        default="npt",
+        help="base name for output mdp and tpr files",
+    )
+    parser.add_argument(
+        "-p", "--topology", default="../*.top", help="name of topology file (.top)"
+    )
+    parser.add_argument(
+        "-m",
+        "--multi_structure",
+        dest="multi_structure",
+        action="store_true",
+        help="Use multiple starting structure files",
+    )
     parser.set_defaults(multi_structure=False)
-    parser.add_argument('-c', '--structure', default='../*.gro',
-                        help='structure file or basename (.gro) ')
-    parser.add_argument('--index', default='../index.ndx',
-                        help='index files')
-    parser.add_argument('-t', '--temps_file', default='temperatures.dat',
-                        help='name of file with list of temperatures')
-    parser.add_argument('--version', action='version',
-                        version='%(prog)s v{}'.format(__version__))
+    parser.add_argument(
+        "-c",
+        "--structure",
+        default="../*.gro",
+        help="structure file or basename (.gro) ",
+    )
+    parser.add_argument("--index", default="../index.ndx", help="index files")
+    parser.add_argument(
+        "-t",
+        "--temps_file",
+        default="temperatures.dat",
+        help="name of file with list of temperatures",
+    )
+    parser.add_argument(
+        "--version", action="version", version="%(prog)s v{}".format(__version__)
+    )
     args = parser.parse_args()
 
     # TODO see if argparse can do any type checking
@@ -216,14 +260,22 @@ if __name__ == "__main__":
         multi_structure=args.multi_structure,
         structure=args.structure,
         index=args.index,
-        temps_file=args.temps_file
+        temps_file=args.temps_file,
     )
 
 
-def extend_tprs(base_name, time, working_dir=None, sub_script=None,
-                submit=False, extend_infix='-extend', first_extension=True,
-                cpt_base='npt', verbose=True,
-                log='extend-tprs.log'):
+def extend_tprs(
+    base_name,
+    time,
+    working_dir=None,
+    sub_script=None,
+    submit=False,
+    extend_infix="-extend",
+    first_extension=True,
+    cpt_base="npt",
+    verbose=True,
+    log="extend-tprs.log",
+):
     """
     Extend a set of tpr files
 
@@ -262,7 +314,7 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
     """
     _tpr_dir, _rel_base_name = os.path.split(os.path.abspath(base_name))
     if working_dir is None:
-        _working_dir = os.path.abspath(_tpr_dir+'/../')
+        _working_dir = os.path.abspath(_tpr_dir + "/../")
     else:
         _working_dir = working_dir
     if sub_script is not None:
@@ -272,57 +324,69 @@ def extend_tprs(base_name, time, working_dir=None, sub_script=None,
         elif os.path.isfile(second_poss):
             _sub_script = second_poss
         else:
-            raise OSError(errno.ENOENT, 'Submit script not found relative to '
-                                        'here or working_dir.')
+            raise OSError(
+                errno.ENOENT,
+                "Submit script not found relative to " "here or working_dir.",
+            )
     else:
         _sub_script = None  # Only needed so the IDE stops bothering me
-    with cd(_working_dir), open(log, 'a') as _log:
+    with cd(_working_dir), open(log, "a") as _log:
         if float(time):
             _time = str(time)
-            re_split_name = re.compile(r'({})(\d+\.tpr)'.format(_rel_base_name))
+            re_split_name = re.compile(r"({})(\d+\.tpr)".format(_rel_base_name))
             with cd(_tpr_dir):
-                tpr_names = glob.glob(_rel_base_name+'*.tpr')
+                tpr_names = glob.glob(_rel_base_name + "*.tpr")
                 if len(tpr_names) < 1:
-                    raise InputError(base_name, 'no files found for {}'.format(
-                                         base_name+'*.tpr'))
+                    raise InputError(
+                        base_name, "no files found for {}".format(base_name + "*.tpr")
+                    )
                 if verbose:
-                    print('Extending {} tpr files'.format(len(tpr_names)))
+                    print("Extending {} tpr files".format(len(tpr_names)))
                 for tpr_name in tpr_names:
                     tpr_groups = re_split_name.match(tpr_name)
-                    new_tpr_name = (tpr_groups.group(1) + extend_infix +
-                                    tpr_groups.group(2))
+                    new_tpr_name = (
+                        tpr_groups.group(1) + extend_infix + tpr_groups.group(2)
+                    )
                     _extend_tpr(tpr_name, new_tpr_name, _time, _log)
                 if verbose:
-                    print(' '*4 + 'Done extending tpr files.')
+                    print(" " * 4 + "Done extending tpr files.")
             extended = True
         else:
             extended = False
             if verbose:
-                print('tpr files not extended (no time to be added)')
+                print("tpr files not extended (no time to be added)")
         if sub_script is not None:
             _sub_script = os.path.relpath(_sub_script)
             if extended:
                 if verbose:
-                    print('Editing {} for new tpr names '
-                          'with {}'.format(_sub_script, extend_infix))
-                _replace_string_in_file(_rel_base_name + ' ', _rel_base_name +
-                                        extend_infix + ' ', _sub_script, _log)
+                    print(
+                        "Editing {} for new tpr names "
+                        "with {}".format(_sub_script, extend_infix)
+                    )
+                _replace_string_in_file(
+                    _rel_base_name + " ",
+                    _rel_base_name + extend_infix + " ",
+                    _sub_script,
+                    _log,
+                )
             if first_extension:
                 _cpt_base = _find_cpt_base(cpt_base)
                 _add_cpt_to_sub_script(_sub_script, _cpt_base, _log)
                 if verbose:
-                    print('Editing {} to reference the checkpoint '
-                          'files {}'.format(_sub_script, _cpt_base))
+                    print(
+                        "Editing {} to reference the checkpoint "
+                        "files {}".format(_sub_script, _cpt_base)
+                    )
             if submit:
                 if verbose:
-                    print('Submitting job...')
+                    print("Submitting job...")
                 job_info = _submit_script(_sub_script, _log)
                 if verbose:
-                    print('Job number {} has been submitted.'.format(
-                        job_info[2]))
+                    print("Job number {} has been submitted.".format(job_info[2]))
         elif submit:
-            print('Job not submitted because no submission script name was '
-                  'provided.')
+            print(
+                "Job not submitted because no submission script name was " "provided."
+            )
 
 
 def _extend_tpr(old_name, new_name, time, log_stream=_BlankStream()):
@@ -337,16 +401,14 @@ def _extend_tpr(old_name, new_name, time, log_stream=_BlankStream()):
     :type log_stream: _BlankStream or BinaryIO
     :return:
     """
-    log_stream.write('Extending {} as {}\n'.format(old_name, new_name))
+    log_stream.write("Extending {} as {}\n".format(old_name, new_name))
     log_stream.flush()
-    cl = ['gmx_mpi', 'convert-tpr',
-          '-s', old_name,
-          '-o', new_name,
-          '-extend', time]
-    return_code = subprocess.call(cl, stderr=log_stream, stdout=log_stream,
-                                  universal_newlines=True)
+    cl = ["gmx_mpi", "convert-tpr", "-s", old_name, "-o", new_name, "-extend", time]
+    return_code = subprocess.call(
+        cl, stderr=log_stream, stdout=log_stream, universal_newlines=True
+    )
     if return_code != 0:
-        raise subprocess.CalledProcessError(return_code, ' '.join(cl))
+        raise subprocess.CalledProcessError(return_code, " ".join(cl))
 
 
 def _find_cpt_base(cpt_base):
@@ -359,17 +421,22 @@ def _find_cpt_base(cpt_base):
         and ".cpt")
     :rtype: str
     """
-    possible_matches = glob.glob(cpt_base+'*.cpt')
+    possible_matches = glob.glob(cpt_base + "*.cpt")
     for f_name in possible_matches:
-        match = re.match(r'({}.*?)\d{}\.cpt'.format(cpt_base, '{1,3}'), f_name)
+        match = re.match(r"({}.*?)\d{}\.cpt".format(cpt_base, "{1,3}"), f_name)
         if match:
             return match.group(1)
-    raise ValueError('No checkpoint file name found based on the base '
-                     'name {}.'.format(cpt_base))
+    raise ValueError(
+        "No checkpoint file name found based on the base " "name {}.".format(cpt_base)
+    )
 
 
-def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
-                           temp_bak_name='temp-submission-script.bak'):
+def _add_cpt_to_sub_script(
+    sub_script,
+    cpt_base,
+    log_stream=_BlankStream(),
+    temp_bak_name="temp-submission-script.bak",
+):
     """
     Add a checkpoint file to GROMACS submission line
 
@@ -385,38 +452,40 @@ def _add_cpt_to_sub_script(sub_script, cpt_base, log_stream=_BlankStream(),
         this will be deleted after the new file is written.
     :return: None
     """
-    re_mdrun_line = re.compile(r'mdrun_mpi|gmx_mpi\s+mdrun|gmx\s+mdrun_mpi')
+    re_mdrun_line = re.compile(r"mdrun_mpi|gmx_mpi\s+mdrun|gmx\s+mdrun_mpi")
     log_stream.write('Adding "-cpi {}" to {}\n'.format(cpt_base, sub_script))
     log_stream.flush()
-    with open(sub_script, 'r') as f_in:
+    with open(sub_script, "r") as f_in:
         lines_in = f_in.readlines()
-    with open(temp_bak_name, 'w') as temp_out:
+    with open(temp_bak_name, "w") as temp_out:
         [temp_out.write(line) for line in lines_in]
-    with open(sub_script, 'w') as f_out:
+    with open(sub_script, "w") as f_out:
         changed = False
         for line in lines_in:
-            line_list = line.split('#', 1)
+            line_list = line.split("#", 1)
             line = line_list[0]
             if not changed:
                 match = re_mdrun_line.search(line)
                 if match:
-                    if '-cpi ' not in line:
-                        line = line.replace('\n', ' ') + '-cpi {}\n'.format(
-                            cpt_base)
+                    if "-cpi " not in line:
+                        line = line.replace("\n", " ") + "-cpi {}\n".format(cpt_base)
                     changed = True
             if len(line_list) > 1:
-                line = '#'.join(line_list)
+                line = "#".join(line_list)
             f_out.write(line)
         else:
             os.remove(temp_bak_name)
     if not changed:
-        raise ValueError('Could not find GROMACS mdrun line in submission '
-                         'script, so the checkpoint file ("-cpi ...") was not '
-                         'added to it.')
+        raise ValueError(
+            "Could not find GROMACS mdrun line in submission "
+            'script, so the checkpoint file ("-cpi ...") was not '
+            "added to it."
+        )
 
 
-def cleanup_bad_gromacs_restart(out_base, working_dir='./', list_files=True,
-                                replace_files=False, verbose=True):
+def cleanup_bad_gromacs_restart(
+    out_base, working_dir="./", list_files=True, replace_files=False, verbose=True
+):
     """
     Replace "new" files with GROMACS backed-up files after messed-up restart
 
@@ -435,13 +504,16 @@ def cleanup_bad_gromacs_restart(out_base, working_dir='./', list_files=True,
     :return: None
     """
     with cd(working_dir):
-        good_files = glob.glob('#'+out_base+'*')
-        bad_files = glob.glob(out_base+'*')
+        good_files = glob.glob("#" + out_base + "*")
+        bad_files = glob.glob(out_base + "*")
         good_files.sort()
         bad_files.sort()
         if verbose:
-            print('Found {} "bad" and {} "good" files.'.format(len(
-                bad_files), len(good_files)))
+            print(
+                'Found {} "bad" and {} "good" files.'.format(
+                    len(bad_files), len(good_files)
+                )
+            )
         match_dict = dict()
         unmatched_good = list()
         unmatched_bad = list(bad_files)
@@ -453,40 +525,43 @@ def cleanup_bad_gromacs_restart(out_base, working_dir='./', list_files=True,
             else:
                 unmatched_good.append(g_name)
         if verbose:
-            print('Total of {} matched files.'.format(len(match_dict)))
+            print("Total of {} matched files.".format(len(match_dict)))
         if len(unmatched_good) + len(unmatched_bad) != 0 and verbose:
-            print('Unmatched file counts:\n    '
-                  'good:{:>3}\n    bad:{:>3}'.format(len(unmatched_good),
-                                                     len(unmatched_bad)))
+            print(
+                "Unmatched file counts:\n    "
+                "good:{:>3}\n    bad:{:>3}".format(
+                    len(unmatched_good), len(unmatched_bad)
+                )
+            )
         elif verbose:
-            print('No unmatched files.')
+            print("No unmatched files.")
         if list_files:
             if len(unmatched_good) != 0:
                 print('Unmatched "good" files:')
                 for g_name in unmatched_good:
-                    print('    {}'.format(g_name))
+                    print("    {}".format(g_name))
             else:
                 print('No unmatched "good" files')
             if len(unmatched_bad) != 0:
                 print('Unmatched "bad" files:')
                 for b_name in unmatched_bad:
-                    print('    {}'.format(b_name))
+                    print("    {}".format(b_name))
             else:
                 print('No unmatched "bad" files')
             if len(match_dict) > 0:
-                print('Matched files:\n')
-                print('-'*63)
-                print('{:^30} | {:^30}'.format('good', 'bad'))
-                print('-'*63)
+                print("Matched files:\n")
+                print("-" * 63)
+                print("{:^30} | {:^30}".format("good", "bad"))
+                print("-" * 63)
                 for key in sorted(match_dict):
-                    print('{:>30} | {:>30}'.format(match_dict[key], key))
-                print('-'*63)
+                    print("{:>30} | {:>30}".format(match_dict[key], key))
+                print("-" * 63)
             else:
-                print('No matched files!!')
+                print("No matched files!!")
         if replace_files:
             if verbose:
                 print('Now replacing "bad" with matched "good" files.')
             for b_name in match_dict:
                 shutil.move(match_dict[b_name], b_name)
             if verbose:
-                print('Done replacing files.')
+                print("Done replacing files.")

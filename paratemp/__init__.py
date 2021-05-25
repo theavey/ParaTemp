@@ -1,5 +1,3 @@
-
-
 ########################################################################
 #                                                                      #
 # This package was written by Thomas Heavey in 2018.                   #
@@ -35,8 +33,7 @@ from . import plotting
 del absolute_import
 
 
-__version__ = get_versions()['version']
+__version__ = get_versions()["version"]
 del get_versions
 
-__author__ = ['Thomas Heavey',
-              'Jacob Marasco']
+__author__ = ["Thomas Heavey", "Jacob Marasco"]
